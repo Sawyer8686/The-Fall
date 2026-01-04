@@ -1,0 +1,17 @@
+# Unreal Engine 5
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+*.sln
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
