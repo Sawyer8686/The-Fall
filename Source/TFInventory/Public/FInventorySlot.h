@@ -17,18 +17,30 @@ struct FInventorySlot
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float CurrentDurability = -1.0;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float ItemWeight = 0.0f;
+
 	FInventorySlot() {}
 
-	FORCEINLINE void Clear()
+	void SetItemData(const FName ItemID, const int Quantity, const float Durability, const float Weight)
+	{
+		this->ItemID = ItemID;
+		this->Quantity = Quantity;
+		this->CurrentDurability = Durability;
+		this->ItemWeight = Weight;
+	}
+	
+	FORCEINLINE void ClearItemData()
 	{
 		ItemID = NAME_None;
 		Quantity = 0;
 		CurrentDurability = -1.0;
+		ItemWeight = 0.0f;
 	}
 
 	FORCEINLINE bool IsValid() const
 	{
-		return ItemID != NAME_None && Quantity > 0;
+		return !ItemID.IsNone() && Quantity > 0;
 	}
 
 

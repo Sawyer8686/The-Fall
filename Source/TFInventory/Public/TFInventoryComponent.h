@@ -5,6 +5,8 @@
 #include "FInventorySlot.h"
 #include "TFInventoryComponent.generated.h"
 
+struct FTFItemsData;
+
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class TFINVENTORY_API UTFInventoryComponent : public UActorComponent
@@ -12,6 +14,12 @@ class TFINVENTORY_API UTFInventoryComponent : public UActorComponent
 	GENERATED_BODY()
 
 private:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	float MaxCarryWeight = 100.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	float CurrentCarryWeight = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int TotalNumberOfSlots = 10;
@@ -22,12 +30,20 @@ private:
 protected:
 
 	virtual void BeginPlay() override;
-
+	virtual void UpdateWeight();
 	virtual void ResizeInventory();
 
 public:
 
 	UTFInventoryComponent();
 
-	bool UpdateInventorySlots(const int NewSlots);
+	UFUNCTION(BlueprintCallable)
+	int AddItemToInventory(const FTFItemsData& ItemData, const int Quantity, const float Durability = -1.0);
+
+	UFUNCTION(BlueprintCallable)
+	bool UpdateInventorySlotCount(const int NewSlots);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetCarryWeightPercentile() const { return CurrentCarryWeight / MaxCarryWeight; }
+		
 };

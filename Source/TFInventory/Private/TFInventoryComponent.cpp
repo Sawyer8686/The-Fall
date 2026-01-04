@@ -1,4 +1,5 @@
 #include "TFInventoryComponent.h"
+#include "TFItemsData.h"
 
 
 UTFInventoryComponent::UTFInventoryComponent()
@@ -6,11 +7,52 @@ UTFInventoryComponent::UTFInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;	
 }
 
-bool UTFInventoryComponent::UpdateInventorySlots(const int NewSlots)
+int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, const int Quantity, const float Durability)
+{
+	int NumberToAdd = Quantity;
+	for (auto Item : InventoryContents)
+	{
+		if (!Item.IsValid() || ItemData.ItemID != Item.ItemID || Item.Quantity >= ItemData.ItemMaxStackSize)
+		{
+			continue;
+		}
+		int StackSpace = ItemData.ItemMaxStackSize - Item.Quantity;
+		int ToAdd = FMath::Min(StackSpace, NumberToAdd);
+		Item.Quantity += ToAdd;
+		NumberToAdd -= ToAdd;
+
+		if (NumberToAdd <= 0)
+		{
+			return NumberToAdd; //return number not added
+		}
+
+		for (auto Item : InventoryContents)
+		{
+			if (Item.IsValid())
+			{
+				continue;
+			}
+		}
+
+		int ToAdd = FMath::Min(ItemData.ItemMaxStackSize, NumberToAdd);
+		Item.SetItemData(ItemData.ItemID, ToAdd, Durability, ItemData.SingleItemWeight);
+		NumberToAdd -= ToAdd;
+		if (NumberToAdd <= 0)
+		{
+			return NumberToAdd; //return number not added
+		}
+
+	}
+
+
+	return NumberToAdd; //return number not added
+}
+
+bool UTFInventoryComponent::UpdateInventorySlotCount(const int NewSlots)
 {
 	TotalNumberOfSlots = NewSlots;
 	ResizeInventory();
-	//Recalculate slots/weight
+	UpdateWeight();
 	return true;
 }
 
@@ -45,8 +87,23 @@ void UTFInventoryComponent::ResizeInventory()
 void UTFInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	//Set Array Size
 	ResizeInventory();
+	UpdateWeight();
+}
+
+void UTFInventoryComponent::UpdateWeight()
+{
+	float tempWeight = 0.0f;
+	for (const auto Item : InventoryContents)
+	{
+		if (!Item.IsValid())
+		{
+			continue;
+		}
+
+		tempWeight += (Item.Quantity * Item.ItemWeight);
+	}
+	CurrentCarryWeight = tempWeight;
 }
 
 

@@ -16,15 +16,15 @@ public class TFInventory : ModuleRules
 				"Core",
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
 				"Engine",
-				"TFItems"
-            }
+				"TFItems",
+			}
 			);
 		
 		
