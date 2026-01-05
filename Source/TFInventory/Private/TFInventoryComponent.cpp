@@ -48,6 +48,50 @@ int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, cons
 	return NumberToAdd; //return number not added
 }
 
+bool UTFInventoryComponent::RemoveItemFromInventory(const FName ItemID, const int Quantity)
+{
+	int NumberToRemove = Quantity;
+	TArray<int> ItemAtIndex;
+	for (int i = InventoryContents.Num() -1; i >= 0; i--)
+	{
+		if (InventoryContents[i].ItemID == ItemID)
+		{
+			ItemAtIndex.Add(i);
+			int RemovedFromStack = FMath::Min(InventoryContents[i].Quantity, NumberToRemove);
+			NumberToRemove -= RemovedFromStack;
+			if(NumberToRemove <= 0)
+			{
+				break;
+			}
+		}
+	}
+	if(NumberToRemove > 0)
+	{
+		return false;
+	}
+	
+	NumberToRemove = Quantity;
+	for (const auto i : ItemAtIndex)
+	{
+		int StackSize = InventoryContents[i].Quantity;
+		int ToRemove = FMath::Min(StackSize, NumberToRemove);
+		InventoryContents[i].Quantity -= ToRemove;
+		NumberToRemove -= ToRemove;
+
+		if(!InventoryContents[i].IsValid())
+		{
+			InventoryContents[i].ClearItemData();
+		}
+		
+		if (NumberToRemove <= 0)
+		{
+			break;
+		}	
+	}
+
+	return true;
+}
+
 bool UTFInventoryComponent::UpdateInventorySlotCount(const int NewSlots)
 {
 	TotalNumberOfSlots = NewSlots;

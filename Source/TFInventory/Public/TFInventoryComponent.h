@@ -41,6 +41,12 @@ public:
 	int AddItemToInventory(const FTFItemsData& ItemData, const int Quantity, const float Durability = -1.0);
 
 	UFUNCTION(BlueprintCallable)
+	bool RemoveItemFromInventory(const FName ItemID, const int Quantity);
+
+	UFUNCTION(BlueprintCallable)
+	void TransferItemFromInventory() {};
+
+	UFUNCTION(BlueprintCallable)
 	bool UpdateInventorySlotCount(const int NewSlots);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
