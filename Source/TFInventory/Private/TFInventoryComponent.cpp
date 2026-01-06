@@ -17,6 +17,7 @@ int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, cons
 			continue;
 		}
 		int StackSpace = ItemData.ItemMaxStackSize - Item.Quantity;
+
 		int ToAdd = FMath::Min(StackSpace, NumberToAdd);
 		Item.Quantity += ToAdd;
 		NumberToAdd -= ToAdd;
