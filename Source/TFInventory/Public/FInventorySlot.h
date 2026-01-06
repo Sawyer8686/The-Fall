@@ -22,10 +22,10 @@ struct FInventorySlot
 
 	FInventorySlot() {}
 
-	void SetItemData(const FName ItemID, const int Quantity, const float Durability, const float Weight)
+	void SetItemData(const FName itemID, const int quantity, const float Durability, const float Weight)
 	{
-		ItemID = ItemID;
-		Quantity = Quantity;
+		ItemID = itemID;
+		Quantity = quantity;
 		CurrentDurability = Durability;
 		ItemWeight = Weight;
 	}

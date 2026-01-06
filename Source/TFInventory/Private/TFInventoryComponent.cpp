@@ -41,15 +41,22 @@ int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, cons
 			return NumberToAdd; //return number not added
 		}
 
-		for (auto Item : InventoryContents)
+		//for (auto Item : InventoryContents)
+		//{
+		//	if (Item.IsValid())
+		//	{
+		//		continue;
+		//	}
+		//}
+		for (auto item : InventoryContents)
 		{
-			if (Item.IsValid())
+			if (item.IsValid())
 			{
 				continue;
 			}
 		}
 
-		int ToAdd = FMath::Min(ItemData.ItemMaxStackSize, NumberToAdd);
+		/*int*/ ToAdd = FMath::Min(ItemData.ItemMaxStackSize, NumberToAdd);
 		Item.SetItemData(ItemData.ItemID, ToAdd, Durability, ItemData.SingleItemWeight);
 		NumberToAdd -= ToAdd;
 		if (NumberToAdd <= 0)
@@ -108,7 +115,7 @@ int UTFInventoryComponent::AddItemToSlot(const FTFItemsData& ItemData, const int
 		}
 		UpdateWeight();
 		return Remaining;
-		break;
+		//break;
 		
 	}
 	
