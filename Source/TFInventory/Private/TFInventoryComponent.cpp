@@ -83,7 +83,6 @@ bool UTFInventoryComponent::RemoveItemFromInventory(const FName ItemID, const in
 		{
 			InventoryContents[i].ClearItemData();
 		}
-		
 		if (NumberToRemove <= 0)
 		{
 			break;
