@@ -88,7 +88,6 @@ bool UTFInventoryComponent::RemoveItemFromInventory(const FName ItemID, const in
 			break;
 		}	
 	}
-
 	return true;
 }
 
