@@ -1,10 +1,23 @@
 #include "TFInventoryComponent.h"
+#include "IntVectorTypes.h"
 #include "TFItemsData.h"
 
 
 UTFInventoryComponent::UTFInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;	
+}
+
+void UTFInventoryComponent::DropItemToWorldAtIndex(const int index)
+{
+	//TODO : call to SpawnManager to drop item in the world
+}
+
+void UTFInventoryComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	ResizeInventory();
+	UpdateWeight();
 }
 
 int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, const int Quantity, const float Durability)
@@ -24,6 +37,7 @@ int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, cons
 
 		if (NumberToAdd <= 0)
 		{
+			UpdateWeight();
 			return NumberToAdd; //return number not added
 		}
 
@@ -40,13 +54,77 @@ int UTFInventoryComponent::AddItemToInventory(const FTFItemsData& ItemData, cons
 		NumberToAdd -= ToAdd;
 		if (NumberToAdd <= 0)
 		{
+			UpdateWeight();
 			return NumberToAdd; //return number not added
 		}
 
 	}
 
-
+	UpdateWeight();
 	return NumberToAdd; //return number not added
+}
+
+int UTFInventoryComponent::AddItemToSlot(const FTFItemsData& ItemData, const int Quantity, const float Durability, const int index)
+{
+	if (index < 0 || index >= TotalNumberOfSlots)
+	{
+		return AddItemToInventory(ItemData,Quantity,Durability);
+	}
+
+	int Remaining = Quantity;
+
+	//move to an empty slot
+
+	if(!InventoryContents[index].IsValid())
+	{
+		int ToAdd = FMath::Min(ItemData.ItemMaxStackSize, Quantity);
+		InventoryContents[index].SetItemData(ItemData.ItemID, ToAdd, Durability, ItemData.SingleItemWeight);
+		Remaining -= ToAdd;
+		if (Remaining > 0)
+		{
+			return AddItemToInventory(ItemData, Remaining, Durability);
+		}
+		UpdateWeight();
+		return Remaining;
+	}
+	//move to an occupied slot
+	//move pre-existing item to empty slot, or drop if not available
+
+	for (auto item : InventoryContents)
+	{
+		if (item.IsValid())
+		{
+			continue;
+		}
+			
+		item = InventoryContents[index];
+		InventoryContents[index].ClearItemData();
+		int ToAdd = FMath::Min(ItemData.ItemMaxStackSize, Quantity);
+		InventoryContents[index].SetItemData(ItemData.ItemID, ToAdd, Durability, ItemData.SingleItemWeight);
+		Remaining -= ToAdd;
+		if (Remaining > 0)
+		{
+			return AddItemToInventory(ItemData, Remaining, Durability);
+		}
+		UpdateWeight();
+		return Remaining;
+		break;
+		
+	}
+	
+	DropItemToWorldAtIndex(index);
+	InventoryContents[index].ClearItemData();
+	int ToAdd = FMath::Min(ItemData.ItemMaxStackSize, Quantity);
+	InventoryContents[index].SetItemData(ItemData.ItemID, ToAdd, Durability, ItemData.SingleItemWeight);
+	Remaining -= ToAdd;
+	if (Remaining > 0)
+	{
+		return AddItemToInventory(ItemData, Remaining, Durability);
+	}
+	UpdateWeight();
+	return Remaining;
+
+	
 }
 
 bool UTFInventoryComponent::RemoveItemFromInventory(const FName ItemID, const int Quantity)
@@ -68,6 +146,7 @@ bool UTFInventoryComponent::RemoveItemFromInventory(const FName ItemID, const in
 	}
 	if(NumberToRemove > 0)
 	{
+		UpdateWeight();
 		return false;
 	}
 	
@@ -88,6 +167,7 @@ bool UTFInventoryComponent::RemoveItemFromInventory(const FName ItemID, const in
 			break;
 		}	
 	}
+	UpdateWeight();	
 	return true;
 }
 
@@ -117,6 +197,7 @@ void UTFInventoryComponent::ResizeInventory()
 
 	while (InventoryContents.Num() > TotalNumberOfSlots)
 	{
+		// rework to use DropItemToWorldAtIndex
 		FInventorySlot DroppedItem = InventoryContents.Pop();
 		if (DroppedItem.IsValid())
 		{
@@ -125,13 +206,6 @@ void UTFInventoryComponent::ResizeInventory()
 		
 	}
 	
-}
-
-void UTFInventoryComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	ResizeInventory();
-	UpdateWeight();
 }
 
 void UTFInventoryComponent::UpdateWeight()

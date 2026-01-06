@@ -24,10 +24,10 @@ struct FInventorySlot
 
 	void SetItemData(const FName ItemID, const int Quantity, const float Durability, const float Weight)
 	{
-		this->ItemID = ItemID;
-		this->Quantity = Quantity;
-		this->CurrentDurability = Durability;
-		this->ItemWeight = Weight;
+		ItemID = ItemID;
+		Quantity = Quantity;
+		CurrentDurability = Durability;
+		ItemWeight = Weight;
 	}
 	
 	FORCEINLINE void ClearItemData()

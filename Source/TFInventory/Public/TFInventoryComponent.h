@@ -27,6 +27,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<FInventorySlot> InventoryContents;
 
+	void DropItemToWorldAtIndex(const int index);
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -51,5 +53,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	float GetCarryWeightPercentile() const { return CurrentCarryWeight / MaxCarryWeight; }
+
+	UFUNCTION(BlueprintCallable)
+	int AddItemToSlot(const FTFItemsData& ItemData, const int Quantity, const float Durability = -1.0, const int index = -1);
 		
 };
