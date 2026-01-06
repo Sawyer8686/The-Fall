@@ -62,6 +62,8 @@ void ATFPlayerCharacter::Tick(float DeltaTime)
 
 void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 	if(APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		
@@ -147,7 +149,7 @@ void ATFPlayerCharacter::TogglePerspective()
 		FirstPersonCamera->Deactivate();
 		ThirdPersonCamera->Activate();
 		bUseControllerRotationPitch = false;
-		bUseControllerRotationPitch = false;
+		bUseControllerRotationYaw = false;
 		bUseControllerRotationRoll = false;
 		return;
 	}
