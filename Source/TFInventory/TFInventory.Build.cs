@@ -24,7 +24,8 @@ public class TFInventory : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"TFItems",
-			}
+                "TFCoreData"
+            }
 			);
 		
 		

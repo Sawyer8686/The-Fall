@@ -19,7 +19,7 @@ struct FTFItemsData : public FTableRowBase
 	float SingleItemWeight = 0.0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxDurability = -1.0; // 0-1 as percentile, <0 not used
+	float MaxDurability = -1; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* Icon = nullptr;
@@ -43,14 +43,16 @@ struct FTFItemsData : public FTableRowBase
 
 	FORCEINLINE bool IsValid() const
 	{
-		return ItemID.IsNone() && ItemMaxStackSize > 0;
+		//return ItemID.IsNone() && ItemMaxStackSize > 0;
+		return !ItemID.IsNone() && ItemMaxStackSize > 0;
 	}
 
 	FORCEINLINE void Clear()
 	{
 		ItemID = NAME_None;
 		ItemMaxStackSize = 0;
-		MaxDurability = 0;
+		MaxDurability = -1;
+		SingleItemWeight = 0.0;
 		Icon = nullptr;
 		Mesh = nullptr;
 		SkeletalMesh = nullptr;

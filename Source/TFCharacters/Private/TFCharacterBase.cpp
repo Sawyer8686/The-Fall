@@ -65,7 +65,7 @@ void ATFCharacterBase::SetSprinting(const bool bSprinting)
 
 void ATFCharacterBase::SetSneaking(const bool bSneaking)
 {
-	if(bIsSneaking)
+	if(bSneaking)
 	{
 		bIsSprinting = false;
 		GetCharacterMovement()->MaxWalkSpeed = GetSneakSpeed();	

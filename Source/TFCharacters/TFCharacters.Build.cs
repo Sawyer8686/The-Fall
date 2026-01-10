@@ -14,6 +14,7 @@ public class TFCharacters : ModuleRules
 			{
 				"Core",
 				"EnhancedInput",
+                "InputCore"
             }
 			);
 			
@@ -24,6 +25,8 @@ public class TFCharacters : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"TFCoreData",
+                "TFInventory"
+
             }
 			);
 		
