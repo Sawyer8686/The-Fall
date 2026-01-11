@@ -13,8 +13,12 @@
 			"Name": "TFCharacters",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "UI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
-	
 	],
 	"Plugins": [
 		{

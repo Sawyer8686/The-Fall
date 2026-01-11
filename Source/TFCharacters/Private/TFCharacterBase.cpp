@@ -1,29 +1,113 @@
-#include "TFCharacterBase.h"
+// Fill out your copyright notice in the Description page of Project Settings.
 
+#include "TFCharacterBase.h"
+#include "TFStaminaComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-// Sets default values
 ATFCharacterBase::ATFCharacterBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
+	// Create stamina component
+	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
 }
 
-// Called when the game starts or when spawned
 void ATFCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// Bind to stamina events
+	BindStaminaEvents();
+}
+
+void ATFCharacterBase::BindStaminaEvents()
+{
+	if (StaminaComponent)
+	{
+		StaminaComponent->OnStaminaDepleted.AddDynamic(this, &ATFCharacterBase::HandleStaminaDepleted);
+		StaminaComponent->OnStaminaRecovered.AddDynamic(this, &ATFCharacterBase::HandleStaminaRecovered);
+	}
+}
+
+void ATFCharacterBase::HandleStaminaDepleted()
+{
+	// Force stop sprinting when stamina depleted
+	if (bIsSprinting)
+	{
+		SetSprinting(false);
+	}
+
+	// Update movement speed for exhaustion penalty
+	UpdateMovementSpeed();
+
+	// Call blueprint event
+	OnStaminaDepleted();
+}
+
+void ATFCharacterBase::HandleStaminaRecovered()
+{
+	// Remove exhaustion penalty
+	UpdateMovementSpeed();
+
+	// Call blueprint event
+	OnStaminaRecovered();
+}
+
+void ATFCharacterBase::UpdateMovementSpeed()
+{
+	if (!GetCharacterMovement() || !StaminaComponent)
+	{
+		return;
+	}
+
+	float TargetSpeed = WalkSpeed;
+
+	if (bIsSprinting)
+	{
+		TargetSpeed = SprintSpeed;
+	}
+	else if (bIsSneaking)
+	{
+		TargetSpeed = SneakSpeed;
+	}
+
+	// Apply exhaustion penalty if exhausted
+	if (StaminaComponent->IsExhausted())
+	{
+		TargetSpeed *= ExhaustedSpeedMultiplier;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = TargetSpeed;
 }
 
 bool ATFCharacterBase::CanCharacterJump() const
 {
-	return CanJump();
+	// Check base jump conditions and stamina
+	if (!CanJump())
+	{
+		return false;
+	}
+
+	if (StaminaComponent)
+	{
+		return StaminaComponent->CanJump();
+	}
+
+	return true;
 }
 
 void ATFCharacterBase::HasJumped()
 {
+	// Consume stamina for jump
+	if (StaminaComponent)
+	{
+		StaminaComponent->ConsumeStamina(
+			StaminaComponent->JumpStaminaCost,
+			EStaminaDrainReason::Jump
+		);
+	}
+
+	// Execute jump
 	ACharacter::Jump();
 }
 
@@ -44,56 +128,84 @@ float ATFCharacterBase::GetSprintSpeed() const
 
 void ATFCharacterBase::SetSprinting(const bool bSprinting)
 {
-	if(bSprinting)
+	// Check if can sprint
+	if (bSprinting)
 	{
-		bIsSneaking = false;
-		GetCharacterMovement()->MaxWalkSpeed = GetSprintSpeed();	
+		// Can't sprint if exhausted or low stamina
+		if (!StaminaComponent || !StaminaComponent->CanSprint())
+		{
+			return;
+		}
+
+		// Can't sprint while sneaking
+		if (bIsSneaking)
+		{
+			return;
+		}
+
 		bIsSprinting = true;
-		return;
+		bIsSneaking = false;
+
+		// Start stamina drain
+		if (StaminaComponent)
+		{
+			StaminaComponent->StartStaminaDrain(StaminaComponent->SprintDrainRate);
+		}
+	}
+	else
+	{
+		// Stop sprinting
+		if (!bIsSprinting)
+		{
+			return;
+		}
+
+		bIsSprinting = false;
+
+		// Stop stamina drain
+		if (StaminaComponent)
+		{
+			StaminaComponent->StopStaminaDrain();
+		}
 	}
 
-	if(bIsSneaking)
-	{
-		return;
-	}
-	
-    bIsSprinting = false;
-    GetCharacterMovement()->MaxWalkSpeed = GetWalkSpeed();
-	return;
-    
+	// Update movement speed
+	UpdateMovementSpeed();
 }
 
 void ATFCharacterBase::SetSneaking(const bool bSneaking)
 {
-	if(bSneaking)
+	if (bSneaking)
 	{
-		bIsSprinting = false;
-		GetCharacterMovement()->MaxWalkSpeed = GetSneakSpeed();	
+		// Can't sneak while sprinting
+		if (bIsSprinting)
+		{
+			return;
+		}
+
 		bIsSneaking = true;
-		return;
+		bIsSprinting = false;
 	}
-
-	if(bIsSprinting)
+	else
 	{
-		return;
+		if (!bIsSneaking)
+		{
+			return;
+		}
+
+		bIsSneaking = false;
 	}
 
-	bIsSneaking = false;
-	GetCharacterMovement()->MaxWalkSpeed = GetWalkSpeed();
-	return;
+	// Update movement speed
+	UpdateMovementSpeed();
 }
 
-// Called every frame
 void ATFCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-// Called to bind functionality to input
 void ATFCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
-

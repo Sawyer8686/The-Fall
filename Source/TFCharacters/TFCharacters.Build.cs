@@ -14,7 +14,11 @@ public class TFCharacters : ModuleRules
 			{
 				"Core",
 				"EnhancedInput",
-                "InputCore"
+                "InputCore",
+                "UMG",
+				"Slate",
+                "SlateCore"
+
             }
 			);
 			
