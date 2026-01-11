@@ -23,8 +23,7 @@ public class TFCharacters : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
-				"TFCoreData"   
+				"Engine"	  
             }
 			);
 		
