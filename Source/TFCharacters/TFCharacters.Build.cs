@@ -24,9 +24,7 @@ public class TFCharacters : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"TFCoreData",
-                "TFInventory"
-
+				"TFCoreData"   
             }
 			);
 		

@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "TFCharacterBase.h"
-#include "TFInteractable.h"
-#include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -53,27 +51,11 @@ class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SneakAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	UInputAction* InteractAction = nullptr;
-
+	
 #pragma endregion Input
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bInFirstPerson = true;
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
-	float InteractTraceDistance = 300.0f;
-
-	UPROPERTY()
-	AActor* FocusedInteractable = nullptr;
-
-	void UpdateFocusedInteractable();
-	void Interact();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UTFInventoryComponent* InventoryComponent = nullptr;
-
-
 
 
 protected:
@@ -94,7 +76,6 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetThirdPersonCamera() const { return ThirdPersonCamera; }
 	FORCEINLINE UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
-	FORCEINLINE UTFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 	ATFPlayerCharacter();
 	virtual void Tick(float DeltaTime) override;

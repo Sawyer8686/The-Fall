@@ -21,7 +21,7 @@ public class TFCoreData : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
+				"Engine"
 			}
 			);
 		

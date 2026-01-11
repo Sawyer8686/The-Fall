@@ -15,8 +15,6 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bTickEvenWhenPaused = false;
 
-	InventoryComponent = CreateDefaultSubobject<UTFInventoryComponent>(TEXT("InventoryComponent"));
-
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;	
@@ -60,7 +58,7 @@ void ATFPlayerCharacter::BeginPlay()
 void ATFPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UpdateFocusedInteractable();
+	
 }	
 
 void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -88,7 +86,7 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::SprintOff);
 		EnhancedInputComponent->BindAction(SneakAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::SneakOn);
 		EnhancedInputComponent->BindAction(SneakAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::SneakOff);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::Interact);
+		
 	}
 
 }
@@ -168,49 +166,5 @@ void ATFPlayerCharacter::TogglePerspective()
 	
 }
 
-void ATFPlayerCharacter::UpdateFocusedInteractable()
-{
-	UCameraComponent* ActiveCam = bInFirstPerson ? FirstPersonCamera : ThirdPersonCamera;
-	if (!ActiveCam)
-	{
-		FocusedInteractable = nullptr;
-		return;
-	}
 
-	const FVector Start = ActiveCam->GetComponentLocation();
-	const FVector End = Start + (ActiveCam->GetForwardVector() * InteractTraceDistance);
 
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(InteractTrace), false, this);
-	Params.AddIgnoredActor(this);
-
-	FHitResult Hit;
-	const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
-
-	AActor* NewFocused = nullptr;
-
-	if (bHit && Hit.GetActor())
-	{
-		AActor* HitActor = Hit.GetActor();
-		if (HitActor->GetClass()->ImplementsInterface(UTFInteractable::StaticClass()))
-		{
-			NewFocused = HitActor;
-		}
-	}
-
-	FocusedInteractable = NewFocused;
-
-	// Qui puoi innestare UI: se FocusedInteractable != nullptr mostra prompt.
-}
-
-void ATFPlayerCharacter::Interact()
-{
-	if (!FocusedInteractable)
-	{
-		return;
-	}
-
-	if (FocusedInteractable->GetClass()->ImplementsInterface(UTFInteractable::StaticClass()))
-	{
-		ITFInteractable::Execute_Interact(FocusedInteractable, this);
-	}
-}

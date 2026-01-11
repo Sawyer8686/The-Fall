@@ -22,9 +22,8 @@ public class TFItems : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"Slate",
-				"SlateCore",
-			}
+				"TFCoreData"
+            }
 			);
 		
 		
