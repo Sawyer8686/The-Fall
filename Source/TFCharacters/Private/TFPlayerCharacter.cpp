@@ -2,6 +2,7 @@
 
 #include "TFPlayerCharacter.h"
 #include "TFStaminaComponent.h"
+#include "Components/TFInteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
@@ -18,6 +19,9 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 
 	// Create stamina component (player only)
 	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
+
+	// Create interaction component
+	InteractionComponent = CreateDefaultSubobject<UTFInteractionComponent>(TEXT("InteractionComponent"));
 
 	// Capsule component setup
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -147,6 +151,13 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			EnhancedInputComponent->BindAction(SneakAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::SneakOn);
 			EnhancedInputComponent->BindAction(SneakAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::SneakOff);
 		}
+
+		// Bind interact
+		if (InteractAction)
+		{
+			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::InteractPressed);
+			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::InteractReleased);
+		}
 	}
 }
 
@@ -208,6 +219,24 @@ void ATFPlayerCharacter::PlayerJump()
 	if (CanCharacterJump() && !GetCharacterMovement()->IsFalling())
 	{
 		HasJumped();
+	}
+}
+
+void ATFPlayerCharacter::InteractPressed()
+{
+	if (InteractionComponent)
+	{
+		// Start hold interaction (will handle instant interactions automatically)
+		InteractionComponent->StartHoldInteraction();
+	}
+}
+
+void ATFPlayerCharacter::InteractReleased()
+{
+	if (InteractionComponent)
+	{
+		// Stop hold interaction
+		InteractionComponent->StopHoldInteraction();
 	}
 }
 

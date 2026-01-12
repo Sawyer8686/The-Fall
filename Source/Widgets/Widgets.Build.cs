@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class TFCharacters : ModuleRules
+public class Widgets : ModuleRules
 {
-	public TFCharacters (ReadOnlyTargetRules Target) : base(Target)
+	public Widgets (ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -13,9 +13,11 @@ public class TFCharacters : ModuleRules
 			new string[]
 			{
 				"Core",
-				"EnhancedInput",
-                "InputCore"
-            }
+				"UMG",
+				"Slate",
+				"SlateCore",
+				"TFCharacters"
+			}
 			);
 			
 		
@@ -23,7 +25,9 @@ public class TFCharacters : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine"	  
+				"Engine",
+                
+
             }
 			);
 		

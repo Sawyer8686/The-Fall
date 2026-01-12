@@ -66,7 +66,7 @@ private:
 
 	/** Stamina regeneration per second when moving (not sprinting) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Regeneration", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))
-	float StaminaRegenRateMoving = 12.0f;
+	float StaminaRegenRateMoving = 5.0f;
 
 	/** Delay before stamina starts regenerating after depletion (seconds) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Regeneration", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))

@@ -12,9 +12,10 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class UTFStaminaComponent;
+class UTFInteractionComponent;
 
 /**
- * Player Character class with camera system and stamina management
+ * Player Character class with camera system, stamina management, and interaction
  * Supports both First Person and Third Person views with smooth transitions
  * Includes sprint system with stamina consumption
  */
