@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFPlayerCharacter.h"
-
+#include "TFStaminaComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
@@ -15,6 +15,9 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 	// Enable tick for smooth camera transitions
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bTickEvenWhenPaused = false;
+
+	// Create stamina component (player only)
+	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
 
 	// Capsule component setup
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -57,6 +60,9 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 void ATFPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Bind to stamina events
+	BindStaminaEvents();
 
 	// Apply correct camera mode on begin play
 	if (bInFirstPerson)
@@ -178,12 +184,12 @@ void ATFPlayerCharacter::Look(const FInputActionValue& Value)
 
 void ATFPlayerCharacter::SprintOn()
 {
-	ATFCharacterBase::SetSprinting(true);
+	SetSprinting(true);
 }
 
 void ATFPlayerCharacter::SprintOff()
 {
-	ATFCharacterBase::SetSprinting(false);
+	SetSprinting(false);
 }
 
 void ATFPlayerCharacter::SneakOn()
@@ -199,9 +205,9 @@ void ATFPlayerCharacter::SneakOff()
 void ATFPlayerCharacter::PlayerJump()
 {
 	// Only jump if character can jump and is not falling
-	if (ATFCharacterBase::CanCharacterJump() && !GetCharacterMovement()->IsFalling())
+	if (CanCharacterJump() && !GetCharacterMovement()->IsFalling())
 	{
-		ATFCharacterBase::HasJumped();
+		HasJumped();
 	}
 }
 
@@ -280,7 +286,6 @@ void ATFPlayerCharacter::UpdateCameraTransition(float DeltaTime)
 	TransitionAlpha = FMath::Clamp(TransitionTimer / CameraTransitionDuration, 0.0f, 1.0f);
 
 	// Apply smooth easing curve (ease in-out cubic)
-	// Formula: 3t² - 2t³ creates smooth acceleration and deceleration
 	float EasedAlpha = TransitionAlpha * TransitionAlpha * (3.0f - 2.0f * TransitionAlpha);
 
 	// Interpolate camera boom arm length
@@ -293,13 +298,11 @@ void ATFPlayerCharacter::UpdateCameraTransition(float DeltaTime)
 	// Apply smooth character rotation during transition if enabled
 	if (bSmoothRotationTransition && Controller)
 	{
-		// Calculate rotation alpha (may complete faster than camera transition)
 		float RotationAlpha = FMath::Clamp(TransitionTimer / RotationTransitionDuration, 0.0f, 1.0f);
 		float RotationEasedAlpha = RotationAlpha * RotationAlpha * (3.0f - 2.0f * RotationAlpha);
 
 		if (bInFirstPerson)
 		{
-			// Smoothly rotate character to match camera direction when entering first person
 			FRotator NewRotation = UKismetMathLibrary::RLerp(
 				StartCharacterRotation,
 				FRotator(0.0f, StartControlRotation.Yaw, 0.0f),
@@ -310,18 +313,16 @@ void ATFPlayerCharacter::UpdateCameraTransition(float DeltaTime)
 		}
 	}
 
-	// Optional: Apply vignette effect during transition for visual polish
+	// Optional: Apply vignette effect during transition
 	if (FirstPersonCamera && ThirdPersonCamera)
 	{
 		if (bInFirstPerson)
 		{
-			// Fade out third person camera with vignette
 			FirstPersonCamera->PostProcessSettings.bOverride_VignetteIntensity = true;
 			FirstPersonCamera->PostProcessSettings.VignetteIntensity = FMath::Lerp(0.4f, 0.0f, EasedAlpha);
 		}
 		else
 		{
-			// Fade out first person camera with vignette
 			ThirdPersonCamera->PostProcessSettings.bOverride_VignetteIntensity = true;
 			ThirdPersonCamera->PostProcessSettings.VignetteIntensity = FMath::Lerp(0.4f, 0.0f, EasedAlpha);
 		}
@@ -352,7 +353,6 @@ void ATFPlayerCharacter::CompleteCameraTransition()
 	{
 		ConfigureFirstPersonMode();
 
-		// Ensure character is perfectly aligned with camera view at end of transition
 		if (Controller && bSmoothRotationTransition)
 		{
 			FRotator FinalRotation = FRotator(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
@@ -387,17 +387,16 @@ void ATFPlayerCharacter::ConfigureFirstPersonMode()
 	FirstPersonCamera->Activate();
 
 	// Configure controller rotation for first person
-	// Character rotates instantly with controller yaw (FPS style)
-	bUseControllerRotationPitch = false; // Don't pitch entire character
-	bUseControllerRotationYaw = true;    // Rotate with mouse/controller
-	bUseControllerRotationRoll = false;  // No roll
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationRoll = false;
 
 	// Configure character movement for first person
 	if (UCharacterMovementComponent* CharMoveComp = GetCharacterMovement())
 	{
-		CharMoveComp->bOrientRotationToMovement = false;        // Don't rotate toward movement
-		CharMoveComp->bUseControllerDesiredRotation = false;    // Use controller rotation directly
-		CharMoveComp->RotationRate = FirstPersonRotationRate;   // Fast rotation for responsiveness
+		CharMoveComp->bOrientRotationToMovement = false;
+		CharMoveComp->bUseControllerDesiredRotation = false;
+		CharMoveComp->RotationRate = FirstPersonRotationRate;
 	}
 }
 
@@ -413,16 +412,170 @@ void ATFPlayerCharacter::ConfigureThirdPersonMode()
 	ThirdPersonCamera->Activate();
 
 	// Configure controller rotation for third person
-	// Character rotates toward movement direction (action game style)
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;  // Don't rotate with controller
+	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement for third person
 	if (UCharacterMovementComponent* CharMoveComp = GetCharacterMovement())
 	{
-		CharMoveComp->bOrientRotationToMovement = true;         // Rotate toward movement direction
+		CharMoveComp->bOrientRotationToMovement = true;
 		CharMoveComp->bUseControllerDesiredRotation = false;
-		CharMoveComp->RotationRate = ThirdPersonRotationRate;   // Smooth rotation
+		CharMoveComp->RotationRate = ThirdPersonRotationRate;
 	}
+}
+
+void ATFPlayerCharacter::SetSprinting(const bool bSprinting)
+{
+	// Check if can sprint
+	if (bSprinting)
+	{
+		// Can't sprint if exhausted or low stamina
+		if (!StaminaComponent || !StaminaComponent->CanSprint())
+		{
+			return;
+		}
+
+		// Can't sprint while sneaking
+		if (IsSneaking())
+		{
+			return;
+		}
+
+		bIsSprinting = true;
+
+		// Start stamina drain
+		if (StaminaComponent)
+		{
+			StaminaComponent->StartStaminaDrain(StaminaComponent->SprintDrainRate);
+		}
+	}
+	else
+	{
+		// Stop sprinting
+		if (!bIsSprinting)
+		{
+			return;
+		}
+
+		bIsSprinting = false;
+
+		// Stop stamina drain
+		if (StaminaComponent)
+		{
+			StaminaComponent->StopStaminaDrain();
+		}
+	}
+
+	// Update movement speed
+	UpdateMovementSpeed();
+}
+
+float ATFPlayerCharacter::GetSprintSpeed() const
+{
+	return SprintSpeed;
+}
+
+void ATFPlayerCharacter::UpdateMovementSpeed()
+{
+	if (!GetCharacterMovement())
+	{
+		return;
+	}
+
+	float TargetSpeed = GetWalkSpeed();
+
+	if (bIsSprinting)
+	{
+		TargetSpeed = SprintSpeed;
+	}
+	else if (IsSneaking())
+	{
+		TargetSpeed = GetSneakSpeed();
+	}
+
+	// Apply exhaustion penalty if exhausted
+	if (StaminaComponent && StaminaComponent->IsExhausted())
+	{
+		TargetSpeed *= ExhaustedSpeedMultiplier;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = TargetSpeed;
+}
+
+void ATFPlayerCharacter::BindStaminaEvents()
+{
+	if (StaminaComponent)
+	{
+		StaminaComponent->OnStaminaDepleted.AddDynamic(this, &ATFPlayerCharacter::HandleStaminaDepleted);
+		StaminaComponent->OnStaminaRecovered.AddDynamic(this, &ATFPlayerCharacter::HandleStaminaRecovered);
+	}
+}
+
+void ATFPlayerCharacter::HandleStaminaDepleted()
+{
+	// Force stop sprinting when stamina depleted
+	if (bIsSprinting)
+	{
+		SetSprinting(false);
+	}
+
+	// Update movement speed for exhaustion penalty
+	UpdateMovementSpeed();
+
+	// Call blueprint native event
+	OnStaminaDepleted();
+}
+
+void ATFPlayerCharacter::HandleStaminaRecovered()
+{
+	// Remove exhaustion penalty
+	UpdateMovementSpeed();
+
+	// Call blueprint native event
+	OnStaminaRecovered();
+}
+
+void ATFPlayerCharacter::OnStaminaDepleted_Implementation()
+{
+	// Default C++ implementation (can be overridden in Blueprint)
+	// Add any default behavior here (audio, VFX, etc.)
+}
+
+void ATFPlayerCharacter::OnStaminaRecovered_Implementation()
+{
+	// Default C++ implementation (can be overridden in Blueprint)
+	// Add any default behavior here
+}
+
+bool ATFPlayerCharacter::CanCharacterJump() const
+{
+	// Check base jump conditions
+	if (!ATFCharacterBase::CanCharacterJump())
+	{
+		return false;
+	}
+
+	// Check stamina
+	if (StaminaComponent)
+	{
+		return StaminaComponent->CanJump();
+	}
+
+	return true;
+}
+
+void ATFPlayerCharacter::HasJumped()
+{
+	// Consume stamina for jump
+	if (StaminaComponent)
+	{
+		StaminaComponent->ConsumeStamina(
+			StaminaComponent->JumpStaminaCost,
+			EStaminaDrainReason::Jump
+		);
+	}
+
+	// Execute jump
+	ATFCharacterBase::HasJumped();
 }

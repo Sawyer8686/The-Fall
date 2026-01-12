@@ -12,6 +12,6 @@ public class TFEditorTarget : TargetRules
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
 		ExtraModuleNames.Add("TF");
 		ExtraModuleNames.Add("TFCharacters");
-		ExtraModuleNames.Add("UI");
+		
 	}
 }

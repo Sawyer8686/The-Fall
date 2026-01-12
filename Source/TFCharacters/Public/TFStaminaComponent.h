@@ -40,6 +40,8 @@ class TFCHARACTERS_API UTFStaminaComponent : public UActorComponent
 
 private:
 
+	FTimerHandle DrainTimerHandle;
+
 #pragma region Stamina Values
 
 	/** Current stamina amount */
@@ -81,6 +83,8 @@ private:
 #pragma endregion Regeneration
 
 #pragma region Drain Costs
+
+public:
 
 	/** Stamina drain per second while sprinting */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Drain", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))

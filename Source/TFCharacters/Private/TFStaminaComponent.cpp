@@ -3,6 +3,7 @@
 #include "TFStaminaComponent.h"
 #include "TFCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/TimerHandle.h"
 #include "Net/UnrealNetwork.h"
 
 UTFStaminaComponent::UTFStaminaComponent()
@@ -182,10 +183,8 @@ void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 {
 	bIsDraining = true;
 
-	// Start a timer to drain stamina
-	GetWorld()->GetTimerManager().SetTimer(
-		FTimerHandle(),
-		[this, DrainRate]()
+	FTimerDelegate TimerDel;
+	TimerDel.BindLambda([this, DrainRate]()
 		{
 			if (bIsDraining)
 			{
@@ -201,7 +200,11 @@ void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 
 				OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 			}
-		},
+		});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		DrainTimerHandle, // Assicurati di avere una variabile membro FTimerHandle DrainTimerHandle;
+		TimerDel,
 		0.1f,
 		true
 	);

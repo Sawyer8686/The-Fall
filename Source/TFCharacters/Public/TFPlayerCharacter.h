@@ -11,10 +11,12 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class UTFStaminaComponent;
 
 /**
- * Player Character class with smooth camera perspective transition
- * Supports both First Person and Third Person views with configurable transitions
+ * Player Character class with camera system and stamina management
+ * Supports both First Person and Third Person views with smooth transitions
+ * Includes sprint system with stamina consumption
  */
 UCLASS(Blueprintable)
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase
@@ -23,7 +25,11 @@ class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase
 
 private:
 
-#pragma region Camera Components
+#pragma region Components
+
+	/** Stamina management component (player only) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UTFStaminaComponent* StaminaComponent;
 
 	/** Spring arm for third person camera positioning */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -37,7 +43,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCamera;
 
-#pragma endregion Camera Components
+#pragma endregion Components
 
 #pragma region Input 
 
@@ -70,6 +76,22 @@ private:
 	UInputAction* SneakAction;
 
 #pragma endregion Input
+
+#pragma region Movement & Sprint
+
+	/** Is character currently sprinting */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsSprinting;
+
+	/** Sprint movement speed */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float SprintSpeed = 300.f;
+
+	/** Speed multiplier when exhausted from stamina depletion */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Stamina", meta = (AllowPrivateAccess = "true", ClampMin = "0.1", ClampMax = "1.0"))
+	float ExhaustedSpeedMultiplier = 0.7f;
+
+#pragma endregion Movement & Sprint
 
 #pragma region Camera Settings
 
@@ -211,11 +233,63 @@ protected:
 
 #pragma endregion Transition System
 
+#pragma region Sprint & Stamina
+
+	/** Set sprinting state (stamina aware) */
+	void SetSprinting(const bool bSprinting);
+
+	/** Get current sprint speed */
+	float GetSprintSpeed() const;
+
+	/** Update movement speed based on sprint/sneak/exhaustion state */
+	virtual void UpdateMovementSpeed() override;
+
+#pragma endregion Sprint & Stamina
+
+#pragma region Stamina Events
+
+	/** Bind to stamina component events */
+	void BindStaminaEvents();
+
+	/** Handle stamina depletion */
+	UFUNCTION()
+	void HandleStaminaDepleted();
+
+	/** Handle stamina recovery */
+	UFUNCTION()
+	void HandleStaminaRecovered();
+
+	/** Called when stamina is depleted (Blueprint implementable) */
+	UFUNCTION(BlueprintNativeEvent, Category = "Stamina")
+	void OnStaminaDepleted();
+	virtual void OnStaminaDepleted_Implementation();
+
+	/** Called when stamina recovers from exhaustion (Blueprint implementable) */
+	UFUNCTION(BlueprintNativeEvent, Category = "Stamina")
+	void OnStaminaRecovered();
+	virtual void OnStaminaRecovered_Implementation();
+
+#pragma endregion Stamina Events
+
+#pragma region Overrides
+
+	/** Override: Check if character can jump (stamina aware) */
+	virtual bool CanCharacterJump() const override;
+
+	/** Override: Execute jump (consumes stamina) */
+	virtual void HasJumped() override;
+
+#pragma endregion Overrides
+
 	virtual void BeginPlay() override;
 
 public:
 
 #pragma region Accessors
+
+	/** Get stamina component */
+	UFUNCTION(BlueprintPure, Category = "Components")
+	FORCEINLINE UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
 
 	/** Get camera boom component */
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -231,6 +305,10 @@ public:
 
 	/** Check if camera is currently transitioning */
 	FORCEINLINE bool IsTransitioning() const { return bIsTransitioning; }
+
+	/** Check if currently sprinting */
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
 
 #pragma endregion Accessors
 

@@ -6,8 +6,11 @@
 #include "GameFramework/Character.h"
 #include "TFCharacterBase.generated.h"
 
-class UTFStaminaComponent;
-
+/**
+ * Base Character Class
+ * Provides fundamental movement capabilities for all characters (Player, NPCs, Animals)
+ * Does NOT include stamina - that's player-specific functionality
+ */
 UCLASS(Abstract, NotBlueprintable)
 class TFCHARACTERS_API ATFCharacterBase : public ACharacter
 {
@@ -15,34 +18,19 @@ class TFCHARACTERS_API ATFCharacterBase : public ACharacter
 
 private:
 
-#pragma region Components
-
-	/** Stamina management component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UTFStaminaComponent* StaminaComponent;
-
-#pragma endregion Components
-
 #pragma region Movement
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsSprinting;
-
+	/** Is character currently sneaking */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	bool bIsSneaking;
 
+	/** Sneak movement speed */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float SneakSpeed = 35.f;
 
+	/** Normal walk movement speed */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float WalkSpeed = 150.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float SprintSpeed = 300.f;
-
-	/** Speed multiplier when exhausted */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true", ClampMin = "0.1", ClampMax = "1.0"))
-	float ExhaustedSpeedMultiplier = 0.7f;
 
 #pragma endregion Movement
 
@@ -50,45 +38,23 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	/** Check if character can jump (stamina aware) */
-	bool CanCharacterJump() const;
+	/** Check if character can jump (base check, override for stamina/conditions) */
+	virtual bool CanCharacterJump() const;
 
-	/** Execute jump (consumes stamina) */
-	void HasJumped();
+	/** Execute jump (override to add stamina consumption) */
+	virtual void HasJumped();
 
+	/** Get current sneak speed */
 	float GetSneakSpeed() const;
-	float GetWalkSpeed() const;
-	float GetSprintSpeed() const;
 
-	/** Set sprinting state (stamina aware) */
-	void SetSprinting(const bool bSprinting);
+	/** Get current walk speed */
+	float GetWalkSpeed() const;
 
 	/** Set sneaking state */
 	void SetSneaking(const bool bSneaking);
 
-	/** Called when stamina is depleted */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Stamina")
-	void OnStaminaDepleted();
-
-	/** Called when stamina recovers from exhaustion */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Stamina")
-	void OnStaminaRecovered();
-
-	/** Update movement speed based on exhaustion state */
-	void UpdateMovementSpeed();
-
-private:
-
-	/** Bind to stamina component events */
-	void BindStaminaEvents();
-
-	/** Handle stamina depletion */
-	UFUNCTION()
-	void HandleStaminaDepleted();
-
-	/** Handle stamina recovery */
-	UFUNCTION()
-	void HandleStaminaRecovered();
+	/** Update character movement speed */
+	virtual void UpdateMovementSpeed();
 
 public:
 
@@ -97,7 +63,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	/** Get stamina component */
-	UFUNCTION(BlueprintPure, Category = "Components")
-	FORCEINLINE UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
+	/** Check if currently sneaking */
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	FORCEINLINE bool IsSneaking() const { return bIsSneaking; }
 };
