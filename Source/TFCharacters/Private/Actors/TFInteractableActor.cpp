@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Actors/TFInteractableActor.h"
+#include "TFInteractableActor.h"
 #include "TFPlayerCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
@@ -50,10 +50,6 @@ void ATFInteractableActor::ApplyHighlight()
 	// Enable custom depth for outline effect
 	MeshComponent->SetRenderCustomDepth(true);
 	MeshComponent->SetCustomDepthStencilValue(1);
-
-	// Optional: Set emissive color
-	// This requires a material that supports emissive
-	// MeshComponent->SetVectorParameterValueOnMaterials(FName("EmissiveColor"), FVector(HighlightColor));
 
 	bIsHighlighted = true;
 }

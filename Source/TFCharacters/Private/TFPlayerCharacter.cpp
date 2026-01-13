@@ -2,7 +2,7 @@
 
 #include "TFPlayerCharacter.h"
 #include "TFStaminaComponent.h"
-#include "Components/TFInteractionComponent.h"
+#include "TFInteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"

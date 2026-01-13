@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFInteractionWidget.h"
-#include "Components/TFInteractionComponent.h"
+#include "TFInteractionComponent.h"
 #include "TFPlayerCharacter.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"

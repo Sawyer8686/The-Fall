@@ -32,6 +32,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UTFStaminaComponent* StaminaComponent;
 
+	/** Interaction component for world object interaction */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UTFInteractionComponent* InteractionComponent;
+
 	/** Spring arm for third person camera positioning */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -75,6 +79,10 @@ private:
 	/** Sneak input action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SneakAction;
+
+	/** Interact input action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
 
 #pragma endregion Input
 
@@ -200,6 +208,12 @@ protected:
 	/** Handle jump input */
 	void PlayerJump();
 
+	/** Handle interact input (press) */
+	void InteractPressed();
+
+	/** Handle interact input (release) */
+	void InteractReleased();
+
 	/** Toggle between first and third person perspective */
 	void TogglePerspective();
 
@@ -291,6 +305,10 @@ public:
 	/** Get stamina component */
 	UFUNCTION(BlueprintPure, Category = "Components")
 	FORCEINLINE UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
+
+	/** Get interaction component */
+	UFUNCTION(BlueprintPure, Category = "Components")
+	FORCEINLINE UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
 	/** Get camera boom component */
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

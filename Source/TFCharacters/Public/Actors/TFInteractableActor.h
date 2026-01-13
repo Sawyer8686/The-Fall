@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interfaces/TFInteractableInterface.h"
+#include "TFInteractableInterface.h"
 #include "TFInteractableActor.generated.h"
 
 class UStaticMeshComponent;
@@ -19,20 +19,20 @@ class TFCHARACTERS_API ATFInteractableActor : public AActor, public ITFInteracta
 {
 	GENERATED_BODY()
 
-private:
+protected:
 
 #pragma region Components
 
 	/** Root scene component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* Root;
 
 	/** Visual mesh */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* MeshComponent;
 
 	/** Optional collision sphere for detection */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* InteractionSphere;
 
 #pragma endregion Components
@@ -40,43 +40,43 @@ private:
 #pragma region Interaction Settings
 
 	/** Display text for interaction prompt */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	FText InteractionText = FText::FromString("Interact");
 
 	/** Secondary text (e.g., status or requirements) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	FText SecondaryText = FText::GetEmpty();
 
 	/** Icon for interaction UI */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	UTexture2D* InteractionIcon = nullptr;
 
 	/** Time required to hold interact button (0 = instant) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "10.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (ClampMin = "0.0", ClampMax = "10.0"))
 	float InteractionDuration = 0.0f;
 
 	/** Maximum distance player can be to interact */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true", ClampMin = "50.0", ClampMax = "1000.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (ClampMin = "50.0", ClampMax = "1000.0"))
 	float MaxInteractionDistance = 200.0f;
 
 	/** Can currently be interacted with */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	bool bCanInteract = true;
 
 	/** Can be used multiple times */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	bool bIsReusable = true;
 
 	/** Has been used at least once */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	bool bHasBeenUsed = false;
 
 	/** Number of times this can be used (-1 = infinite) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	int32 MaxUses = -1;
 
 	/** Current use count */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	int32 CurrentUses = 0;
 
 #pragma endregion Interaction Settings
@@ -84,24 +84,22 @@ private:
 #pragma region Highlight Settings
 
 	/** Enable highlight when player looks at object */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Highlight", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Highlight")
 	bool bEnableHighlight = true;
 
 	/** Highlight color */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Highlight", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Highlight")
 	FLinearColor HighlightColor = FLinearColor(0.0f, 1.0f, 0.5f, 1.0f);
 
 	/** Highlight intensity */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Highlight", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "10.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Highlight", meta = (ClampMin = "0.0", ClampMax = "10.0"))
 	float HighlightIntensity = 3.0f;
 
 	/** Is currently highlighted */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bIsHighlighted = false;
 
 #pragma endregion Highlight Settings
-
-protected:
 
 	virtual void BeginPlay() override;
 
