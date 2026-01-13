@@ -13,6 +13,7 @@ public class TFEditorTarget : TargetRules
 		ExtraModuleNames.Add("TF");
 		ExtraModuleNames.Add("TFCharacters");
 		ExtraModuleNames.Add("Widgets");
+		ExtraModuleNames.Add("TFWorldActors");
 		
 	}
 }

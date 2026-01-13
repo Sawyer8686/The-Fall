@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "TFInteractableInterface.h"
+#include "Interfaces/TFInteractableInterface.h"
 #include "TFInteractionWidget.generated.h"
 
 class UTFInteractionComponent;
@@ -17,7 +17,7 @@ class UProgressBar;
  * Displays interaction prompts when player looks at interactable objects
  */
 UCLASS()
-class TFWIDGETS_API UTFInteractionWidget : public UUserWidget
+class WIDGETS_API UTFInteractionWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

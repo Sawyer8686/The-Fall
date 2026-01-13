@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "TFInteractableInterface.h"
+#include "Interfaces/TFInteractableInterface.h"
 #include "TFInteractableActor.generated.h"
 
 class UStaticMeshComponent;

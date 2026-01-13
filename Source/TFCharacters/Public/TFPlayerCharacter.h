@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TFCharacterBase.h"
+#include "Blueprint/UserWidget.h"
 #include "TFPlayerCharacter.generated.h"
 
 class USpringArmComponent;

@@ -2,7 +2,7 @@
 
 #include "TFPlayerCharacter.h"
 #include "TFStaminaComponent.h"
-#include "TFInteractionComponent.h"
+#include "Components/TFInteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+
 
 ATFPlayerCharacter::ATFPlayerCharacter()
 {

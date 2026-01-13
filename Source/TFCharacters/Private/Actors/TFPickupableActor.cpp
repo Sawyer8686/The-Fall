@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "TFPickupableActor.h"
+#include "Actors/TFPickupableActor.h"
 #include "TFPlayerCharacter.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Components/StaticMeshComponent.h"

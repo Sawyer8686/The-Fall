@@ -13,5 +13,6 @@ public class TFTarget : TargetRules
 		ExtraModuleNames.Add("TF");
 		ExtraModuleNames.Add("TFCharacters");
         ExtraModuleNames.Add("TFWidgets");
+        ExtraModuleNames.Add("TFWorldActors");
     }
 }
