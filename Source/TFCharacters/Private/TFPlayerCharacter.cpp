@@ -609,3 +609,48 @@ void ATFPlayerCharacter::HasJumped()
 	// Execute jump
 	ATFCharacterBase::HasJumped();
 }
+
+// ============================================================================
+ // Key Collection
+ // ============================================================================
+
+bool ATFPlayerCharacter::HasKey(FName KeyID) const
+{
+	return CollectedKeys.Contains(KeyID);
+}
+
+void ATFPlayerCharacter::AddKey(FName KeyID)
+{
+	if (KeyID.IsNone())
+	{
+		return;
+	}
+
+	bool bWasAlreadyInSet = false;
+	CollectedKeys.Add(KeyID, &bWasAlreadyInSet);
+
+	if (!bWasAlreadyInSet)
+	{
+		OnKeyAdded(KeyID);
+		UE_LOG(LogTemp, Log, TEXT("Key added: %s"), *KeyID.ToString());
+	}
+}
+
+bool ATFPlayerCharacter::RemoveKey(FName KeyID)
+{
+	if (KeyID.IsNone())
+	{
+		return false;
+	}
+
+	int32 NumRemoved = CollectedKeys.Remove(KeyID);
+
+	if (NumRemoved > 0)
+	{
+		OnKeyRemoved(KeyID);
+		UE_LOG(LogTemp, Log, TEXT("Key removed: %s"), *KeyID.ToString());
+		return true;
+	}
+
+	return false;
+}
