@@ -183,13 +183,16 @@ void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 {
 	bIsDraining = true;
 
+	constexpr float TimerTickRate = 0.1f;
+
 	FTimerDelegate TimerDel;
-	TimerDel.BindLambda([this, DrainRate]()
+	TimerDel.BindLambda([this, DrainRate, TimerTickRate]()
 		{
 			if (bIsDraining)
 			{
 				float OldStamina = CurrentStamina;
-				CurrentStamina = FMath::Clamp(CurrentStamina - (DrainRate * GetWorld()->GetDeltaSeconds()), 0.0f, MaxStamina);
+				CurrentStamina = FMath::Clamp(CurrentStamina - (DrainRate * TimerTickRate), 0.0f,
+					MaxStamina);
 
 				// Check if depleted
 				if (CurrentStamina <= 0.0f && OldStamina > 0.0f)
@@ -205,7 +208,7 @@ void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 	GetWorld()->GetTimerManager().SetTimer(
 		DrainTimerHandle, // Assicurati di avere una variabile membro FTimerHandle DrainTimerHandle;
 		TimerDel,
-		0.1f,
+		TimerTickRate,
 		true
 	);
 }
@@ -218,6 +221,12 @@ void UTFStaminaComponent::StopStaminaDrain()
 	}
 
 	bIsDraining = false;
+
+	// Clear the drain timer to stop the looping callback
+	 if (GetWorld())
+		 {
+		  GetWorld()->GetTimerManager().ClearTimer(DrainTimerHandle);
+		 }
 
 	// Reset regeneration delay after usage
 	ResetRegenDelay(false);

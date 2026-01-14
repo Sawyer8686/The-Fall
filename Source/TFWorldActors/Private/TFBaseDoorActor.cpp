@@ -2,7 +2,6 @@
 
 #include "TFBaseDoorActor.h"
 #include "TFPlayerCharacter.h"
-#include "Components/BoxComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -22,14 +21,6 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 	DoorMesh->SetupAttachment(DoorFrameMesh);
 	DoorMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DoorMesh->SetCollisionResponseToAllChannels(ECR_Block);
-
-	// Create trigger box for auto-close detection
-	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
-	TriggerBox->SetupAttachment(Root);
-	TriggerBox->SetBoxExtent(FVector(200.0f, 150.0f, 100.0f));
-	TriggerBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	TriggerBox->SetCollisionResponseToAllChannels(ECR_Ignore);
-	TriggerBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	// Create audio component
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));

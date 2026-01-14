@@ -6,7 +6,6 @@
 #include "Actors/TFInteractableActor.h"
 #include "TFBaseDoorActor.generated.h"
 
-class UBoxComponent;
 class UAudioComponent;
 
 /** Door state enum */
@@ -48,10 +47,6 @@ protected:
 	/** Door mesh (the moving part) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* DoorMesh;
-
-	/** Trigger volume for auto-close */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UBoxComponent* TriggerBox;
 
 	/** Audio component for door sounds */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

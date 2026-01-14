@@ -8,7 +8,6 @@
 #include "TFInteractionComponent.generated.h"
 
 class ATFPlayerCharacter;
-class UCameraComponent;
 
 /** Delegate for interaction events */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionChanged, AActor*, InteractableActor, FInteractionData, InteractionData);
@@ -33,9 +32,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Detection", meta = (AllowPrivateAccess = "true", ClampMin = "50.0", ClampMax = "1000.0"))
 	float InteractionDistance = 300.0f;
 
-	/** Radius for sphere trace (0 = line trace) */
+	/** Radius for sphere trace (0 = line trace from head socket) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Detection", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "50.0"))
-	float InteractionRadius = 10.0f;
+	float InteractionRadius = 0.0f;
 
 	/** How often to check for interactables (seconds) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Detection", meta = (AllowPrivateAccess = "true", ClampMin = "0.01", ClampMax = "0.5"))
@@ -51,7 +50,7 @@ private:
 
 	/** Debug draw interaction traces */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug", meta = (AllowPrivateAccess = "true"))
-	bool bDebugDraw = false;
+	bool bDebugDraw = true;
 
 #pragma endregion Detection Settings
 
@@ -90,10 +89,6 @@ private:
 	/** Cached owner character reference */
 	UPROPERTY()
 	ATFPlayerCharacter* OwnerCharacter = nullptr;
-
-	/** Cached camera component reference */
-	UPROPERTY()
-	UCameraComponent* CameraComponent = nullptr;
 
 	/** Timer handle for detection tick */
 	FTimerHandle DetectionTimerHandle;

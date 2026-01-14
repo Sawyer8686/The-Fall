@@ -3,7 +3,7 @@
 #include "Components/TFInteractionComponent.h"
 #include "TFPlayerCharacter.h"
 #include "TFPickupableInterface.h"
-#include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 
 UTFInteractionComponent::UTFInteractionComponent()
@@ -22,13 +22,6 @@ void UTFInteractionComponent::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("TFInteractionComponent: Owner is not a TFPlayerCharacter!"));
 		return;
-	}
-
-	// Cache camera component
-	CameraComponent = OwnerCharacter->GetFirstPersonCamera();
-	if (!CameraComponent || !CameraComponent->IsActive())
-	{
-		CameraComponent = OwnerCharacter->GetThirdPersonCamera();
 	}
 
 	// Start detection timer
@@ -71,7 +64,7 @@ void UTFInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UTFInteractionComponent::PerformInteractionCheck()
 {
-	if (!OwnerCharacter || !CameraComponent)
+	if (!OwnerCharacter)
 	{
 		return;
 	}
@@ -120,12 +113,32 @@ void UTFInteractionComponent::PerformInteractionCheck()
 	// Debug draw
 	if (bDebugDraw)
 	{
-		FColor DebugColor = bHit ? FColor::Green : FColor::Red;
-		if (InteractionRadius > 0.0f)
+		FColor LineColor = bHit ? FColor::Green : FColor::Red;
+		
+			// Draw sphere at trace start (head position)
+			 DrawDebugSphere(GetWorld(), TraceStart, 5.0f, 8, FColor::Cyan, false, DetectionTickRate);
+		
+			// Draw the trace line
+			 DrawDebugLine(GetWorld(), TraceStart, TraceEnd, LineColor, false, DetectionTickRate, 0, 2.0f);
+		
+			// Draw sphere at trace end
+			 DrawDebugSphere(GetWorld(), TraceEnd, 8.0f, 8, FColor::Yellow, false, DetectionTickRate);
+		
+			// If hit, draw impact point and actor bounds
+			 if (bHit)
 		{
-			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, InteractionRadius, 12, DebugColor, false, DetectionTickRate);
+		    // Impact point
+				  DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Green, false,
+					 DetectionTickRate);
+				 
+					        // Draw line from impact to hit actor center
+					  if (HitResult.GetActor())
+					  {
+					  DrawDebugLine(GetWorld(), HitResult.ImpactPoint, HitResult.GetActor()->GetActorLocation(),
+						 FColor::Orange, false, DetectionTickRate, 0, 1.0f);
+					  }
 		}
-		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, DebugColor, false, DetectionTickRate, 0, 1.0f);
+		
 	}
 
 	// Process result
@@ -141,16 +154,27 @@ void UTFInteractionComponent::PerformInteractionCheck()
 
 bool UTFInteractionComponent::GetTracePoints(FVector& TraceStart, FVector& TraceEnd) const
 {
-	if (!CameraComponent)
+	if (!OwnerCharacter)
 	{
 		return false;
 	}
 
-	// Start from camera
-	TraceStart = CameraComponent->GetComponentLocation();
+	USkeletalMeshComponent * MeshComp = OwnerCharacter->GetMesh();
+	if (!MeshComp)
+	{
+		 //ActiveCamera = FirstPersonCam;
+		return false;
+	}
+	 
+		TraceStart = MeshComp->GetSocketLocation(TEXT("head"));
+		 
+		AController * Controller = OwnerCharacter->GetController();
+		 if (!Controller)
+		 {
+		 return false;
+		 }
 
-	// End at interaction distance in camera forward direction
-	FVector ForwardVector = CameraComponent->GetForwardVector();
+	FVector ForwardVector = Controller->GetControlRotation().Vector();
 	TraceEnd = TraceStart + (ForwardVector * InteractionDistance);
 
 	return true;
@@ -165,14 +189,12 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 		return;
 	}
 
-	// Check if actor implements interactable interface
 	if (!HitActor->Implements<UTFInteractableInterface>())
 	{
 		ClearFocus();
 		return;
 	}
 
-	// Get interactable interface
 	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
 	if (!Interactable)
 	{
@@ -180,24 +202,12 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 		return;
 	}
 
-	// Check interaction distance (use object's preferred distance if available)
-	float MaxDistance = Interactable->Execute_GetInteractionDistance(HitActor);
-	float Distance = FVector::Dist(OwnerCharacter->GetActorLocation(), HitActor->GetActorLocation());
-
-	if (Distance > MaxDistance)
-	{
-		ClearFocus();
-		return;
-	}
-
-	// Check if can interact
 	if (!Interactable->Execute_CanInteract(HitActor, OwnerCharacter))
 	{
 		ClearFocus();
 		return;
 	}
 
-	// Update focused actor
 	UpdateFocusedActor(HitActor);
 }
 
@@ -255,6 +265,11 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 
 void UTFInteractionComponent::ClearFocus()
 {
+	// Cancel any active hold interaction when focus is lost
+    if (bIsHolding)
+	    {
+		 CancelHoldInteraction();
+		}
 	if (CurrentInteractable)
 	{
 		ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable);
