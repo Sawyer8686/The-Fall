@@ -208,44 +208,44 @@ public:
 
 #pragma region Key Collection
 
-	protected:
+protected:
 
-		/** Collection of keys the player has acquired */
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Keys", meta = (AllowPrivateAccess = "true"))
-		TSet<FName> CollectedKeys;
+	/** Collection of keys the player has acquired */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Keys", meta = (AllowPrivateAccess = "true"))
+	TSet<FName> CollectedKeys;
 
-  public:
+public:
 
-	  /**
-	   * Check if player has a specific key
-	   * @param KeyID - The key identifier to check for
-	   * @return True if player has the key
-	   */
-	  UFUNCTION(BlueprintPure, Category = "Keys")
-	  bool HasKey(FName KeyID) const;
+	/**
+	 * Check if player has a specific key
+	 * @param KeyID - The key identifier to check for
+	 * @return True if player has the key
+	 */
+	UFUNCTION(BlueprintPure, Category = "Keys")
+	bool HasKey(FName KeyID) const;
 
-	  /**
-	   * Add a key to player's collection
-	   * @param KeyID - The key identifier to add
-	   */
-	  UFUNCTION(BlueprintCallable, Category = "Keys")
-	  void AddKey(FName KeyID);
+	/**
+	 * Add a key to player's collection
+	 * @param KeyID - The key identifier to add
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Keys")
+	void AddKey(FName KeyID);
 
-	  /**
-	   * Remove a key from player's collection
-	   * @param KeyID - The key identifier to remove
-	   * @return True if key was removed
-	   */
-	  UFUNCTION(BlueprintCallable, Category = "Keys")
-	  bool RemoveKey(FName KeyID);
+	/**
+	 * Remove a key from player's collection
+	 * @param KeyID - The key identifier to remove
+	 * @return True if key was removed
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Keys")
+	bool RemoveKey(FName KeyID);
 
-	  /** Called when a key is added to collection */
-	  UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
-	  void OnKeyAdded(FName KeyID);
+	/** Called when a key is added to collection */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
+	void OnKeyAdded(FName KeyID);
 
-	  /** Called when a key is removed from collection */
-	  UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
-	  void OnKeyRemoved(FName KeyID);
+	/** Called when a key is removed from collection */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
+	void OnKeyRemoved(FName KeyID);
 
 #pragma endregion Key Collection
 
