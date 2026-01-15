@@ -8,15 +8,11 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 
 
 ATFPlayerCharacter::ATFPlayerCharacter()
 {
-	// Enable tick for smooth camera transitions
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bTickEvenWhenPaused = false;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Create stamina component (player only)
 	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
@@ -35,31 +31,18 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// Camera boom setup (spring arm for third person)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = ThirdPersonCameraDistance;
-	CameraBoom->bUsePawnControlRotation = true;
-	CameraBoom->bEnableCameraLag = true;
-	CameraBoom->CameraLagSpeed = 10.0f;
-
-	// Third person camera setup
-	ThirdPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
-	ThirdPersonCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	ThirdPersonCamera->bUsePawnControlRotation = false;
-	ThirdPersonCamera->Deactivate();
-	ThirdPersonCamera->bAutoActivate = false;
-
 	// First person camera setup (attached to head socket)
 	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCamera->SetupAttachment(GetMesh(), "head");
 	FirstPersonCamera->bUsePawnControlRotation = true;
-	FirstPersonCamera->Activate();
 	FirstPersonCamera->SetRelativeLocation(FirstPersonCameraOffset);
 	FirstPersonCamera->SetRelativeRotation(FirstPersonCameraRotation);
 
-	// Initialize in first person mode
-	ConfigureFirstPersonMode();
+	// Configure for first person mode
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationRoll = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 }
 
 void ATFPlayerCharacter::BeginPlay()
@@ -68,29 +51,6 @@ void ATFPlayerCharacter::BeginPlay()
 
 	// Bind to stamina events
 	BindStaminaEvents();
-
-	// Apply correct camera mode on begin play
-	if (bInFirstPerson)
-	{
-		CameraBoom->TargetArmLength = 0.0f;
-		ConfigureFirstPersonMode();
-	}
-	else
-	{
-		CameraBoom->TargetArmLength = ThirdPersonCameraDistance;
-		ConfigureThirdPersonMode();
-	}
-}
-
-void ATFPlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// Update camera transition if active
-	if (bIsTransitioning)
-	{
-		UpdateCameraTransition(DeltaTime);
-	}
 }
 
 void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -131,12 +91,6 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		{
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::PlayerJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-		}
-
-		// Bind perspective toggle
-		if (ToggleCameraPerspective)
-		{
-			EnhancedInputComponent->BindAction(ToggleCameraPerspective, ETriggerEvent::Started, this, &ATFPlayerCharacter::TogglePerspective);
 		}
 
 		// Bind sprint
@@ -238,220 +192,6 @@ void ATFPlayerCharacter::InteractReleased()
 	{
 		// Stop hold interaction
 		InteractionComponent->StopHoldInteraction();
-	}
-}
-
-void ATFPlayerCharacter::TogglePerspective()
-{
-	// Prevent toggling during active transition
-	if (bIsTransitioning)
-	{
-		return;
-	}
-
-	// Toggle perspective state
-	bInFirstPerson = !bInFirstPerson;
-
-	// Start smooth transition
-	StartCameraTransition(bInFirstPerson);
-}
-
-void ATFPlayerCharacter::StartCameraTransition(bool bToFirstPerson)
-{
-	if (!CameraBoom)
-	{
-		return;
-	}
-
-	// Initialize transition state
-	bIsTransitioning = true;
-	TransitionTimer = 0.0f;
-	TransitionAlpha = 0.0f;
-
-	// Store starting and target camera arm lengths
-	StartCameraArmLength = CameraBoom->TargetArmLength;
-	TargetCameraArmLength = bToFirstPerson ? 0.0f : ThirdPersonCameraDistance;
-
-	// Store rotation values for smooth transition
-	if (Controller)
-	{
-		StartControlRotation = Controller->GetControlRotation();
-		StartCharacterRotation = GetActorRotation();
-
-		if (bToFirstPerson)
-		{
-			// Transitioning to first person: align character with camera view
-			TargetControlRotation = StartControlRotation;
-		}
-		else
-		{
-			// Transitioning to third person: maintain current camera direction
-			TargetControlRotation = StartControlRotation;
-		}
-	}
-
-	// Activate both cameras during transition for smooth blending
-	if (FirstPersonCamera && ThirdPersonCamera)
-	{
-		FirstPersonCamera->Activate();
-		ThirdPersonCamera->Activate();
-	}
-
-	// If smooth transition is disabled, complete immediately
-	if (!bSmoothCameraTransition)
-	{
-		CompleteCameraTransition();
-	}
-}
-
-void ATFPlayerCharacter::UpdateCameraTransition(float DeltaTime)
-{
-	if (!bIsTransitioning)
-	{
-		return;
-	}
-
-	// Update transition timer and calculate alpha
-	TransitionTimer += DeltaTime;
-	TransitionAlpha = FMath::Clamp(TransitionTimer / CameraTransitionDuration, 0.0f, 1.0f);
-
-	// Apply smooth easing curve (ease in-out cubic)
-	float EasedAlpha = TransitionAlpha * TransitionAlpha * (3.0f - 2.0f * TransitionAlpha);
-
-	// Interpolate camera boom arm length
-	if (CameraBoom)
-	{
-		float NewArmLength = FMath::Lerp(StartCameraArmLength, TargetCameraArmLength, EasedAlpha);
-		CameraBoom->TargetArmLength = NewArmLength;
-	}
-
-	// Apply smooth character rotation during transition if enabled
-	if (bSmoothRotationTransition && Controller)
-	{
-		float RotationAlpha = FMath::Clamp(TransitionTimer / RotationTransitionDuration, 0.0f, 1.0f);
-		float RotationEasedAlpha = RotationAlpha * RotationAlpha * (3.0f - 2.0f * RotationAlpha);
-
-		if (bInFirstPerson)
-		{
-			FRotator NewRotation = UKismetMathLibrary::RLerp(
-				StartCharacterRotation,
-				FRotator(0.0f, StartControlRotation.Yaw, 0.0f),
-				RotationEasedAlpha,
-				true
-			);
-			SetActorRotation(NewRotation);
-		}
-	}
-
-	// Optional: Apply vignette effect during transition
-	if (FirstPersonCamera && ThirdPersonCamera)
-	{
-		if (bInFirstPerson)
-		{
-			FirstPersonCamera->PostProcessSettings.bOverride_VignetteIntensity = true;
-			FirstPersonCamera->PostProcessSettings.VignetteIntensity = FMath::Lerp(0.4f, 0.0f, EasedAlpha);
-		}
-		else
-		{
-			ThirdPersonCamera->PostProcessSettings.bOverride_VignetteIntensity = true;
-			ThirdPersonCamera->PostProcessSettings.VignetteIntensity = FMath::Lerp(0.4f, 0.0f, EasedAlpha);
-		}
-	}
-
-	// Check if transition is complete
-	if (TransitionAlpha >= 1.0f)
-	{
-		CompleteCameraTransition();
-	}
-}
-
-void ATFPlayerCharacter::CompleteCameraTransition()
-{
-	// Reset transition state
-	bIsTransitioning = false;
-	TransitionTimer = 0.0f;
-	TransitionAlpha = 1.0f;
-
-	// Ensure final camera arm length is set
-	if (CameraBoom)
-	{
-		CameraBoom->TargetArmLength = TargetCameraArmLength;
-	}
-
-	// Apply final configuration for the target perspective
-	if (bInFirstPerson)
-	{
-		ConfigureFirstPersonMode();
-
-		if (Controller && bSmoothRotationTransition)
-		{
-			FRotator FinalRotation = FRotator(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
-			SetActorRotation(FinalRotation);
-		}
-	}
-	else
-	{
-		ConfigureThirdPersonMode();
-	}
-
-	// Clean up post-process effects
-	if (FirstPersonCamera)
-	{
-		FirstPersonCamera->PostProcessSettings.bOverride_VignetteIntensity = false;
-	}
-	if (ThirdPersonCamera)
-	{
-		ThirdPersonCamera->PostProcessSettings.bOverride_VignetteIntensity = false;
-	}
-}
-
-void ATFPlayerCharacter::ConfigureFirstPersonMode()
-{
-	if (!FirstPersonCamera || !ThirdPersonCamera)
-	{
-		return;
-	}
-
-	// Switch to first person camera
-	ThirdPersonCamera->Deactivate();
-	FirstPersonCamera->Activate();
-
-	// Configure controller rotation for first person
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
-	bUseControllerRotationRoll = false;
-
-	// Configure character movement for first person
-	if (UCharacterMovementComponent* CharMoveComp = GetCharacterMovement())
-	{
-		CharMoveComp->bOrientRotationToMovement = false;
-		CharMoveComp->bUseControllerDesiredRotation = false;
-		CharMoveComp->RotationRate = FirstPersonRotationRate;
-	}
-}
-
-void ATFPlayerCharacter::ConfigureThirdPersonMode()
-{
-	if (!FirstPersonCamera || !ThirdPersonCamera)
-	{
-		return;
-	}
-
-	// Switch to third person camera
-	FirstPersonCamera->Deactivate();
-	ThirdPersonCamera->Activate();
-
-	// Configure controller rotation for third person
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
-	// Configure character movement for third person
-	if (UCharacterMovementComponent* CharMoveComp = GetCharacterMovement())
-	{
-		CharMoveComp->bOrientRotationToMovement = true;
-		CharMoveComp->bUseControllerDesiredRotation = false;
-		CharMoveComp->RotationRate = ThirdPersonRotationRate;
 	}
 }
 

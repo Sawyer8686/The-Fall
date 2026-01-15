@@ -28,10 +28,10 @@ enum class EDoorHinge : uint8
 
 /**
  * Base Door Actor
- * Abstract base class for all door types in the game
+ * Unified door class handling both regular and key-locked doors
  * Handles door animation, state management, and interaction
  */
-UCLASS(Abstract)
+UCLASS(Blueprintable)
 class TFWORLDACTORS_API ATFBaseDoorActor : public ATFInteractableActor
 {
 	GENERATED_BODY()
@@ -90,6 +90,30 @@ protected:
 
 #pragma endregion Door Settings
 
+#pragma region Key Settings
+
+	/** Does this door require a key to unlock */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Key")
+	bool bRequiresKey = false;
+
+	/** Key ID required to unlock/lock this door */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
+	FName RequiredKeyID = NAME_None;
+
+	/** Display name of the required key (for UI) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
+	FText RequiredKeyName = FText::FromString("Key");
+
+	/** Is the door currently in a locked state */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
+	bool bIsLocked = true;
+
+	/** Can this door be re-locked after unlocking */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
+	bool bCanRelock = true;
+
+#pragma endregion Key Settings
+
 #pragma region Animation
 
 	/** Current door rotation angle */
@@ -130,6 +154,14 @@ protected:
 	/** Sound played during door movement (looping) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Audio")
 	USoundBase* DoorMovementSound;
+
+	/** Sound played when door is unlocked */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey"))
+	USoundBase* DoorUnlockSound;
+
+	/** Sound played when door is locked */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey"))
+	USoundBase* DoorLockSound;
 
 #pragma endregion Audio
 
@@ -210,22 +242,35 @@ public:
 
 	/**
 	 * Check if door is locked
-	 * Override in derived classes for lock logic
-	 * @return True if door is locked
+	 * @return True if door requires key and is in locked state
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
 	bool IsDoorLocked() const;
-	virtual bool IsDoorLocked_Implementation() const { return false; }
+	virtual bool IsDoorLocked_Implementation() const;
 
 	/**
-	 * Unlock the door
-	 * Override in derived classes for unlock logic
+	 * Unlock the door (requires player to have the key if bRequiresKey)
 	 * @param UnlockingCharacter - Character unlocking the door
 	 * @return True if door was unlocked
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
 	bool UnlockDoor(ATFPlayerCharacter* UnlockingCharacter);
-	virtual bool UnlockDoor_Implementation(ATFPlayerCharacter* UnlockingCharacter) { return true; }
+	virtual bool UnlockDoor_Implementation(ATFPlayerCharacter* UnlockingCharacter);
+
+	/**
+	 * Lock the door (requires player to have the key)
+	 * @param LockingCharacter - Character attempting to lock
+	 * @return True if door was locked
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Door|Key")
+	virtual bool LockDoor(ATFPlayerCharacter* LockingCharacter);
+
+	/**
+	 * Force set lock state (ignores key requirement - for puzzles/triggers)
+	 * @param bNewLockState - New lock state
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Door|Key")
+	void SetLockedState(bool bNewLockState);
 
 #pragma endregion Door Control
 
@@ -251,6 +296,18 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door")
 	void OnDoorLocked(ATFPlayerCharacter* AttemptingCharacter);
 
+	/** Called when door is unlocked with a key */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Door|Key")
+	void OnDoorUnlocked(ATFPlayerCharacter* UnlockingCharacter);
+
+	/** Called when door is locked with a key */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Door|Key")
+	void OnDoorRelocked(ATFPlayerCharacter* LockingCharacter);
+
+	/** Called when player tries to open without key */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Door|Key")
+	void OnKeyRequired(ATFPlayerCharacter* AttemptingCharacter);
+
 #pragma endregion Blueprint Events
 
 #pragma region Queries
@@ -274,6 +331,26 @@ public:
 	/** Get door open percentage (0.0 - 1.0) */
 	UFUNCTION(BlueprintPure, Category = "Door")
 	float GetDoorOpenPercentage() const;
+
+	/** Get the required key ID */
+	UFUNCTION(BlueprintPure, Category = "Door|Key")
+	FORCEINLINE FName GetRequiredKeyID() const { return RequiredKeyID; }
+
+	/** Get the required key display name */
+	UFUNCTION(BlueprintPure, Category = "Door|Key")
+	FORCEINLINE FText GetRequiredKeyName() const { return RequiredKeyName; }
+
+	/** Check if a character has the required key */
+	UFUNCTION(BlueprintPure, Category = "Door|Key")
+	bool CharacterHasKey(ATFPlayerCharacter* Character) const;
+
+	/** Check if door is in locked state */
+	UFUNCTION(BlueprintPure, Category = "Door|Key")
+	FORCEINLINE bool IsLocked() const { return bRequiresKey && bIsLocked; }
+
+	/** Check if this door requires a key */
+	UFUNCTION(BlueprintPure, Category = "Door|Key")
+	FORCEINLINE bool RequiresKey() const { return bRequiresKey; }
 
 #pragma endregion Queries
 };
