@@ -10,10 +10,6 @@
 class UStaticMeshComponent;
 class USphereComponent;
 
-/**
- * Base class for interactable objects in the world
- * NOT pickupable - for things like doors, switches, NPCs, etc.
- */
 UCLASS(Blueprintable)
 class TFCHARACTERS_API ATFInteractableActor : public AActor, public ITFInteractableInterface
 {

@@ -19,20 +19,10 @@ enum class EStaminaDrainReason : uint8
 {
 	Sprint		UMETA(DisplayName = "Sprint"),
 	Jump		UMETA(DisplayName = "Jump"),
-	Dodge		UMETA(DisplayName = "Dodge"),
 	Attack		UMETA(DisplayName = "Attack"),
 	Custom		UMETA(DisplayName = "Custom")
 };
 
-/**
- * Stamina Component - Manages character stamina system
- * Features:
- * - Automatic regeneration with configurable delays
- * - Different drain rates for various actions
- * - Exhaustion system with recovery penalty
- * - Visual feedback support (breathing, vignette)
- * - Network replication ready
- */
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class TFCHARACTERS_API UTFStaminaComponent : public UActorComponent
 {
@@ -45,7 +35,7 @@ private:
 #pragma region Stamina Values
 
 	/** Current stamina amount */
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentStamina, VisibleAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (AllowPrivateAccess = "true"))
 	float CurrentStamina;
 
 	/** Maximum stamina capacity */
@@ -94,10 +84,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Drain", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))
 	float JumpStaminaCost = 10.0f;
 
-	/** Stamina cost for dodging */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Drain", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))
-	float DodgeStaminaCost = 25.0f;
-
 	/** Minimum stamina required to sprint */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Drain", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))
 	float MinStaminaToSprint = 5.0f;
@@ -115,7 +101,7 @@ public:
 	bool bIsRegenerating = true;
 
 	/** Is character currently exhausted */
-	UPROPERTY(ReplicatedUsing = OnRep_IsExhausted, VisibleAnywhere, BlueprintReadOnly, Category = "Stamina|State", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina|State", meta = (AllowPrivateAccess = "true"))
 	bool bIsExhausted = false;
 
 	/** Is stamina currently being drained */
@@ -151,7 +137,7 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 
 	/** Handle stamina regeneration logic */
 	void RegenerateStamina(float DeltaTime);
@@ -161,13 +147,6 @@ protected:
 
 	/** Calculate current regeneration rate based on character state */
 	float GetCurrentRegenRate() const;
-
-	/** Replication callbacks */
-	UFUNCTION()
-	void OnRep_CurrentStamina();
-
-	UFUNCTION()
-	void OnRep_IsExhausted();
 
 public:
 
@@ -191,52 +170,25 @@ public:
 
 #pragma region Core Functions
 
-	/**
-	 * Consume stamina for an action
-	 * @param Amount - Amount of stamina to consume
-	 * @param Reason - Reason for stamina consumption (for tracking/debugging)
-	 * @return True if stamina was successfully consumed
-	 */
+	
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	bool ConsumeStamina(float Amount, EStaminaDrainReason Reason = EStaminaDrainReason::Custom);
 
-	/**
-	 * Start continuous stamina drain (e.g., sprinting)
-	 * @param DrainRate - Stamina drain per second
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void StartStaminaDrain(float DrainRate);
 
-	/**
-	 * Stop continuous stamina drain
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void StopStaminaDrain();
 
-	/**
-	 * Restore stamina by amount
-	 * @param Amount - Amount to restore (negative values will drain)
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void RestoreStamina(float Amount);
 
-	/**
-	 * Set stamina to specific value
-	 * @param NewStamina - New stamina value (clamped to 0-MaxStamina)
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void SetStamina(float NewStamina);
 
-	/**
-	 * Fully restore stamina to maximum
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void FullyRestoreStamina();
 
-	/**
-	 * Reset regeneration delay timer
-	 * @param bFromDepletion - If true, uses depletion delay, otherwise uses usage delay
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void ResetRegenDelay(bool bFromDepletion = false);
 
@@ -244,75 +196,34 @@ public:
 
 #pragma region Queries
 
-	/**
-	 * Check if character has enough stamina for an action
-	 * @param Required - Required stamina amount
-	 * @return True if character has enough stamina
-	 */
+	
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	bool HasEnoughStamina(float Required) const;
 
-	/**
-	 * Check if character can sprint
-	 * @return True if character has enough stamina to sprint
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	bool CanSprint() const;
 
-	/**
-	 * Check if character can jump
-	 * @return True if character has enough stamina to jump
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	bool CanJump() const;
 
-	/**
-	 * Get current stamina value
-	 * @return Current stamina
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
 
-	/**
-	 * Get maximum stamina value
-	 * @return Maximum stamina
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 
-	/**
-	 * Get stamina as normalized percentage (0.0 - 1.0)
-	 * @return Stamina percentage
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	float GetStaminaPercent() const;
 
-	/**
-	 * Check if character is exhausted
-	 * @return True if exhausted
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	FORCEINLINE bool IsExhausted() const { return bIsExhausted; }
 
-	/**
-	 * Check if stamina is regenerating
-	 * @return True if regenerating
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	FORCEINLINE bool IsRegenerating() const { return bIsRegenerating; }
 
-	/**
-	 * Check if stamina is being drained
-	 * @return True if draining
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	FORCEINLINE bool IsDraining() const { return bIsDraining; }
 
-	/**
-	 * Get breathing effect intensity (0.0 - 1.0)
-	 * Used for visual/audio feedback
-	 * @return Breathing intensity
-	 */
 	UFUNCTION(BlueprintPure, Category = "Stamina|Visual Feedback")
 	float GetBreathingIntensity() const;
 
@@ -320,17 +231,10 @@ public:
 
 #pragma region Configuration
 
-	/**
-	 * Set maximum stamina (also scales current stamina proportionally)
-	 * @param NewMax - New maximum stamina value
-	 */
+	
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void SetMaxStamina(float NewMax);
 
-	/**
-	 * Modify stamina regeneration rate
-	 * @param NewRate - New regeneration rate per second
-	 */
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void SetRegenRate(float NewRate);
 

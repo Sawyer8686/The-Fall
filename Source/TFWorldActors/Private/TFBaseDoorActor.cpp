@@ -294,7 +294,7 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(ATFPlayerCh
 	// Key door logic
 	if (bRequiresKey)
 	{
-		bool bHasKey = CharacterHasKey(const_cast<ATFPlayerCharacter*>(InstigatorCharacter));
+		bool bHasKey = CharacterHasKey(InstigatorCharacter);
 
 		// Locked door states
 		if (bIsLocked)
@@ -528,7 +528,7 @@ void ATFBaseDoorActor::SetLockedState(bool bNewLockState)
 	bIsLocked = bNewLockState;
 }
 
-bool ATFBaseDoorActor::CharacterHasKey(ATFPlayerCharacter* Character) const
+bool ATFBaseDoorActor::CharacterHasKey(const ATFPlayerCharacter* Character) const
 {
 	if (!Character || !bRequiresKey || RequiredKeyID.IsNone())
 	{

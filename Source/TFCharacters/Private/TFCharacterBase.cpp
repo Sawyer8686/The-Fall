@@ -15,13 +15,11 @@ void ATFCharacterBase::BeginPlay()
 
 bool ATFCharacterBase::CanCharacterJump() const
 {
-	// Base jump check - can be overridden by derived classes for stamina/conditions
 	return CanJump();
 }
 
 void ATFCharacterBase::HasJumped()
 {
-	// Base jump execution - override in derived classes to add stamina consumption
 	ACharacter::Jump();
 }
 
@@ -37,21 +35,12 @@ float ATFCharacterBase::GetWalkSpeed() const
 
 void ATFCharacterBase::SetSneaking(const bool bSneaking)
 {
-	if (bSneaking)
+	if (bIsSneaking == bSneaking)
 	{
-		bIsSneaking = true;
-	}
-	else
-	{
-		if (!bIsSneaking)
-		{
-			return;
-		}
-
-		bIsSneaking = false;
+		return;
 	}
 
-	// Update movement speed
+	bIsSneaking = bSneaking;
 	UpdateMovementSpeed();
 }
 
@@ -66,12 +55,3 @@ void ATFCharacterBase::UpdateMovementSpeed()
 	GetCharacterMovement()->MaxWalkSpeed = TargetSpeed;
 }
 
-void ATFCharacterBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void ATFCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}

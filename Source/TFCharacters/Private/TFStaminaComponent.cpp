@@ -4,15 +4,11 @@
 #include "TFCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/TimerHandle.h"
-#include "Net/UnrealNetwork.h"
 
 UTFStaminaComponent::UTFStaminaComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
-
-	// Enable replication
-	SetIsReplicatedByDefault(true);
 
 	// Initialize stamina to max
 	CurrentStamina = MaxStamina;
@@ -36,12 +32,6 @@ void UTFStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// Only tick on server or standalone
-	if (GetOwnerRole() != ROLE_Authority)
-	{
-		return;
-	}
-
 	// Update regeneration delay timer
 	if (RegenDelayTimer > 0.0f)
 	{
@@ -61,14 +51,6 @@ void UTFStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	// Update exhaustion state
 	UpdateExhaustionState();
-}
-
-void UTFStaminaComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UTFStaminaComponent, CurrentStamina);
-	DOREPLIFETIME(UTFStaminaComponent, bIsExhausted);
 }
 
 void UTFStaminaComponent::RegenerateStamina(float DeltaTime)
@@ -136,25 +118,6 @@ float UTFStaminaComponent::GetCurrentRegenRate() const
 	return StaminaRegenRate;
 }
 
-void UTFStaminaComponent::OnRep_CurrentStamina()
-{
-	// Broadcast stamina change on clients
-	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
-}
-
-void UTFStaminaComponent::OnRep_IsExhausted()
-{
-	// Broadcast exhaustion state change on clients
-	if (bIsExhausted)
-	{
-		OnStaminaDepleted.Broadcast();
-	}
-	else
-	{
-		OnStaminaRecovered.Broadcast();
-	}
-}
-
 bool UTFStaminaComponent::ConsumeStamina(float Amount, EStaminaDrainReason Reason)
 {
 	// Check if we have enough stamina
@@ -181,6 +144,11 @@ bool UTFStaminaComponent::ConsumeStamina(float Amount, EStaminaDrainReason Reaso
 
 void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 {
+	if (bIsDraining)
+	{
+		return;
+	}
+
 	bIsDraining = true;
 
 	constexpr float TimerTickRate = 0.1f;

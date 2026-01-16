@@ -8,7 +8,6 @@
 
 class UAudioComponent;
 
-/** Door state enum */
 UENUM(BlueprintType)
 enum class EDoorState : uint8
 {
@@ -26,11 +25,6 @@ enum class EDoorHinge : uint8
 	Right		UMETA(DisplayName = "Right")
 };
 
-/**
- * Base Door Actor
- * Unified door class handling both regular and key-locked doors
- * Handles door animation, state management, and interaction
- */
 UCLASS(Blueprintable)
 class TFWORLDACTORS_API ATFBaseDoorActor : public ATFInteractableActor
 {
@@ -342,7 +336,7 @@ public:
 
 	/** Check if a character has the required key */
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
-	bool CharacterHasKey(ATFPlayerCharacter* Character) const;
+	bool CharacterHasKey(const ATFPlayerCharacter* Character) const;
 
 	/** Check if door is in locked state */
 	UFUNCTION(BlueprintPure, Category = "Door|Key")

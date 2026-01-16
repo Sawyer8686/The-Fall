@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\\\UnrealProjects\\\\TF\\\\Source\" /s /b)",
+      "Bash(findstr:*)"
+    ]
+  }
+}

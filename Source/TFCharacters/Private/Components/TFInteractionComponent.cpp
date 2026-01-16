@@ -110,37 +110,6 @@ void UTFInteractionComponent::PerformInteractionCheck()
 		);
 	}
 
-	// Debug draw
-	if (bDebugDraw)
-	{
-		FColor LineColor = bHit ? FColor::Green : FColor::Red;
-		
-			// Draw sphere at trace start (head position)
-			 DrawDebugSphere(GetWorld(), TraceStart, 5.0f, 8, FColor::Cyan, false, DetectionTickRate);
-		
-			// Draw the trace line
-			 DrawDebugLine(GetWorld(), TraceStart, TraceEnd, LineColor, false, DetectionTickRate, 0, 2.0f);
-		
-			// Draw sphere at trace end
-			 DrawDebugSphere(GetWorld(), TraceEnd, 8.0f, 8, FColor::Yellow, false, DetectionTickRate);
-		
-			// If hit, draw impact point and actor bounds
-			 if (bHit)
-		{
-		    // Impact point
-				  DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Green, false,
-					 DetectionTickRate);
-				 
-					        // Draw line from impact to hit actor center
-					  if (HitResult.GetActor())
-					  {
-					  DrawDebugLine(GetWorld(), HitResult.ImpactPoint, HitResult.GetActor()->GetActorLocation(),
-						 FColor::Orange, false, DetectionTickRate, 0, 1.0f);
-					  }
-		}
-		
-	}
-
 	// Process result
 	if (bHit)
 	{
@@ -162,7 +131,6 @@ bool UTFInteractionComponent::GetTracePoints(FVector& TraceStart, FVector& Trace
 	USkeletalMeshComponent * MeshComp = OwnerCharacter->GetMesh();
 	if (!MeshComp)
 	{
-		 //ActiveCamera = FirstPersonCam;
 		return false;
 	}
 	 
