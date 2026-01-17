@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// TFInteractableActor.h (senza focus)
 
 #pragma once
 
@@ -8,6 +8,8 @@
 #include "TFInteractableActor.generated.h"
 
 class UStaticMeshComponent;
+class USceneComponent;
+class UTexture2D;
 class ATFPlayerCharacter;
 
 UCLASS(Blueprintable)
@@ -25,7 +27,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* MeshComponent;
 
-
 #pragma endregion Components
 
 #pragma region Interaction Settings
@@ -39,6 +40,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	UTexture2D* InteractionIcon = nullptr;
 
+	// Puoi lasciarlo per UI (anche se non usi hold)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (ClampMin = "0.0", ClampMax = "10.0"))
 	float InteractionDuration = 0.0f;
 
@@ -54,6 +56,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	bool bHasBeenUsed = false;
 
+	// -1 = infinito
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	int32 MaxUses = -1;
 
@@ -63,6 +66,7 @@ protected:
 #pragma endregion Interaction Settings
 
 	virtual void BeginPlay() override;
+
 	bool CanBeUsedAgain() const;
 
 public:
@@ -82,12 +86,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
 	void OnInteracted(ATFPlayerCharacter* InstigatorCharacter);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	void OnFocusBegin(ATFPlayerCharacter* InstigatorCharacter);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	void OnFocusEnd(ATFPlayerCharacter* InstigatorCharacter);
 
 #pragma endregion Blueprint Events
 

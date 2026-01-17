@@ -1,15 +1,20 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// TFInteractionComponent.cpp (senza focus, instant interact only)
 
 #include "Components/TFInteractionComponent.h"
+
 #include "TFPlayerCharacter.h"
+#include "TFInteractableInterface.h"
 #include "TFPickupableInterface.h"
+
 #include "Components/SkeletalMeshComponent.h"
-#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 UTFInteractionComponent::UTFInteractionComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = true;
+	// Niente hold: non serve Tick.
+	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void UTFInteractionComponent::BeginPlay()
@@ -23,9 +28,9 @@ void UTFInteractionComponent::BeginPlay()
 		return;
 	}
 
-	if (GetWorld())
+	if (UWorld* World = GetWorld())
 	{
-		GetWorld()->GetTimerManager().SetTimer(
+		World->GetTimerManager().SetTimer(
 			DetectionTimerHandle,
 			this,
 			&UTFInteractionComponent::PerformInteractionCheck,
@@ -35,16 +40,11 @@ void UTFInteractionComponent::BeginPlay()
 	}
 }
 
-void UTFInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
 void UTFInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (GetWorld())
+	if (UWorld* World = GetWorld())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(DetectionTimerHandle);
+		World->GetTimerManager().ClearTimer(DetectionTimerHandle);
 	}
 
 	ClearFocus();
@@ -59,6 +59,13 @@ void UTFInteractionComponent::PerformInteractionCheck()
 		return;
 	}
 
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		ClearFocus();
+		return;
+	}
+
 	FVector TraceStart, TraceEnd;
 	if (!GetTracePoints(TraceStart, TraceEnd))
 	{
@@ -67,15 +74,14 @@ void UTFInteractionComponent::PerformInteractionCheck()
 	}
 
 	FHitResult HitResult;
-	FCollisionQueryParams QueryParams;
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(TFInteractionTrace), bTraceComplex);
 	QueryParams.AddIgnoredActor(OwnerCharacter);
-	QueryParams.bTraceComplex = bTraceComplex;
 
 	bool bHit = false;
 
 	if (InteractionRadius > 0.0f)
 	{
-		bHit = GetWorld()->SweepSingleByChannel(
+		bHit = World->SweepSingleByChannel(
 			HitResult,
 			TraceStart,
 			TraceEnd,
@@ -87,7 +93,7 @@ void UTFInteractionComponent::PerformInteractionCheck()
 	}
 	else
 	{
-		bHit = GetWorld()->LineTraceSingleByChannel(
+		bHit = World->LineTraceSingleByChannel(
 			HitResult,
 			TraceStart,
 			TraceEnd,
@@ -113,21 +119,21 @@ bool UTFInteractionComponent::GetTracePoints(FVector& TraceStart, FVector& Trace
 		return false;
 	}
 
-	USkeletalMeshComponent * MeshComp = OwnerCharacter->GetMesh();
+	USkeletalMeshComponent* MeshComp = OwnerCharacter->GetMesh();
 	if (!MeshComp)
 	{
 		return false;
 	}
-	 
-		TraceStart = MeshComp->GetSocketLocation(TEXT("head"));
-		 
-		AController * Controller = OwnerCharacter->GetController();
-		 if (!Controller)
-		 {
-		 return false;
-		 }
 
-	FVector ForwardVector = Controller->GetControlRotation().Vector();
+	AController* Controller = OwnerCharacter->GetController();
+	if (!Controller)
+	{
+		return false;
+	}
+
+	TraceStart = MeshComp->GetSocketLocation(TEXT("head"));
+
+	const FVector ForwardVector = Controller->GetControlRotation().Vector();
 	TraceEnd = TraceStart + (ForwardVector * InteractionDistance);
 
 	return true;
@@ -136,7 +142,7 @@ bool UTFInteractionComponent::GetTracePoints(FVector& TraceStart, FVector& Trace
 void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 {
 	AActor* HitActor = HitResult.GetActor();
-	if (!HitActor)
+	if (!HitActor || !OwnerCharacter)
 	{
 		ClearFocus();
 		return;
@@ -148,14 +154,8 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 		return;
 	}
 
-	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
-	if (!Interactable)
-	{
-		ClearFocus();
-		return;
-	}
-
-	if (!Interactable->Execute_CanInteract(HitActor, OwnerCharacter))
+	// Mantiene la semantica originale: se CanInteract è false, non consideriamo l'attore "current".
+	if (!ITFInteractableInterface::Execute_CanInteract(HitActor, OwnerCharacter))
 	{
 		ClearFocus();
 		return;
@@ -168,24 +168,14 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 {
 	if (CurrentInteractable == NewFocus)
 	{
-		if (NewFocus)
+		if (CurrentInteractable)
 		{
-			ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(NewFocus);
-			if (Interactable)
-			{
-				CurrentInteractionData = Interactable->Execute_GetInteractionData(NewFocus, OwnerCharacter);
-			}
+			CurrentInteractionData = ITFInteractableInterface::Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
+
+			// Utile per aggiornare UI anche se cambia solo lo stato/testo.
+			OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
 		}
 		return;
-	}
-
-	if (CurrentInteractable)
-	{
-		ITFInteractableInterface* OldInteractable = Cast<ITFInteractableInterface>(CurrentInteractable);
-		if (OldInteractable)
-		{
-			OldInteractable->Execute_OnEndFocus(CurrentInteractable, OwnerCharacter);
-		}
 	}
 
 	PreviousInteractable = CurrentInteractable;
@@ -193,44 +183,33 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 
 	if (CurrentInteractable)
 	{
-		ITFInteractableInterface* NewInteractable = Cast<ITFInteractableInterface>(CurrentInteractable);
-		if (NewInteractable)
-		{
-			CurrentInteractionData = NewInteractable->Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
-
-			NewInteractable->Execute_OnBeginFocus(CurrentInteractable, OwnerCharacter);
-
-			OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
-		}
+		CurrentInteractionData = ITFInteractableInterface::Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
+		OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
 	}
 	else
 	{
+		CurrentInteractionData = FInteractionData();
 		OnInteractionLost.Broadcast();
 	}
 }
 
 void UTFInteractionComponent::ClearFocus()
 {
-   
-	if (CurrentInteractable)
+	if (!CurrentInteractable)
 	{
-		ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable);
-		if (Interactable)
-		{
-			Interactable->Execute_OnEndFocus(CurrentInteractable, OwnerCharacter);
-		}
-
-		PreviousInteractable = CurrentInteractable;
-		CurrentInteractable = nullptr;
-		CurrentInteractionData = FInteractionData();
-
-		OnInteractionLost.Broadcast();
+		return;
 	}
+
+	PreviousInteractable = CurrentInteractable;
+	CurrentInteractable = nullptr;
+	CurrentInteractionData = FInteractionData();
+
+	OnInteractionLost.Broadcast();
 }
 
 void UTFInteractionComponent::Interact()
 {
-	if (!CurrentInteractable || !OwnerCharacter)
+	if (!OwnerCharacter || !CurrentInteractable)
 	{
 		return;
 	}
@@ -247,6 +226,7 @@ void UTFInteractionComponent::Interact()
 	{
 		OnInteractionCompleted.Broadcast(CurrentInteractable);
 
+		// Pickup che si autodistrugge
 		if (CurrentInteractable->Implements<UTFPickupableInterface>())
 		{
 			if (ITFPickupableInterface::Execute_ShouldDestroyOnPickup(CurrentInteractable))
@@ -259,7 +239,7 @@ void UTFInteractionComponent::Interact()
 
 bool UTFInteractionComponent::InteractWithActor(AActor* Actor)
 {
-	if (!Actor || !OwnerCharacter)
+	if (!OwnerCharacter || !Actor)
 	{
 		return false;
 	}
@@ -269,18 +249,12 @@ bool UTFInteractionComponent::InteractWithActor(AActor* Actor)
 		return false;
 	}
 
-	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(Actor);
-	if (!Interactable)
+	if (!ITFInteractableInterface::Execute_CanInteract(Actor, OwnerCharacter))
 	{
 		return false;
 	}
 
-	if (!Interactable->Execute_CanInteract(Actor, OwnerCharacter))
-	{
-		return false;
-	}
-
-	bool bSuccess = Interactable->Execute_Interact(Actor, OwnerCharacter);
+	const bool bSuccess = ITFInteractableInterface::Execute_Interact(Actor, OwnerCharacter);
 
 	if (bSuccess)
 	{
@@ -292,13 +266,11 @@ bool UTFInteractionComponent::InteractWithActor(AActor* Actor)
 
 void UTFInteractionComponent::SetInteractionEnabled(bool bEnabled)
 {
-	SetComponentTickEnabled(bEnabled);
-
-	if (GetWorld())
+	if (UWorld* World = GetWorld())
 	{
 		if (bEnabled)
 		{
-			GetWorld()->GetTimerManager().SetTimer(
+			World->GetTimerManager().SetTimer(
 				DetectionTimerHandle,
 				this,
 				&UTFInteractionComponent::PerformInteractionCheck,
@@ -308,7 +280,7 @@ void UTFInteractionComponent::SetInteractionEnabled(bool bEnabled)
 		}
 		else
 		{
-			GetWorld()->GetTimerManager().ClearTimer(DetectionTimerHandle);
+			World->GetTimerManager().ClearTimer(DetectionTimerHandle);
 			ClearFocus();
 		}
 	}
@@ -323,10 +295,14 @@ void UTFInteractionComponent::SetDetectionTickRate(float NewRate)
 {
 	DetectionTickRate = FMath::Clamp(NewRate, 0.01f, 0.5f);
 
-	if (GetWorld() && DetectionTimerHandle.IsValid())
+	if (UWorld* World = GetWorld())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(DetectionTimerHandle);
-		GetWorld()->GetTimerManager().SetTimer(
+		if (DetectionTimerHandle.IsValid())
+		{
+			World->GetTimerManager().ClearTimer(DetectionTimerHandle);
+		}
+
+		World->GetTimerManager().SetTimer(
 			DetectionTimerHandle,
 			this,
 			&UTFInteractionComponent::PerformInteractionCheck,

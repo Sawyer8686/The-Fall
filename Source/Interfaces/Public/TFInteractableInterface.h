@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// TFInteractableInterface.h
 
 #pragma once
 
@@ -61,14 +61,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	bool CanInteract(APawn* InstigatorPawn) const;
 	virtual bool CanInteract_Implementation(APawn* InstigatorPawn) const { return true; }
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void OnBeginFocus(APawn* InstigatorPawn);
-	virtual void OnBeginFocus_Implementation(APawn* InstigatorPawn) {}
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void OnEndFocus(APawn* InstigatorPawn);
-	virtual void OnEndFocus_Implementation(APawn* InstigatorPawn) {}
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	float GetInteractionDistance() const;
