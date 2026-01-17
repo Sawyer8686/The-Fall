@@ -41,8 +41,8 @@ public:
 
 #pragma region Interactable Interface Override
 
-	virtual bool Interact_Implementation(APawn* Instigator) override;
-	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
+	virtual bool Interact_Implementation(APawn* InstigatorPawn) override;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const override;
 
 #pragma endregion Interactable Interface Override
 

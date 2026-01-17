@@ -29,9 +29,9 @@ bool ATFKeyActor::OnPickup_Implementation(APawn* Picker)
     return true;
 }
 
-FInteractionData ATFKeyActor::GetInteractionData_Implementation(APawn* Instigator) const
+FInteractionData ATFKeyActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
 {
-    FInteractionData Data = Super::GetInteractionData_Implementation(Instigator);
+    FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorPawn);
 
     if (!KeyName.IsEmpty())
     {

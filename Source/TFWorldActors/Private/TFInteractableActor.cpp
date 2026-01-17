@@ -80,9 +80,9 @@ bool ATFInteractableActor::CanBeUsedAgain() const
 	return CurrentUses < MaxUses;
 }
 
-bool ATFInteractableActor::Interact_Implementation(APawn* Instigator)
+bool ATFInteractableActor::Interact_Implementation(APawn* InstigatorPawn)
 {
-	if (!CanInteract_Implementation(Instigator))
+	if (!CanInteract_Implementation(InstigatorPawn))
 	{
 		return false;
 	}
@@ -98,13 +98,13 @@ bool ATFInteractableActor::Interact_Implementation(APawn* Instigator)
 	}
 
 	// Call blueprint event with player character
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
 	OnInteracted(PlayerCharacter);
 
 	return true;
 }
 
-FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* Instigator) const
+FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
 {
 	FInteractionData Data;
 	Data.InteractionText = InteractionText;
@@ -116,7 +116,7 @@ FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* 
 	return Data;
 }
 
-bool ATFInteractableActor::CanInteract_Implementation(APawn* Instigator) const
+bool ATFInteractableActor::CanInteract_Implementation(APawn* InstigatorPawn) const
 {
 	if (!bCanInteract)
 	{
@@ -138,23 +138,23 @@ bool ATFInteractableActor::CanInteract_Implementation(APawn* Instigator) const
 	return true;
 }
 
-void ATFInteractableActor::OnBeginFocus_Implementation(APawn* Instigator)
+void ATFInteractableActor::OnBeginFocus_Implementation(APawn* InstigatorPawn)
 {
 	// Apply highlight
 	ApplyHighlight();
 
 	// Call blueprint event with player character
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
 	OnFocusBegin(PlayerCharacter);
 }
 
-void ATFInteractableActor::OnEndFocus_Implementation(APawn* Instigator)
+void ATFInteractableActor::OnEndFocus_Implementation(APawn* InstigatorPawn)
 {
 	// Remove highlight
 	RemoveHighlight();
 
 	// Call blueprint event with player character
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
 	OnFocusEnd(PlayerCharacter);
 }
 

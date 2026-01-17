@@ -116,19 +116,19 @@ public:
 #pragma region Interface Implementation
 
 	/** Execute interaction */
-	virtual bool Interact_Implementation(APawn* Instigator) override;
+	virtual bool Interact_Implementation(APawn* InstigatorPawn) override;
 
 	/** Get interaction data */
-	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const override;
 
 	/** Check if can interact */
-	virtual bool CanInteract_Implementation(APawn* Instigator) const override;
+	virtual bool CanInteract_Implementation(APawn* InstigatorPawn) const override;
 
 	/** Begin focus */
-	virtual void OnBeginFocus_Implementation(APawn* Instigator) override;
+	virtual void OnBeginFocus_Implementation(APawn* InstigatorPawn) override;
 
 	/** End focus */
-	virtual void OnEndFocus_Implementation(APawn* Instigator) override;
+	virtual void OnEndFocus_Implementation(APawn* InstigatorPawn) override;
 
 	/** Get interaction distance */
 	virtual float GetInteractionDistance_Implementation() const override;

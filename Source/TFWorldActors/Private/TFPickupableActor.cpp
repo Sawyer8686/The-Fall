@@ -28,13 +28,13 @@ void ATFPickupableActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-bool ATFPickupableActor::Interact_Implementation(APawn* Instigator)
+bool ATFPickupableActor::Interact_Implementation(APawn* InstigatorPawn)
 {
-	bool bSuccess = OnPickup_Implementation(Instigator);
+	bool bSuccess = OnPickup_Implementation(InstigatorPawn);
 
 	if (bSuccess)
 	{
-		ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+		ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
 		OnItemPickedUp(PlayerCharacter);
 
 		if (bDestroyOnPickup)
@@ -62,9 +62,9 @@ bool ATFPickupableActor::Interact_Implementation(APawn* Instigator)
 	return false;
 }
 
-FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* Instigator) const
+FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
 {
-	FInteractionData Data = Super::GetInteractionData_Implementation(Instigator);
+	FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorPawn);
 
 	if (!ItemData.ItemName.IsEmpty())
 	{

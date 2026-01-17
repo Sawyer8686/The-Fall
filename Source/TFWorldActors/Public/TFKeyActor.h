@@ -33,7 +33,7 @@ public:
 #pragma region Pickupable Interface Override
 
     virtual bool OnPickup_Implementation(APawn* Picker) override;
-    virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
+    virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const override;
 
 #pragma endregion Pickupable Interface Override
 

@@ -67,45 +67,45 @@ public:
 	 * @return True if interaction was successful
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	bool Interact(APawn* Instigator);
-	virtual bool Interact_Implementation(APawn* Instigator) { return false; }
+	bool Interact(APawn* InstigatorPawn);
+	virtual bool Interact_Implementation(APawn* InstigatorPawn) { return false; }
 
 	/**
 	 * Get interaction data to display to player
-	 * @param Instigator - The pawn looking at this object
+	 * @param InstigatorPawn - The pawn looking at this object
 	 * @return Interaction data with display information
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	FInteractionData GetInteractionData(APawn* Instigator) const;
-	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const
+	FInteractionData GetInteractionData(APawn* InstigatorPawn) const;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const
 	{
 		return FInteractionData();
 	}
 
 	/**
 	 * Check if this object can currently be interacted with
-	 * @param Instigator - The pawn attempting to interact
+	 * @param InstigatorPawn - The pawn attempting to interact
 	 * @return True if interaction is possible
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	bool CanInteract(APawn* Instigator) const;
-	virtual bool CanInteract_Implementation(APawn* Instigator) const { return true; }
+	bool CanInteract(APawn* InstigatorPawn) const;
+	virtual bool CanInteract_Implementation(APawn* InstigatorPawn) const { return true; }
 
 	/**
 	 * Called when player starts looking at this object
-	 * @param Instigator - The pawn now focusing on this object
+	 * @param InstigatorPawn - The pawn now focusing on this object
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void OnBeginFocus(APawn* Instigator);
-	virtual void OnBeginFocus_Implementation(APawn* Instigator) {}
+	void OnBeginFocus(APawn* InstigatorPawn);
+	virtual void OnBeginFocus_Implementation(APawn* InstigatorPawn) {}
 
 	/**
 	 * Called when player stops looking at this object
-	 * @param Instigator - The pawn no longer focusing on this object
+	 * @param InstigatorPawn - The pawn no longer focusing on this object
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void OnEndFocus(APawn* Instigator);
-	virtual void OnEndFocus_Implementation(APawn* Instigator) {}
+	void OnEndFocus(APawn* InstigatorPawn);
+	virtual void OnEndFocus_Implementation(APawn* InstigatorPawn) {}
 
 	/**
 	 * Get the interaction distance for this object
