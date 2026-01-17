@@ -1,4 +1,4 @@
-// TFInteractionComponent.cpp (senza focus, instant interact only)
+// TFInteractionComponent.cpp
 
 #include "Components/TFInteractionComponent.h"
 
@@ -12,7 +12,6 @@
 
 UTFInteractionComponent::UTFInteractionComponent()
 {
-	// Niente hold: non serve Tick.
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
@@ -154,7 +153,7 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 		return;
 	}
 
-	// Mantiene la semantica originale: se CanInteract è false, non consideriamo l'attore "current".
+	// Only consider actor as interactable if CanInteract returns true
 	if (!ITFInteractableInterface::Execute_CanInteract(HitActor, OwnerCharacter))
 	{
 		ClearFocus();
@@ -170,10 +169,16 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 	{
 		if (CurrentInteractable)
 		{
-			CurrentInteractionData = ITFInteractableInterface::Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
+			FInteractionData NewData = ITFInteractableInterface::Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
 
-			// Utile per aggiornare UI anche se cambia solo lo stato/testo.
-			OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+			// Only broadcast if data actually changed to avoid unnecessary UI updates
+			if (!CurrentInteractionData.InteractionText.EqualTo(NewData.InteractionText) ||
+				!CurrentInteractionData.SecondaryText.EqualTo(NewData.SecondaryText) ||
+				CurrentInteractionData.bCanInteract != NewData.bCanInteract)
+			{
+				CurrentInteractionData = NewData;
+				OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+			}
 		}
 		return;
 	}
@@ -226,8 +231,8 @@ void UTFInteractionComponent::Interact()
 	{
 		OnInteractionCompleted.Broadcast(CurrentInteractable);
 
-		// Pickup che si autodistrugge
-		if (CurrentInteractable->Implements<UTFPickupableInterface>())
+		// Clear focus if pickup destroys itself
+		if (CurrentInteractable && CurrentInteractable->Implements<UTFPickupableInterface>())
 		{
 			if (ITFPickupableInterface::Execute_ShouldDestroyOnPickup(CurrentInteractable))
 			{

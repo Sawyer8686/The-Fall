@@ -19,7 +19,6 @@ enum class EStaminaDrainReason : uint8
 {
 	Sprint		UMETA(DisplayName = "Sprint"),
 	Jump		UMETA(DisplayName = "Jump"),
-	Attack		UMETA(DisplayName = "Attack"),
 	Custom		UMETA(DisplayName = "Custom")
 };
 
@@ -45,6 +44,10 @@ private:
 	/** Stamina percentage threshold for exhaustion state (0.0 - 1.0) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Exhaustion", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "1.0"))
 	float ExhaustionThreshold = 0.2f;
+
+	/** Stamina percentage threshold for recovering from exhaustion (hysteresis). Should be higher than ExhaustionThreshold. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Exhaustion", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "1.0"))
+	float ExhaustionRecoveryThreshold = 0.24f;
 
 #pragma endregion Stamina Values
 
@@ -136,6 +139,7 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
@@ -207,22 +211,22 @@ public:
 	bool CanJump() const;
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
-	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
+	float GetCurrentStamina() const { return CurrentStamina; }
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
-	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
+	float GetMaxStamina() const { return MaxStamina; }
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	float GetStaminaPercent() const;
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
-	FORCEINLINE bool IsExhausted() const { return bIsExhausted; }
+	bool IsExhausted() const { return bIsExhausted; }
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
-	FORCEINLINE bool IsRegenerating() const { return bIsRegenerating; }
+	bool IsRegenerating() const { return bIsRegenerating; }
 
 	UFUNCTION(BlueprintPure, Category = "Stamina")
-	FORCEINLINE bool IsDraining() const { return bIsDraining; }
+	bool IsDraining() const { return bIsDraining; }
 
 	UFUNCTION(BlueprintPure, Category = "Stamina|Visual Feedback")
 	float GetBreathingIntensity() const;
@@ -239,4 +243,36 @@ public:
 	void SetRegenRate(float NewRate);
 
 #pragma endregion Configuration
+
+#pragma region Modifiers
+
+	/** Multiplier applied to all stamina drain rates */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina|Modifiers")
+	float DrainRateMultiplier = 1.0f;
+
+	/** Multiplier applied to all stamina regeneration rates */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina|Modifiers")
+	float RegenRateMultiplier = 1.0f;
+
+	/** Set a multiplier for stamina drain rates (1.0 = normal, 0.5 = half drain, 2.0 = double drain) */
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Modifiers")
+	void SetDrainRateMultiplier(float Multiplier);
+
+	/** Set a multiplier for stamina regeneration rates (1.0 = normal, 2.0 = double regen) */
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Modifiers")
+	void SetRegenRateMultiplier(float Multiplier);
+
+	/** Reset all modifiers to default (1.0) */
+	UFUNCTION(BlueprintCallable, Category = "Stamina|Modifiers")
+	void ResetModifiers();
+
+	/** Get the effective drain rate after applying modifiers */
+	UFUNCTION(BlueprintPure, Category = "Stamina|Modifiers")
+	float GetEffectiveDrainRate(float BaseDrainRate) const;
+
+	/** Get the effective regen rate after applying modifiers */
+	UFUNCTION(BlueprintPure, Category = "Stamina|Modifiers")
+	float GetEffectiveRegenRate() const;
+
+#pragma endregion Modifiers
 };

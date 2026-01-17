@@ -15,6 +15,14 @@ struct FInputActionValue;
 class UTFStaminaComponent;
 class UTFInteractionComponent;
 
+/** Reason why sprint was blocked */
+UENUM(BlueprintType)
+enum class ESprintBlockReason : uint8
+{
+	Sneaking	UMETA(DisplayName = "Sneaking"),
+	NoStamina	UMETA(DisplayName = "No Stamina")
+};
+
 UCLASS(Blueprintable)
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface
 {
@@ -114,6 +122,7 @@ protected:
 #pragma region Stamina Events
 
 	void BindStaminaEvents();
+	void UnbindStaminaEvents();
 
 	UFUNCTION()
 	void HandleStaminaDepleted();
@@ -129,6 +138,10 @@ protected:
 	void OnStaminaRecovered();
 	virtual void OnStaminaRecovered_Implementation();
 
+	/** Called when sprint is blocked for any reason. Override in Blueprint for feedback. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Movement")
+	void OnSprintBlocked(ESprintBlockReason Reason);
+
 #pragma endregion Stamina Events
 
 #pragma region Overrides
@@ -139,21 +152,22 @@ protected:
 #pragma endregion Overrides
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 
 #pragma region Accessors
 
 	UFUNCTION(BlueprintPure, Category = "Components")
-	FORCEINLINE UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
+	UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
 
 	UFUNCTION(BlueprintPure, Category = "Components")
-	FORCEINLINE UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+	UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 
-	FORCEINLINE UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
+	UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
 
 	UFUNCTION(BlueprintPure, Category = "Movement")
-	FORCEINLINE bool IsSprinting() const { return bIsSprinting; }
+	bool IsSprinting() const { return bIsSprinting; }
 
 #pragma endregion Accessors
 

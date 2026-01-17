@@ -1,4 +1,4 @@
-// TFInteractableActor.h (senza focus)
+// TFInteractableActor.h
 
 #pragma once
 
@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	UTexture2D* InteractionIcon = nullptr;
 
-	// Puoi lasciarlo per UI (anche se non usi hold)
+	/** Duration for hold-to-interact (0 for instant interaction) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (ClampMin = "0.0", ClampMax = "10.0"))
 	float InteractionDuration = 0.0f;
 
@@ -55,7 +55,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	bool bHasBeenUsed = false;
 
-	// -1 = infinito
+	/** Maximum number of uses (-1 for unlimited) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	int32 MaxUses = -1;
 
@@ -63,8 +63,6 @@ protected:
 	int32 CurrentUses = 0;
 
 #pragma endregion Interaction Settings
-
-	virtual void BeginPlay() override;
 
 	bool CanBeUsedAgain() const;
 
@@ -91,7 +89,7 @@ public:
 #pragma region Accessors
 
 	UFUNCTION(BlueprintPure, Category = "Components")
-	FORCEINLINE UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
+	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SetCanInteract(bool bNewCanInteract);

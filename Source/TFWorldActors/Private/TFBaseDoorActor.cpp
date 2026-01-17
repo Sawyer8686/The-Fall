@@ -8,6 +8,7 @@
 ATFBaseDoorActor::ATFBaseDoorActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false; // Only tick during animation
 
 	DoorFrameMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorFrame"));
 	DoorFrameMesh->SetupAttachment(Root);
@@ -34,6 +35,16 @@ void ATFBaseDoorActor::BeginPlay()
 	Super::BeginPlay();
 
 	InitialRotation = DoorMesh->GetRelativeRotation();
+}
+
+void ATFBaseDoorActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(AutoCloseTimerHandle);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATFBaseDoorActor::Tick(float DeltaTime)
@@ -129,7 +140,10 @@ void ATFBaseDoorActor::StartOpening(APawn* OpeningCharacter)
 	AnimationTimer = 0.0f;
 	CurrentAnimationDuration = OpenDuration;
 
+	SetActorTickEnabled(true);
+
 	PlayDoorSound(DoorOpenSound);
+	PlayDoorMovementSound();
 
 	OnDoorStartOpening(OpeningCharacter);
 }
@@ -140,9 +154,15 @@ void ATFBaseDoorActor::StartClosing()
 	AnimationTimer = 0.0f;
 	CurrentAnimationDuration = CloseDuration;
 
-	GetWorld()->GetTimerManager().ClearTimer(AutoCloseTimerHandle);
+	SetActorTickEnabled(true);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(AutoCloseTimerHandle);
+	}
 
 	PlayDoorSound(DoorCloseSound);
+	PlayDoorMovementSound();
 
 	OnDoorStartClosing();
 }
@@ -152,15 +172,21 @@ void ATFBaseDoorActor::CompleteOpening()
 	DoorState = EDoorState::Open;
 	CurrentAngle = TargetAngle;
 
+	SetActorTickEnabled(false);
+	StopDoorMovementSound();
+
 	if (bAutoClose && AutoCloseDelay > 0.0f)
 	{
-		GetWorld()->GetTimerManager().SetTimer(
-			AutoCloseTimerHandle,
-			this,
-			&ATFBaseDoorActor::AutoCloseDoor,
-			AutoCloseDelay,
-			false
-		);
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().SetTimer(
+				AutoCloseTimerHandle,
+				this,
+				&ATFBaseDoorActor::AutoCloseDoor,
+				AutoCloseDelay,
+				false
+			);
+		}
 	}
 
 	OnDoorOpened();
@@ -170,6 +196,9 @@ void ATFBaseDoorActor::CompleteClosing()
 {
 	DoorState = EDoorState::Closed;
 	CurrentAngle = 0.0f;
+
+	SetActorTickEnabled(false);
+	StopDoorMovementSound();
 
 	OnDoorClosed();
 }
@@ -183,6 +212,29 @@ void ATFBaseDoorActor::PlayDoorSound(USoundBase* Sound)
 
 	AudioComponent->SetSound(Sound);
 	AudioComponent->Play();
+}
+
+void ATFBaseDoorActor::PlayDoorMovementSound()
+{
+	if (!DoorMovementSound || !AudioComponent)
+	{
+		return;
+	}
+
+	// Only play if not already playing the movement sound
+	if (AudioComponent->Sound != DoorMovementSound || !AudioComponent->IsPlaying())
+	{
+		AudioComponent->SetSound(DoorMovementSound);
+		AudioComponent->Play();
+	}
+}
+
+void ATFBaseDoorActor::StopDoorMovementSound()
+{
+	if (AudioComponent && AudioComponent->Sound == DoorMovementSound && AudioComponent->IsPlaying())
+	{
+		AudioComponent->Stop();
+	}
 }
 
 void ATFBaseDoorActor::AutoCloseDoor()
@@ -214,13 +266,13 @@ bool ATFBaseDoorActor::Interact_Implementation(APawn* InstigatorPawn)
 		return false;
 	}
 
-	// Caso A: porta in movimento - non fa nulla
+	// Door is animating - do nothing
 	if (IsMoving())
 	{
 		return false;
 	}
 
-	// Caso B: porta a chiave e bloccata - solo feedback, non sblocca mai
+	// Door requires key and is locked - only feedback, never unlock via interact
 	if (bRequiresKey && bIsLocked)
 	{
 		PlayDoorSound(DoorLockedSound);
@@ -229,7 +281,7 @@ bool ATFBaseDoorActor::Interact_Implementation(APawn* InstigatorPawn)
 		return false;
 	}
 
-	// Caso C: porta sbloccata - Open/Close
+	// Door is unlocked - Open/Close
 	if (IsClosed())
 	{
 		return OpenDoor(InstigatorPawn);
@@ -255,18 +307,18 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 		{
 			if (bHasKey)
 			{
-				Data.InteractionText = FText::FromString("Unlock Door");
+				Data.InteractionText = NSLOCTEXT("TFDoor", "UnlockDoor", "Unlock Door");
 				Data.SecondaryText = FText::Format(
-					FText::FromString("Using {0}"),
+					NSLOCTEXT("TFDoor", "UsingKey", "Using {0}"),
 					RequiredKeyName
 				);
 				Data.bCanInteract = true;
 			}
 			else
 			{
-				Data.InteractionText = FText::FromString("Locked");
+				Data.InteractionText = NSLOCTEXT("TFDoor", "Locked", "Locked");
 				Data.SecondaryText = FText::Format(
-					FText::FromString("Requires {0}"),
+					NSLOCTEXT("TFDoor", "RequiresKey", "Requires {0}"),
 					RequiredKeyName
 				);
 				Data.bCanInteract = false;
@@ -276,17 +328,17 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 		{
 			if (IsClosed())
 			{
-				Data.InteractionText = FText::FromString("Open Door");
+				Data.InteractionText = NSLOCTEXT("TFDoor", "OpenDoor", "Open Door");
 				Data.bCanInteract = true;
 			}
 			else if (IsOpen())
 			{
-				Data.InteractionText = FText::FromString("Close Door");
+				Data.InteractionText = NSLOCTEXT("TFDoor", "CloseDoor", "Close Door");
 				Data.bCanInteract = true;
 			}
 			else
 			{
-				Data.InteractionText = FText::FromString("Wait...");
+				Data.InteractionText = NSLOCTEXT("TFDoor", "Wait", "Wait...");
 				Data.bCanInteract = false;
 			}
 		}
@@ -296,15 +348,15 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 
 	if (IsClosed())
 	{
-		Data.InteractionText = FText::FromString("Open Door");
+		Data.InteractionText = NSLOCTEXT("TFDoor", "OpenDoor", "Open Door");
 	}
 	else if (IsOpen())
 	{
-		Data.InteractionText = FText::FromString("Close Door");
+		Data.InteractionText = NSLOCTEXT("TFDoor", "CloseDoor", "Close Door");
 	}
 	else
 	{
-		Data.InteractionText = FText::FromString("Wait...");
+		Data.InteractionText = NSLOCTEXT("TFDoor", "Wait", "Wait...");
 		Data.bCanInteract = false;
 	}
 

@@ -33,7 +33,6 @@ protected:
 #pragma endregion Pickup Settings
 
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 
 public:
 
@@ -69,7 +68,7 @@ public:
 #pragma region Accessors
 
 	UFUNCTION(BlueprintPure, Category = "Item")
-	FORCEINLINE FItemData GetItemInfo() const { return ItemData; }
+	FItemData GetItemInfo() const { return ItemData; }
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void SetItemData(const FItemData& NewItemData);

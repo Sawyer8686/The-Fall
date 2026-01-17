@@ -130,6 +130,7 @@ protected:
 #pragma endregion Audio
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
 	void UpdateDoorAnimation(float DeltaTime);
 	void ApplyDoorRotation(float Angle);
@@ -139,6 +140,8 @@ protected:
 	virtual void CompleteOpening();
 	virtual void CompleteClosing();
 	void PlayDoorSound(USoundBase* Sound);
+	void PlayDoorMovementSound();
+	void StopDoorMovementSound();
 	void AutoCloseDoor();
 	bool IsPlayerOnCorrectSide(const FVector& PlayerLocation) const;
 
@@ -215,34 +218,34 @@ public:
 #pragma region Queries
 
 	UFUNCTION(BlueprintPure, Category = "Door")
-	FORCEINLINE EDoorState GetDoorState() const { return DoorState; }
+	EDoorState GetDoorState() const { return DoorState; }
 
 	UFUNCTION(BlueprintPure, Category = "Door")
-	FORCEINLINE bool IsOpen() const { return DoorState == EDoorState::Open; }
+	bool IsOpen() const { return DoorState == EDoorState::Open; }
 
 	UFUNCTION(BlueprintPure, Category = "Door")
-	FORCEINLINE bool IsClosed() const { return DoorState == EDoorState::Closed; }
+	bool IsClosed() const { return DoorState == EDoorState::Closed; }
 
 	UFUNCTION(BlueprintPure, Category = "Door")
-	FORCEINLINE bool IsMoving() const { return DoorState == EDoorState::Opening || DoorState == EDoorState::Closing; }
+	bool IsMoving() const { return DoorState == EDoorState::Opening || DoorState == EDoorState::Closing; }
 
 	UFUNCTION(BlueprintPure, Category = "Door")
 	float GetDoorOpenPercentage() const;
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
-	FORCEINLINE FName GetRequiredKeyID() const { return RequiredKeyID; }
+	FName GetRequiredKeyID() const { return RequiredKeyID; }
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
-	FORCEINLINE FText GetRequiredKeyName() const { return RequiredKeyName; }
+	FText GetRequiredKeyName() const { return RequiredKeyName; }
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
 	bool CharacterHasKey(const APawn* Character) const;
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
-	FORCEINLINE bool IsLocked() const { return bRequiresKey && bIsLocked; }
+	bool IsLocked() const { return bRequiresKey && bIsLocked; }
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
-	FORCEINLINE bool RequiresKey() const { return bRequiresKey; }
+	bool RequiresKey() const { return bRequiresKey; }
 
 #pragma endregion Queries
 };

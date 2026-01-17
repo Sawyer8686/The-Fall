@@ -46,6 +46,13 @@ void ATFPlayerCharacter::BeginPlay()
 	BindStaminaEvents();
 }
 
+void ATFPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UnbindStaminaEvents();
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -169,22 +176,22 @@ void ATFPlayerCharacter::SetSprinting(const bool bSprinting)
 {
 	if (bSprinting)
 	{
-		if (!StaminaComponent || !StaminaComponent->CanSprint())
+		// Cannot sprint while sneaking
+		if (IsSneaking())
 		{
+			OnSprintBlocked(ESprintBlockReason::Sneaking);
 			return;
 		}
 
-		if (IsSneaking())
+		// Cannot sprint without stamina component or when exhausted
+		if (!StaminaComponent || !StaminaComponent->CanSprint())
 		{
+			OnSprintBlocked(ESprintBlockReason::NoStamina);
 			return;
 		}
 
 		bIsSprinting = true;
-
-		if (StaminaComponent)
-		{
-			StaminaComponent->StartStaminaDrain(StaminaComponent->SprintDrainRate);
-		}
+		StaminaComponent->StartStaminaDrain(StaminaComponent->SprintDrainRate);
 	}
 	else
 	{
@@ -240,6 +247,15 @@ void ATFPlayerCharacter::BindStaminaEvents()
 	{
 		StaminaComponent->OnStaminaDepleted.AddDynamic(this, &ATFPlayerCharacter::HandleStaminaDepleted);
 		StaminaComponent->OnStaminaRecovered.AddDynamic(this, &ATFPlayerCharacter::HandleStaminaRecovered);
+	}
+}
+
+void ATFPlayerCharacter::UnbindStaminaEvents()
+{
+	if (StaminaComponent)
+	{
+		StaminaComponent->OnStaminaDepleted.RemoveDynamic(this, &ATFPlayerCharacter::HandleStaminaDepleted);
+		StaminaComponent->OnStaminaRecovered.RemoveDynamic(this, &ATFPlayerCharacter::HandleStaminaRecovered);
 	}
 }
 

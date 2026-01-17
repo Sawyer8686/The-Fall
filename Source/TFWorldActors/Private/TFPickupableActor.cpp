@@ -7,8 +7,8 @@
 
 ATFPickupableActor::ATFPickupableActor()
 {
-	PrimaryActorTick.bCanEverTick = true;
-	InteractionText = FText::FromString("Pick Up");
+	PrimaryActorTick.bCanEverTick = false;
+	InteractionText = NSLOCTEXT("TFPickup", "PickUp", "Pick Up");
 	InteractionDuration = 0.0f;
 }
 
@@ -20,11 +20,6 @@ void ATFPickupableActor::BeginPlay()
 	{
 		MeshComponent->SetStaticMesh(ItemData.ItemMesh);
 	}
-}
-
-void ATFPickupableActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 bool ATFPickupableActor::Interact_Implementation(APawn* InstigatorPawn)
@@ -67,7 +62,7 @@ FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* In
 	if (!ItemData.ItemName.IsEmpty())
 	{
 		Data.InteractionText = FText::Format(
-			FText::FromString("Pick Up {0}"),
+			NSLOCTEXT("TFPickup", "PickUpItem", "Pick Up {0}"),
 			ItemData.ItemName
 		);
 	}
@@ -75,7 +70,7 @@ FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* In
 	if (ItemData.bIsStackable && ItemData.Quantity > 1)
 	{
 		Data.SecondaryText = FText::Format(
-			FText::FromString("x{0}"),
+			NSLOCTEXT("TFPickup", "Quantity", "x{0}"),
 			FText::AsNumber(ItemData.Quantity)
 		);
 	}
@@ -135,7 +130,7 @@ void ATFPickupableActor::SetItemData(const FItemData& NewItemData)
 	if (!ItemData.ItemName.IsEmpty())
 	{
 		InteractionText = FText::Format(
-			FText::FromString("Pick Up {0}"),
+			NSLOCTEXT("TFPickup", "PickUpItem", "Pick Up {0}"),
 			ItemData.ItemName
 		);
 	}

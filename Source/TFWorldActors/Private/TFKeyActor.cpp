@@ -5,7 +5,7 @@
 
 ATFKeyActor::ATFKeyActor()
 {
-    InteractionText = FText::FromString("Pick Up Key");
+    InteractionText = NSLOCTEXT("TFKey", "PickUpKey", "Pick Up Key");
     InteractionDuration = 0.0f;
     bDestroyOnPickup = true;
 }
@@ -40,13 +40,13 @@ FInteractionData ATFKeyActor::GetInteractionData_Implementation(APawn* Instigato
     if (!KeyName.IsEmpty())
     {
         Data.InteractionText = FText::Format(
-            FText::FromString("Pick Up {0}"),
+            NSLOCTEXT("TFKey", "PickUpNamedKey", "Pick Up {0}"),
             KeyName
         );
     }
     else
     {
-        Data.InteractionText = FText::FromString("Pick Up Key");
+        Data.InteractionText = NSLOCTEXT("TFKey", "PickUpKey", "Pick Up Key");
     }
 
     if (!KeyDescription.IsEmpty())

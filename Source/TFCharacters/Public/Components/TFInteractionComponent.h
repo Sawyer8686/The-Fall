@@ -37,9 +37,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Detection", meta = (AllowPrivateAccess = "true"))
 	bool bTraceComplex = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug", meta = (AllowPrivateAccess = "true"))
-	bool bDebugDraw = true;
-
 #pragma endregion Detection Settings
 
 #pragma region State
@@ -103,13 +100,13 @@ public:
 #pragma region Queries
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
-	FORCEINLINE AActor* GetCurrentInteractable() const { return CurrentInteractable; }
+	AActor* GetCurrentInteractable() const { return CurrentInteractable; }
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
-	FORCEINLINE bool HasInteractable() const { return CurrentInteractable != nullptr; }
+	bool HasInteractable() const { return CurrentInteractable != nullptr; }
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
-	FORCEINLINE FInteractionData GetCurrentInteractionData() const { return CurrentInteractionData; }
+	FInteractionData GetCurrentInteractionData() const { return CurrentInteractionData; }
 
 #pragma endregion Queries
 

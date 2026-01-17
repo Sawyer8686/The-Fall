@@ -19,13 +19,6 @@ ATFInteractableActor::ATFInteractableActor()
 
 }
 
-void ATFInteractableActor::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-
-
 bool ATFInteractableActor::CanBeUsedAgain() const
 {
 	if (MaxUses < 0)

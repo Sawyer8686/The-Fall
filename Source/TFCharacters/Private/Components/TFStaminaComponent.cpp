@@ -8,7 +8,7 @@
 UTFStaminaComponent::UTFStaminaComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false; // Start disabled, enable only when needed
 
 	// Initialize stamina to max
 	CurrentStamina = MaxStamina;
@@ -26,6 +26,17 @@ void UTFStaminaComponent::BeginPlay()
 
 	// Broadcast initial values
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+}
+
+void UTFStaminaComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Clear drain timer
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(DrainTimerHandle);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UTFStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -51,6 +62,12 @@ void UTFStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	// Update exhaustion state
 	UpdateExhaustionState();
+
+	// Disable tick if stamina is full and not draining
+	if (CurrentStamina >= MaxStamina && !bIsDraining && !bIsExhausted)
+	{
+		SetComponentTickEnabled(false);
+	}
 }
 
 void UTFStaminaComponent::RegenerateStamina(float DeltaTime)
@@ -60,8 +77,8 @@ void UTFStaminaComponent::RegenerateStamina(float DeltaTime)
 		return;
 	}
 
-	// Calculate regeneration rate based on character state
-	float RegenRate = GetCurrentRegenRate();
+	// Calculate regeneration rate based on character state and modifiers
+	float RegenRate = GetCurrentRegenRate() * RegenRateMultiplier;
 
 	// Apply exhaustion penalty
 	if (bIsExhausted)
@@ -82,8 +99,8 @@ void UTFStaminaComponent::RegenerateStamina(float DeltaTime)
 
 void UTFStaminaComponent::UpdateExhaustionState()
 {
-	bool bWasExhausted = bIsExhausted;
 	float ExhaustionStaminaValue = MaxStamina * ExhaustionThreshold;
+	float RecoveryStaminaValue = MaxStamina * ExhaustionRecoveryThreshold;
 
 	// Check if should be exhausted
 	if (CurrentStamina <= ExhaustionStaminaValue && !bIsExhausted)
@@ -91,8 +108,8 @@ void UTFStaminaComponent::UpdateExhaustionState()
 		bIsExhausted = true;
 		OnStaminaDepleted.Broadcast();
 	}
-	// Check if recovered from exhaustion (add small hysteresis)
-	else if (CurrentStamina > (ExhaustionStaminaValue * 1.2f) && bIsExhausted)
+	// Check if recovered from exhaustion (using configurable hysteresis)
+	else if (CurrentStamina > RecoveryStaminaValue && bIsExhausted)
 	{
 		bIsExhausted = false;
 		OnStaminaRecovered.Broadcast();
@@ -120,6 +137,12 @@ float UTFStaminaComponent::GetCurrentRegenRate() const
 
 bool UTFStaminaComponent::ConsumeStamina(float Amount, EStaminaDrainReason Reason)
 {
+	// Validate input
+	if (Amount <= 0.0f)
+	{
+		return false;
+	}
+
 	// Check if we have enough stamina
 	if (CurrentStamina < Amount)
 	{
@@ -136,6 +159,9 @@ bool UTFStaminaComponent::ConsumeStamina(float Amount, EStaminaDrainReason Reaso
 	// Reset regeneration delay
 	ResetRegenDelay(bWasDepleted);
 
+	// Enable tick for regeneration
+	SetComponentTickEnabled(true);
+
 	// Broadcast change
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 
@@ -144,12 +170,15 @@ bool UTFStaminaComponent::ConsumeStamina(float Amount, EStaminaDrainReason Reaso
 
 void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 {
-	if (bIsDraining)
+	if (bIsDraining || DrainRate <= 0.0f)
 	{
 		return;
 	}
 
 	bIsDraining = true;
+
+	// Enable tick for exhaustion state updates
+	SetComponentTickEnabled(true);
 
 	constexpr float TimerTickRate = 0.1f;
 
@@ -158,9 +187,11 @@ void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 		{
 			if (bIsDraining)
 			{
+				// Apply drain rate multiplier
+				float EffectiveDrain = DrainRate * DrainRateMultiplier * TimerTickRate;
+
 				float OldStamina = CurrentStamina;
-				CurrentStamina = FMath::Clamp(CurrentStamina - (DrainRate * TimerTickRate), 0.0f,
-					MaxStamina);
+				CurrentStamina = FMath::Clamp(CurrentStamina - EffectiveDrain, 0.0f, MaxStamina);
 
 				// Check if depleted
 				if (CurrentStamina <= 0.0f && OldStamina > 0.0f)
@@ -173,12 +204,16 @@ void UTFStaminaComponent::StartStaminaDrain(float DrainRate)
 			}
 		});
 
-	GetWorld()->GetTimerManager().SetTimer(
-		DrainTimerHandle, // Assicurati di avere una variabile membro FTimerHandle DrainTimerHandle;
-		TimerDel,
-		TimerTickRate,
-		true
-	);
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().SetTimer(
+			DrainTimerHandle,
+			TimerDel,
+			TimerTickRate,
+			true
+		);
+	}
 }
 
 void UTFStaminaComponent::StopStaminaDrain()
@@ -291,4 +326,30 @@ void UTFStaminaComponent::SetMaxStamina(float NewMax)
 void UTFStaminaComponent::SetRegenRate(float NewRate)
 {
 	StaminaRegenRate = FMath::Max(0.0f, NewRate);
+}
+
+void UTFStaminaComponent::SetDrainRateMultiplier(float Multiplier)
+{
+	DrainRateMultiplier = FMath::Max(0.0f, Multiplier);
+}
+
+void UTFStaminaComponent::SetRegenRateMultiplier(float Multiplier)
+{
+	RegenRateMultiplier = FMath::Max(0.0f, Multiplier);
+}
+
+void UTFStaminaComponent::ResetModifiers()
+{
+	DrainRateMultiplier = 1.0f;
+	RegenRateMultiplier = 1.0f;
+}
+
+float UTFStaminaComponent::GetEffectiveDrainRate(float BaseDrainRate) const
+{
+	return BaseDrainRate * DrainRateMultiplier;
+}
+
+float UTFStaminaComponent::GetEffectiveRegenRate() const
+{
+	return GetCurrentRegenRate() * RegenRateMultiplier;
 }

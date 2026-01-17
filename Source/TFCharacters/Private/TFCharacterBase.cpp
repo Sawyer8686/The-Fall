@@ -8,11 +8,6 @@ ATFCharacterBase::ATFCharacterBase()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void ATFCharacterBase::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 bool ATFCharacterBase::CanCharacterJump() const
 {
 	return CanJump();

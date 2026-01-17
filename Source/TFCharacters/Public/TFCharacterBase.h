@@ -29,7 +29,6 @@ private:
 
 protected:
 
-	virtual void BeginPlay() override;
 	virtual bool CanCharacterJump() const;
 	virtual void HasJumped();
 	float GetSneakSpeed() const;
