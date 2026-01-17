@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "TFInteractableActor.h"
+#include "TFKeyHolderInterface.h"
+#include "TFLockableInterface.h"
 #include "TFBaseDoorActor.generated.h"
 
 class UAudioComponent;
+class APawn;
 
 UENUM(BlueprintType)
 enum class EDoorState : uint8
@@ -25,7 +28,7 @@ enum class EDoorHinge : uint8
 };
 
 UCLASS(Blueprintable)
-class TFWORLDACTORS_API ATFBaseDoorActor : public ATFInteractableActor
+class TFWORLDACTORS_API ATFBaseDoorActor : public ATFInteractableActor, public ITFLockableInterface
 {
 	GENERATED_BODY()
 
@@ -131,7 +134,7 @@ protected:
 	void UpdateDoorAnimation(float DeltaTime);
 	void ApplyDoorRotation(float Angle);
 	float CalculateTargetAngle(const FVector& PlayerLocation);
-	virtual void StartOpening(ATFPlayerCharacter* OpeningCharacter);
+	virtual void StartOpening(APawn* OpeningCharacter);
 	virtual void StartClosing();
 	virtual void CompleteOpening();
 	virtual void CompleteClosing();
@@ -155,24 +158,26 @@ public:
 
 	
 	UFUNCTION(BlueprintCallable, Category = "Door")
-	virtual bool OpenDoor(ATFPlayerCharacter* OpeningCharacter);
+	virtual bool OpenDoor(APawn* OpeningCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "Door")
 	virtual bool CloseDoor();
 
+	virtual bool ToggleLock_Implementation(APawn* Character) override;
+
 	UFUNCTION(BlueprintCallable, Category = "Door")
-	virtual bool ToggleDoor(ATFPlayerCharacter* TogglingCharacter);
+	virtual bool ToggleDoor(APawn* TogglingCharacter);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
 	bool IsDoorLocked() const;
 	virtual bool IsDoorLocked_Implementation() const;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
-	bool UnlockDoor(ATFPlayerCharacter* UnlockingCharacter);
-	virtual bool UnlockDoor_Implementation(ATFPlayerCharacter* UnlockingCharacter);
+	bool UnlockDoor(APawn* UnlockingCharacter);
+	virtual bool UnlockDoor_Implementation(APawn* UnlockingCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "Door|Key")
-	virtual bool LockDoor(ATFPlayerCharacter* LockingCharacter);
+	virtual bool LockDoor(APawn* LockingCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "Door|Key")
 	void SetLockedState(bool bNewLockState);
@@ -182,7 +187,7 @@ public:
 #pragma region Blueprint Events
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door")
-	void OnDoorStartOpening(ATFPlayerCharacter* OpeningCharacter);
+	void OnDoorStartOpening(APawn* OpeningCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door")
 	void OnDoorOpened();
@@ -194,16 +199,16 @@ public:
 	void OnDoorClosed();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door")
-	void OnDoorLocked(ATFPlayerCharacter* AttemptingCharacter);
+	void OnDoorLocked(APawn* AttemptingCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door|Key")
-	void OnDoorUnlocked(ATFPlayerCharacter* UnlockingCharacter);
+	void OnDoorUnlocked(APawn* UnlockingCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door|Key")
-	void OnDoorRelocked(ATFPlayerCharacter* LockingCharacter);
+	void OnDoorRelocked(APawn* LockingCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Door|Key")
-	void OnKeyRequired(ATFPlayerCharacter* AttemptingCharacter);
+	void OnKeyRequired(APawn* AttemptingCharacter);
 
 #pragma endregion Blueprint Events
 
@@ -231,7 +236,7 @@ public:
 	FORCEINLINE FText GetRequiredKeyName() const { return RequiredKeyName; }
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
-	bool CharacterHasKey(const ATFPlayerCharacter* Character) const;
+	bool CharacterHasKey(const APawn* Character) const;
 
 	UFUNCTION(BlueprintPure, Category = "Door|Key")
 	FORCEINLINE bool IsLocked() const { return bRequiresKey && bIsLocked; }

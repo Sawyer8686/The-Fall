@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TFCharacterBase.h"
+#include "TFKeyHolderInterface.h"
 #include "Blueprint/UserWidget.h"
 #include "TFPlayerCharacter.generated.h"
 
@@ -15,7 +16,7 @@ class UTFStaminaComponent;
 class UTFInteractionComponent;
 
 UCLASS(Blueprintable)
-class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase
+class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface
 {
 	GENERATED_BODY()
 
@@ -57,6 +58,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* LockAction;
+
 #pragma endregion Input
 
 #pragma region Movement & Sprint
@@ -94,7 +98,8 @@ protected:
 	void SneakOff();
 	void PlayerJump();
 	void InteractPressed();
-	void InteractReleased();
+	//void InteractReleased();
+	void LockPressed();
 
 #pragma endregion Input Handlers
 
@@ -162,14 +167,11 @@ protected:
 public:
 
 	
-	UFUNCTION(BlueprintPure, Category = "Keys")
-	bool HasKey(FName KeyID) const;
+	virtual bool HasKey_Implementation(FName KeyID) const override;
 
-	UFUNCTION(BlueprintCallable, Category = "Keys")
-	void AddKey(FName KeyID);
+	virtual void AddKey_Implementation(FName KeyID) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Keys")
-	bool RemoveKey(FName KeyID);
+	virtual bool RemoveKey_Implementation(FName KeyID) override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
 	void OnKeyAdded(FName KeyID);

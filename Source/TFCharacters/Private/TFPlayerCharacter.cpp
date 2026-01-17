@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "TFLockableInterface.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -93,6 +94,11 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		if (InteractAction)
 		{
 			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::InteractPressed);
+		}
+
+		if (LockAction)
+		{
+			EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::LockPressed);
 		}
 	}
 }
@@ -291,12 +297,12 @@ void ATFPlayerCharacter::HasJumped()
 	ATFCharacterBase::HasJumped();
 }
 
-bool ATFPlayerCharacter::HasKey(FName KeyID) const
+bool ATFPlayerCharacter::HasKey_Implementation(FName KeyID) const
 {
 	return CollectedKeys.Contains(KeyID);
 }
 
-void ATFPlayerCharacter::AddKey(FName KeyID)
+void ATFPlayerCharacter::AddKey_Implementation(FName KeyID)
 {
 	if (KeyID.IsNone())
 	{
@@ -313,7 +319,7 @@ void ATFPlayerCharacter::AddKey(FName KeyID)
 	}
 }
 
-bool ATFPlayerCharacter::RemoveKey(FName KeyID)
+bool ATFPlayerCharacter::RemoveKey_Implementation(FName KeyID)
 {
 	if (KeyID.IsNone())
 	{
@@ -330,4 +336,23 @@ bool ATFPlayerCharacter::RemoveKey(FName KeyID)
 	}
 
 	return false;
+}
+
+void ATFPlayerCharacter::LockPressed()
+{
+	if (!InteractionComponent)
+	{
+		return;
+	}
+
+	AActor* Target = InteractionComponent->GetCurrentInteractable();
+	if (!Target)
+	{
+		return;
+	}
+
+	if (Target->Implements<UTFLockableInterface>())
+	{
+		ITFLockableInterface::Execute_ToggleLock(Target, this);
+	}
 }

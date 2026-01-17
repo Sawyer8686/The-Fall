@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFBaseDoorActor.h"
-#include "TFPlayerCharacter.h"
 #include "Components/AudioComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -10,28 +9,23 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Create door frame mesh
 	DoorFrameMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorFrame"));
 	DoorFrameMesh->SetupAttachment(Root);
 	DoorFrameMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DoorFrameMesh->SetCollisionResponseToAllChannels(ECR_Block);
 
-	// Create door mesh (moving part)
 	DoorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	DoorMesh->SetupAttachment(DoorFrameMesh);
 	DoorMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DoorMesh->SetCollisionResponseToAllChannels(ECR_Block);
 
-	// Create audio component
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	AudioComponent->SetupAttachment(DoorMesh);
 	AudioComponent->bAutoActivate = false;
 
-	// Set default interaction text
 	InteractionText = FText::FromString("Open Door");
 	MaxInteractionDistance = 200.0f;
 
-	// Door is reusable (can open/close multiple times)
 	bIsReusable = true;
 }
 
@@ -39,7 +33,6 @@ void ATFBaseDoorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Store initial rotation
 	InitialRotation = DoorMesh->GetRelativeRotation();
 }
 
@@ -47,7 +40,6 @@ void ATFBaseDoorActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Update door animation if moving
 	if (IsMoving())
 	{
 		UpdateDoorAnimation(DeltaTime);
@@ -61,21 +53,17 @@ void ATFBaseDoorActor::UpdateDoorAnimation(float DeltaTime)
 		return;
 	}
 
-	// Update timer
 	AnimationTimer += DeltaTime;
 	float Alpha = FMath::Clamp(AnimationTimer / CurrentAnimationDuration, 0.0f, 1.0f);
 
-	// Smooth easing (ease in-out)
 	float EasedAlpha = Alpha * Alpha * (3.0f - 2.0f * Alpha);
 
-	// Interpolate angle
 	CurrentAngle = FMath::Lerp(
 		DoorState == EDoorState::Opening ? 0.0f : TargetAngle,
 		DoorState == EDoorState::Opening ? TargetAngle : 0.0f,
 		EasedAlpha
 	);
 
-	// Apply rotation
 	ApplyDoorRotation(CurrentAngle);
 
 	// Check if animation complete
@@ -96,7 +84,6 @@ void ATFBaseDoorActor::ApplyDoorRotation(float Angle)
 {
 	FRotator NewRotation = InitialRotation;
 
-	// Apply angle based on hinge type
 	if (HingeType == EDoorHinge::Left)
 	{
 		NewRotation.Yaw += Angle;
@@ -111,33 +98,27 @@ void ATFBaseDoorActor::ApplyDoorRotation(float Angle)
 
 float ATFBaseDoorActor::CalculateTargetAngle(const FVector& PlayerLocation)
 {
-	// Get door forward vector
 	FVector DoorForward = GetActorForwardVector();
 
-	// Get vector from door to player
 	FVector ToPlayer = (PlayerLocation - GetActorLocation()).GetSafeNormal();
 
-	// Calculate dot product to determine which side player is on
 	float DotProduct = FVector::DotProduct(DoorForward, ToPlayer);
 
-	// If player is on back side and door can't open from both sides, return 0
 	if (!bCanOpenFromBothSides && DotProduct < 0.0f)
 	{
 		return 0.0f;
 	}
 
-	// Return angle based on player side
 	return MaxOpenAngle;
 }
 
-void ATFBaseDoorActor::StartOpening(ATFPlayerCharacter* OpeningCharacter)
+void ATFBaseDoorActor::StartOpening(APawn* OpeningCharacter)
 {
 	if (!OpeningCharacter)
 	{
 		return;
 	}
 
-	// Calculate target angle
 	TargetAngle = CalculateTargetAngle(OpeningCharacter->GetActorLocation());
 
 	if (TargetAngle <= 0.0f)
@@ -145,32 +126,25 @@ void ATFBaseDoorActor::StartOpening(ATFPlayerCharacter* OpeningCharacter)
 		return;
 	}
 
-	// Set state
 	DoorState = EDoorState::Opening;
 	AnimationTimer = 0.0f;
 	CurrentAnimationDuration = OpenDuration;
 
-	// Play sound
 	PlayDoorSound(DoorOpenSound);
 
-	// Call blueprint event
 	OnDoorStartOpening(OpeningCharacter);
 }
 
 void ATFBaseDoorActor::StartClosing()
 {
-	// Set state
 	DoorState = EDoorState::Closing;
 	AnimationTimer = 0.0f;
 	CurrentAnimationDuration = CloseDuration;
 
-	// Clear auto-close timer
 	GetWorld()->GetTimerManager().ClearTimer(AutoCloseTimerHandle);
 
-	// Play sound
 	PlayDoorSound(DoorCloseSound);
 
-	// Call blueprint event
 	OnDoorStartClosing();
 }
 
@@ -179,7 +153,6 @@ void ATFBaseDoorActor::CompleteOpening()
 	DoorState = EDoorState::Open;
 	CurrentAngle = TargetAngle;
 
-	// Set up auto-close if enabled
 	if (bAutoClose && AutoCloseDelay > 0.0f)
 	{
 		GetWorld()->GetTimerManager().SetTimer(
@@ -191,7 +164,6 @@ void ATFBaseDoorActor::CompleteOpening()
 		);
 	}
 
-	// Call blueprint event
 	OnDoorOpened();
 }
 
@@ -200,7 +172,6 @@ void ATFBaseDoorActor::CompleteClosing()
 	DoorState = EDoorState::Closed;
 	CurrentAngle = 0.0f;
 
-	// Call blueprint event
 	OnDoorClosed();
 }
 
@@ -239,72 +210,59 @@ bool ATFBaseDoorActor::IsPlayerOnCorrectSide(const FVector& PlayerLocation) cons
 
 bool ATFBaseDoorActor::Interact_Implementation(APawn* InstigatorPawn)
 {
-	ATFPlayerCharacter* InstigatorCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
-	if (!InstigatorCharacter)
+	if (!InstigatorPawn)
 	{
 		return false;
 	}
 
-	// Key door logic
 	if (bRequiresKey)
 	{
-		bool bHasKey = CharacterHasKey(InstigatorCharacter);
+		bool bHasKey = CharacterHasKey(InstigatorPawn);
 
 		// Case 1: Door is locked
 		if (bIsLocked)
 		{
 			if (bHasKey)
 			{
-				// Player has key - unlock the door
-				return UnlockDoor(InstigatorCharacter);
+				return UnlockDoor(InstigatorPawn);
 			}
 			else
 			{
-				// Player doesn't have key - show "locked" feedback
 				PlayDoorSound(DoorLockedSound);
-				OnKeyRequired(InstigatorCharacter);
-				OnDoorLocked(InstigatorCharacter);
+				OnKeyRequired(InstigatorPawn);
+				OnDoorLocked(InstigatorPawn);
 				return false;
 			}
 		}
 
-		// Case 2: Door is unlocked and closed - open it
 		if (IsClosed())
 		{
-			return OpenDoor(InstigatorCharacter);
+			return OpenDoor(InstigatorPawn);
 		}
 
-		// Case 3: Door is unlocked and open - close it
 		if (IsOpen())
 		{
 			return CloseDoor();
 		}
 
-		// Door is moving, do nothing
 		return false;
 	}
 
-	// Regular door (no key required) - just toggle
-	return ToggleDoor(InstigatorCharacter);
+	return ToggleDoor(InstigatorPawn);
 }
 
 FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
 {
 	FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorPawn);
 
-	ATFPlayerCharacter* InstigatorCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
-
-	// Key door logic
 	if (bRequiresKey)
 	{
-		bool bHasKey = CharacterHasKey(InstigatorCharacter);
+		bool bHasKey = CharacterHasKey(InstigatorPawn);
 
-		// Locked door states
 		if (bIsLocked)
 		{
 			if (bHasKey)
 			{
-				// Player has the key - show unlock option
 				Data.InteractionText = FText::FromString("Unlock Door");
 				Data.SecondaryText = FText::Format(
 					FText::FromString("Using {0}"),
@@ -314,7 +272,6 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 			}
 			else
 			{
-				// Player doesn't have the key - show requirement
 				Data.InteractionText = FText::FromString("Locked");
 				Data.SecondaryText = FText::Format(
 					FText::FromString("Requires {0}"),
@@ -323,7 +280,6 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 				Data.bCanInteract = false;
 			}
 		}
-		// Unlocked door states
 		else
 		{
 			if (IsClosed())
@@ -338,7 +294,6 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 			}
 			else
 			{
-				// Door is moving
 				Data.InteractionText = FText::FromString("Wait...");
 				Data.bCanInteract = false;
 			}
@@ -347,7 +302,6 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 		return Data;
 	}
 
-	// Regular door (no key required)
 	if (IsClosed())
 	{
 		Data.InteractionText = FText::FromString("Open Door");
@@ -372,13 +326,11 @@ bool ATFBaseDoorActor::CanInteract_Implementation(APawn* InstigatorPawn) const
 		return false;
 	}
 
-	// Can't interact while door is moving
 	if (IsMoving())
 	{
 		return false;
 	}
 
-	// Check if player is on correct side (if door has restrictions)
 	if (InstigatorPawn && !IsPlayerOnCorrectSide(InstigatorPawn->GetActorLocation()))
 	{
 		return false;
@@ -387,33 +339,29 @@ bool ATFBaseDoorActor::CanInteract_Implementation(APawn* InstigatorPawn) const
 	return true;
 }
 
-bool ATFBaseDoorActor::OpenDoor(ATFPlayerCharacter* OpeningCharacter)
+bool ATFBaseDoorActor::OpenDoor(APawn* OpeningCharacter)
 {
-	// Check if can open
 	if (IsOpen() || IsMoving() || IsDoorLocked())
 	{
 		return false;
 	}
 
-	// Start opening
 	StartOpening(OpeningCharacter);
 	return true;
 }
 
 bool ATFBaseDoorActor::CloseDoor()
 {
-	// Check if can close
 	if (IsClosed() || IsMoving())
 	{
 		return false;
 	}
 
-	// Start closing
 	StartClosing();
 	return true;
 }
 
-bool ATFBaseDoorActor::ToggleDoor(ATFPlayerCharacter* TogglingCharacter)
+bool ATFBaseDoorActor::ToggleDoor(APawn* TogglingCharacter)
 {
 	if (IsClosed())
 	{
@@ -437,42 +385,32 @@ float ATFBaseDoorActor::GetDoorOpenPercentage() const
 	return CurrentAngle / MaxOpenAngle;
 }
 
-// ============================================================================
-// Key Door Functions
-// ============================================================================
-
 bool ATFBaseDoorActor::IsDoorLocked_Implementation() const
 {
 	return bRequiresKey && bIsLocked;
 }
 
-bool ATFBaseDoorActor::UnlockDoor_Implementation(ATFPlayerCharacter* UnlockingCharacter)
+bool ATFBaseDoorActor::UnlockDoor_Implementation(APawn* UnlockingCharacter)
 {
-	// If no key required, door is always "unlocked"
 	if (!bRequiresKey)
 	{
 		return true;
 	}
 
-	// Check if character has the required key
 	if (!CharacterHasKey(UnlockingCharacter))
 	{
 		return false;
 	}
 
-	// Already unlocked
 	if (!bIsLocked)
 	{
 		return false;
 	}
 
-	// Unlock the door
 	bIsLocked = false;
 
-	// Play unlock sound
 	PlayDoorSound(DoorUnlockSound);
 
-	// Call blueprint event
 	OnDoorUnlocked(UnlockingCharacter);
 
 	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Door unlocked with key '%s'"), *RequiredKeyID.ToString());
@@ -480,45 +418,37 @@ bool ATFBaseDoorActor::UnlockDoor_Implementation(ATFPlayerCharacter* UnlockingCh
 	return true;
 }
 
-bool ATFBaseDoorActor::LockDoor(ATFPlayerCharacter* LockingCharacter)
+bool ATFBaseDoorActor::LockDoor(APawn* LockingCharacter)
 {
-	// Can only lock key doors
 	if (!bRequiresKey)
 	{
 		return false;
 	}
 
-	// Check if relocking is allowed
 	if (!bCanRelock)
 	{
 		return false;
 	}
 
-	// Check if character has the required key
 	if (!CharacterHasKey(LockingCharacter))
 	{
 		return false;
 	}
 
-	// Already locked
 	if (bIsLocked)
 	{
 		return false;
 	}
 
-	// Door must be closed to lock
 	if (!IsClosed())
 	{
 		return false;
 	}
 
-	// Lock the door
 	bIsLocked = true;
 
-	// Play lock sound
 	PlayDoorSound(DoorLockSound);
 
-	// Call blueprint event
 	OnDoorRelocked(LockingCharacter);
 
 	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Door locked with key '%s'"), *RequiredKeyID.ToString());
@@ -531,12 +461,42 @@ void ATFBaseDoorActor::SetLockedState(bool bNewLockState)
 	bIsLocked = bNewLockState;
 }
 
-bool ATFBaseDoorActor::CharacterHasKey(const ATFPlayerCharacter* Character) const
+bool ATFBaseDoorActor::CharacterHasKey(const APawn* Character) const
 {
 	if (!Character || !bRequiresKey || RequiredKeyID.IsNone())
 	{
 		return false;
 	}
 
-	return Character->HasKey(RequiredKeyID);
+	if (Character->Implements<UTFKeyHolderInterface>())
+	{
+		return ITFKeyHolderInterface::Execute_HasKey(Character, RequiredKeyID);
+	}
+
+	return false;
+}
+
+bool ATFBaseDoorActor::ToggleLock_Implementation(APawn* Character)
+{
+	if (!bRequiresKey)
+	{
+		return false;
+	}
+
+	if (!Character)
+	{
+		return false;
+	}
+
+	if (!IsClosed() || IsMoving())
+	{
+		return false;
+	}
+
+	if (bIsLocked)
+	{
+		return UnlockDoor(Character);
+	}
+
+	return LockDoor(Character);
 }

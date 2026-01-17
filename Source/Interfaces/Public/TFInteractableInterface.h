@@ -1,4 +1,3 @@
-// TFInteractableInterface.h
 
 #pragma once
 
@@ -6,9 +5,8 @@
 #include "UObject/Interface.h"
 #include "TFInteractableInterface.generated.h"
 
-/**
- * Interaction data returned by interactable objects
- */
+
+
 USTRUCT(BlueprintType)
 struct FInteractionData
 {
