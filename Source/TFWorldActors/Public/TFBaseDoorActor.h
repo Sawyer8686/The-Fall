@@ -199,13 +199,13 @@ public:
 #pragma region Interface Override
 
 	/** Override interact to handle door open/close */
-	virtual bool Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter) override;
+	virtual bool Interact_Implementation(APawn* Instigator) override;
 
 	/** Override interaction data to show door state */
-	virtual FInteractionData GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const override;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
 
 	/** Override can interact to check if door can be used */
-	virtual bool CanInteract_Implementation(ATFPlayerCharacter* InstigatorCharacter) const override;
+	virtual bool CanInteract_Implementation(APawn* Instigator) const override;
 
 #pragma endregion Interface Override
 

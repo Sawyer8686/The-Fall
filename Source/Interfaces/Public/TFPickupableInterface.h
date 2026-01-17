@@ -6,8 +6,6 @@
 #include "UObject/Interface.h"
 #include "TFPickupableInterface.generated.h"
 
-class ATFPlayerCharacter;
-
 /**
  * Item data for pickupable objects
  * This will be expanded when inventory system is created
@@ -91,12 +89,12 @@ public:
 
 	/**
 	 * Called when this item is picked up by player
-	 * @param PickerCharacter - The character picking up this item
+	 * @param Picker - The pawn picking up this item
 	 * @return True if pickup was successful
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	bool OnPickup(ATFPlayerCharacter* PickerCharacter);
-	virtual bool OnPickup_Implementation(ATFPlayerCharacter* PickerCharacter) { return false; }
+	bool OnPickup(APawn* Picker);
+	virtual bool OnPickup_Implementation(APawn* Picker) { return false; }
 
 	/**
 	 * Get item data for this pickupable object
@@ -108,21 +106,21 @@ public:
 
 	/**
 	 * Check if this item can currently be picked up
-	 * @param PickerCharacter - The character attempting to pick up
+	 * @param Picker - The pawn attempting to pick up
 	 * @return True if pickup is possible (inventory space, etc.)
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	bool CanPickup(ATFPlayerCharacter* PickerCharacter) const;
-	virtual bool CanPickup_Implementation(ATFPlayerCharacter* PickerCharacter) const { return true; }
+	bool CanPickup(APawn* Picker) const;
+	virtual bool CanPickup_Implementation(APawn* Picker) const { return true; }
 
 	/**
 	 * Called when pickup fails (inventory full, etc.)
-	 * @param PickerCharacter - The character who failed to pick up
+	 * @param Picker - The pawn who failed to pick up
 	 * @param Reason - Reason for failure
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	void OnPickupFailed(ATFPlayerCharacter* PickerCharacter, const FText& Reason);
-	virtual void OnPickupFailed_Implementation(ATFPlayerCharacter* PickerCharacter, const FText& Reason) {}
+	void OnPickupFailed(APawn* Picker, const FText& Reason);
+	virtual void OnPickupFailed_Implementation(APawn* Picker, const FText& Reason) {}
 
 	/**
 	 * Should this item be destroyed after successful pickup

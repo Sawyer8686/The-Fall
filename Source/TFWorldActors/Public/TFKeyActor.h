@@ -32,8 +32,8 @@ public:
 
 #pragma region Pickupable Interface Override
 
-    virtual bool OnPickup_Implementation(ATFPlayerCharacter* PickerCharacter) override;
-    virtual FInteractionData GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const override;
+    virtual bool OnPickup_Implementation(APawn* Picker) override;
+    virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
 
 #pragma endregion Pickupable Interface Override
 

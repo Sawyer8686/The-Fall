@@ -6,8 +6,6 @@
 #include "UObject/Interface.h"
 #include "TFInteractableInterface.generated.h"
 
-class ATFPlayerCharacter;
-
 /**
  * Interaction data returned by interactable objects
  */
@@ -65,49 +63,49 @@ public:
 
 	/**
 	 * Called when player interacts with this object
-	 * @param InstigatorCharacter - The character performing the interaction
+	 * @param Instigator - The pawn performing the interaction
 	 * @return True if interaction was successful
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	bool Interact(ATFPlayerCharacter* InstigatorCharacter);
-	virtual bool Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter) { return false; }
+	bool Interact(APawn* Instigator);
+	virtual bool Interact_Implementation(APawn* Instigator) { return false; }
 
 	/**
 	 * Get interaction data to display to player
-	 * @param InstigatorCharacter - The character looking at this object
+	 * @param Instigator - The pawn looking at this object
 	 * @return Interaction data with display information
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	FInteractionData GetInteractionData(ATFPlayerCharacter* InstigatorCharacter) const;
-	virtual FInteractionData GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+	FInteractionData GetInteractionData(APawn* Instigator) const;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const
 	{
 		return FInteractionData();
 	}
 
 	/**
 	 * Check if this object can currently be interacted with
-	 * @param InstigatorCharacter - The character attempting to interact
+	 * @param Instigator - The pawn attempting to interact
 	 * @return True if interaction is possible
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	bool CanInteract(ATFPlayerCharacter* InstigatorCharacter) const;
-	virtual bool CanInteract_Implementation(ATFPlayerCharacter* InstigatorCharacter) const { return true; }
+	bool CanInteract(APawn* Instigator) const;
+	virtual bool CanInteract_Implementation(APawn* Instigator) const { return true; }
 
 	/**
 	 * Called when player starts looking at this object
-	 * @param InstigatorCharacter - The character now focusing on this object
+	 * @param Instigator - The pawn now focusing on this object
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void OnBeginFocus(ATFPlayerCharacter* InstigatorCharacter);
-	virtual void OnBeginFocus_Implementation(ATFPlayerCharacter* InstigatorCharacter) {}
+	void OnBeginFocus(APawn* Instigator);
+	virtual void OnBeginFocus_Implementation(APawn* Instigator) {}
 
 	/**
 	 * Called when player stops looking at this object
-	 * @param InstigatorCharacter - The character no longer focusing on this object
+	 * @param Instigator - The pawn no longer focusing on this object
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void OnEndFocus(ATFPlayerCharacter* InstigatorCharacter);
-	virtual void OnEndFocus_Implementation(ATFPlayerCharacter* InstigatorCharacter) {}
+	void OnEndFocus(APawn* Instigator);
+	virtual void OnEndFocus_Implementation(APawn* Instigator) {}
 
 	/**
 	 * Get the interaction distance for this object

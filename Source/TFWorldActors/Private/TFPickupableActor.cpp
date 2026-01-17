@@ -28,15 +28,14 @@ void ATFPickupableActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-bool ATFPickupableActor::Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter)
+bool ATFPickupableActor::Interact_Implementation(APawn* Instigator)
 {
-
-	bool bSuccess = OnPickup_Implementation(InstigatorCharacter);
+	bool bSuccess = OnPickup_Implementation(Instigator);
 
 	if (bSuccess)
 	{
-
-		OnItemPickedUp(InstigatorCharacter);
+		ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+		OnItemPickedUp(PlayerCharacter);
 
 		if (bDestroyOnPickup)
 		{
@@ -63,9 +62,9 @@ bool ATFPickupableActor::Interact_Implementation(ATFPlayerCharacter* InstigatorC
 	return false;
 }
 
-FInteractionData ATFPickupableActor::GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* Instigator) const
 {
-	FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorCharacter);
+	FInteractionData Data = Super::GetInteractionData_Implementation(Instigator);
 
 	if (!ItemData.ItemName.IsEmpty())
 	{
@@ -91,11 +90,11 @@ FInteractionData ATFPickupableActor::GetInteractionData_Implementation(ATFPlayer
 	return Data;
 }
 
-bool ATFPickupableActor::OnPickup_Implementation(ATFPlayerCharacter* PickerCharacter)
+bool ATFPickupableActor::OnPickup_Implementation(APawn* Picker)
 {
-	if (!CanPickup_Implementation(PickerCharacter))
+	if (!CanPickup_Implementation(Picker))
 	{
-		OnPickupFailed_Implementation(PickerCharacter, FText::FromString("Cannot pickup item"));
+		OnPickupFailed_Implementation(Picker, FText::FromString("Cannot pickup item"));
 		return false;
 	}
 
@@ -109,9 +108,9 @@ FItemData ATFPickupableActor::GetItemData_Implementation() const
 	return ItemData;
 }
 
-bool ATFPickupableActor::CanPickup_Implementation(ATFPlayerCharacter* PickerCharacter) const
+bool ATFPickupableActor::CanPickup_Implementation(APawn* Picker) const
 {
-	if (!PickerCharacter)
+	if (!Picker)
 	{
 		return false;
 	}
@@ -119,12 +118,12 @@ bool ATFPickupableActor::CanPickup_Implementation(ATFPlayerCharacter* PickerChar
 	return true;
 }
 
-void ATFPickupableActor::OnPickupFailed_Implementation(ATFPlayerCharacter* PickerCharacter, const FText& Reason)
+void ATFPickupableActor::OnPickupFailed_Implementation(APawn* Picker, const FText& Reason)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Pickup failed: %s"), *Reason.ToString());
 
-	OnItemPickupFailed(PickerCharacter, Reason);
-
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Picker);
+	OnItemPickupFailed(PlayerCharacter, Reason);
 }
 
 bool ATFPickupableActor::ShouldDestroyOnPickup_Implementation() const

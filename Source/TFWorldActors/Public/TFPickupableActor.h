@@ -41,17 +41,17 @@ public:
 
 #pragma region Interactable Interface Override
 
-	virtual bool Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter) override;
-	virtual FInteractionData GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const override;
+	virtual bool Interact_Implementation(APawn* Instigator) override;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
 
 #pragma endregion Interactable Interface Override
 
 #pragma region Pickupable Interface Implementation
 
-	virtual bool OnPickup_Implementation(ATFPlayerCharacter* PickerCharacter) override;
+	virtual bool OnPickup_Implementation(APawn* Picker) override;
 	virtual FItemData GetItemData_Implementation() const override;
-	virtual bool CanPickup_Implementation(ATFPlayerCharacter* PickerCharacter) const override;
-	virtual void OnPickupFailed_Implementation(ATFPlayerCharacter* PickerCharacter, const FText& Reason) override;
+	virtual bool CanPickup_Implementation(APawn* Picker) const override;
+	virtual void OnPickupFailed_Implementation(APawn* Picker, const FText& Reason) override;
 	virtual bool ShouldDestroyOnPickup_Implementation() const override;
 
 #pragma endregion Pickupable Interface Implementation

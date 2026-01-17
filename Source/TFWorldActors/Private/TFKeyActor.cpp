@@ -10,26 +10,28 @@ ATFKeyActor::ATFKeyActor()
     bDestroyOnPickup = true;
 }
 
-bool ATFKeyActor::OnPickup_Implementation(ATFPlayerCharacter* PickerCharacter)
+bool ATFKeyActor::OnPickup_Implementation(APawn* Picker)
 {
-    if (!PickerCharacter || KeyID.IsNone())
+    ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Picker);
+
+    if (!PlayerCharacter || KeyID.IsNone())
     {
         UE_LOG(LogTemp, Warning, TEXT("TFKeyActor: Invalid pickup - no character or KeyID"));
         return false;
     }
 
-    PickerCharacter->AddKey(KeyID);
+    PlayerCharacter->AddKey(KeyID);
 
     UE_LOG(LogTemp, Log, TEXT("TFKeyActor: Collected key '%s' (%s)"), *KeyID.ToString(), *KeyName.ToString());
 
-    OnKeyCollected(PickerCharacter);
+    OnKeyCollected(PlayerCharacter);
 
     return true;
 }
 
-FInteractionData ATFKeyActor::GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+FInteractionData ATFKeyActor::GetInteractionData_Implementation(APawn* Instigator) const
 {
-    FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorCharacter);
+    FInteractionData Data = Super::GetInteractionData_Implementation(Instigator);
 
     if (!KeyName.IsEmpty())
     {

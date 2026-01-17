@@ -9,6 +9,7 @@
 
 class UStaticMeshComponent;
 class USphereComponent;
+class ATFPlayerCharacter;
 
 UCLASS(Blueprintable)
 class TFWORLDACTORS_API ATFInteractableActor : public AActor, public ITFInteractableInterface
@@ -115,19 +116,19 @@ public:
 #pragma region Interface Implementation
 
 	/** Execute interaction */
-	virtual bool Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter) override;
+	virtual bool Interact_Implementation(APawn* Instigator) override;
 
 	/** Get interaction data */
-	virtual FInteractionData GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const override;
+	virtual FInteractionData GetInteractionData_Implementation(APawn* Instigator) const override;
 
 	/** Check if can interact */
-	virtual bool CanInteract_Implementation(ATFPlayerCharacter* InstigatorCharacter) const override;
+	virtual bool CanInteract_Implementation(APawn* Instigator) const override;
 
 	/** Begin focus */
-	virtual void OnBeginFocus_Implementation(ATFPlayerCharacter* InstigatorCharacter) override;
+	virtual void OnBeginFocus_Implementation(APawn* Instigator) override;
 
 	/** End focus */
-	virtual void OnEndFocus_Implementation(ATFPlayerCharacter* InstigatorCharacter) override;
+	virtual void OnEndFocus_Implementation(APawn* Instigator) override;
 
 	/** Get interaction distance */
 	virtual float GetInteractionDistance_Implementation() const override;

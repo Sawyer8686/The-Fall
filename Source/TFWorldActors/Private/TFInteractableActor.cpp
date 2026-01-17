@@ -80,9 +80,9 @@ bool ATFInteractableActor::CanBeUsedAgain() const
 	return CurrentUses < MaxUses;
 }
 
-bool ATFInteractableActor::Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter)
+bool ATFInteractableActor::Interact_Implementation(APawn* Instigator)
 {
-	if (!CanInteract_Implementation(InstigatorCharacter))
+	if (!CanInteract_Implementation(Instigator))
 	{
 		return false;
 	}
@@ -97,13 +97,14 @@ bool ATFInteractableActor::Interact_Implementation(ATFPlayerCharacter* Instigato
 		bCanInteract = false;
 	}
 
-	// Call blueprint event
-	OnInteracted(InstigatorCharacter);
+	// Call blueprint event with player character
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+	OnInteracted(PlayerCharacter);
 
 	return true;
 }
 
-FInteractionData ATFInteractableActor::GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* Instigator) const
 {
 	FInteractionData Data;
 	Data.InteractionText = InteractionText;
@@ -115,7 +116,7 @@ FInteractionData ATFInteractableActor::GetInteractionData_Implementation(ATFPlay
 	return Data;
 }
 
-bool ATFInteractableActor::CanInteract_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+bool ATFInteractableActor::CanInteract_Implementation(APawn* Instigator) const
 {
 	if (!bCanInteract)
 	{
@@ -137,22 +138,24 @@ bool ATFInteractableActor::CanInteract_Implementation(ATFPlayerCharacter* Instig
 	return true;
 }
 
-void ATFInteractableActor::OnBeginFocus_Implementation(ATFPlayerCharacter* InstigatorCharacter)
+void ATFInteractableActor::OnBeginFocus_Implementation(APawn* Instigator)
 {
 	// Apply highlight
 	ApplyHighlight();
 
-	// Call blueprint event
-	OnFocusBegin(InstigatorCharacter);
+	// Call blueprint event with player character
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+	OnFocusBegin(PlayerCharacter);
 }
 
-void ATFInteractableActor::OnEndFocus_Implementation(ATFPlayerCharacter* InstigatorCharacter)
+void ATFInteractableActor::OnEndFocus_Implementation(APawn* Instigator)
 {
 	// Remove highlight
 	RemoveHighlight();
 
-	// Call blueprint event
-	OnFocusEnd(InstigatorCharacter);
+	// Call blueprint event with player character
+	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Instigator);
+	OnFocusEnd(PlayerCharacter);
 }
 
 float ATFInteractableActor::GetInteractionDistance_Implementation() const

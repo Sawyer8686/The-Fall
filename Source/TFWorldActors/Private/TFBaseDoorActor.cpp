@@ -237,8 +237,9 @@ bool ATFBaseDoorActor::IsPlayerOnCorrectSide(const FVector& PlayerLocation) cons
 	return DotProduct >= 0.0f;
 }
 
-bool ATFBaseDoorActor::Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter)
+bool ATFBaseDoorActor::Interact_Implementation(APawn* Instigator)
 {
+	ATFPlayerCharacter* InstigatorCharacter = Cast<ATFPlayerCharacter>(Instigator);
 	if (!InstigatorCharacter)
 	{
 		return false;
@@ -287,9 +288,11 @@ bool ATFBaseDoorActor::Interact_Implementation(ATFPlayerCharacter* InstigatorCha
 	return ToggleDoor(InstigatorCharacter);
 }
 
-FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Instigator) const
 {
-	FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorCharacter);
+	FInteractionData Data = Super::GetInteractionData_Implementation(Instigator);
+
+	ATFPlayerCharacter* InstigatorCharacter = Cast<ATFPlayerCharacter>(Instigator);
 
 	// Key door logic
 	if (bRequiresKey)
@@ -362,9 +365,9 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(ATFPlayerCh
 	return Data;
 }
 
-bool ATFBaseDoorActor::CanInteract_Implementation(ATFPlayerCharacter* InstigatorCharacter) const
+bool ATFBaseDoorActor::CanInteract_Implementation(APawn* Instigator) const
 {
-	if (!Super::CanInteract_Implementation(InstigatorCharacter))
+	if (!Super::CanInteract_Implementation(Instigator))
 	{
 		return false;
 	}
@@ -376,7 +379,7 @@ bool ATFBaseDoorActor::CanInteract_Implementation(ATFPlayerCharacter* Instigator
 	}
 
 	// Check if player is on correct side (if door has restrictions)
-	if (InstigatorCharacter && !IsPlayerOnCorrectSide(InstigatorCharacter->GetActorLocation()))
+	if (Instigator && !IsPlayerOnCorrectSide(Instigator->GetActorLocation()))
 	{
 		return false;
 	}
