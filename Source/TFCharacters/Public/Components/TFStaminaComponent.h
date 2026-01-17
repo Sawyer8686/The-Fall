@@ -137,7 +137,7 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+
 
 	/** Handle stamina regeneration logic */
 	void RegenerateStamina(float DeltaTime);
@@ -170,7 +170,7 @@ public:
 
 #pragma region Core Functions
 
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	bool ConsumeStamina(float Amount, EStaminaDrainReason Reason = EStaminaDrainReason::Custom);
 
@@ -196,7 +196,7 @@ public:
 
 #pragma region Queries
 
-	
+
 	UFUNCTION(BlueprintPure, Category = "Stamina")
 	bool HasEnoughStamina(float Required) const;
 
@@ -231,7 +231,7 @@ public:
 
 #pragma region Configuration
 
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void SetMaxStamina(float NewMax);
 

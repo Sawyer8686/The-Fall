@@ -57,7 +57,7 @@ class UTFInteractableInterface : public UInterface
  * Interface for objects that can be interacted with by the player
  * Implement this interface on any actor that should respond to player interaction
  */
-class TFCHARACTERS_API ITFInteractableInterface
+class INTERFACES_API ITFInteractableInterface
 {
 	GENERATED_BODY()
 

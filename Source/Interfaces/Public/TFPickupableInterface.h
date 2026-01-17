@@ -83,7 +83,7 @@ class UTFPickupableInterface : public UInterface
  * Interface for objects that can be picked up and added to inventory
  * Inherits from Interactable - pickup is a specific type of interaction
  */
-class TFCHARACTERS_API ITFPickupableInterface
+class INTERFACES_API ITFPickupableInterface
 {
 	GENERATED_BODY()
 

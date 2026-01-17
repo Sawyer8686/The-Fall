@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Interfaces/TFInteractableInterface.h"
+#include "TFInteractableInterface.h"
 #include "TFInteractionComponent.generated.h"
 
 class ATFPlayerCharacter;

@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Actors/TFPickupableActor.h"
+#include "TFPickupableActor.h"
 #include "TFPlayerCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,12 +30,12 @@ void ATFPickupableActor::Tick(float DeltaTime)
 
 bool ATFPickupableActor::Interact_Implementation(ATFPlayerCharacter* InstigatorCharacter)
 {
-	
+
 	bool bSuccess = OnPickup_Implementation(InstigatorCharacter);
 
 	if (bSuccess)
 	{
-		
+
 		OnItemPickedUp(InstigatorCharacter);
 
 		if (bDestroyOnPickup)

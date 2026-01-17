@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actors/TFInteractableActor.h"
+#include "TFInteractableActor.h"
 #include "TFBaseDoorActor.generated.h"
 
 class UAudioComponent;

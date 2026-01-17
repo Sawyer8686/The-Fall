@@ -8,7 +8,7 @@
 #include "TFPickupableActor.generated.h"
 
 UCLASS(Blueprintable)
-class TFCHARACTERS_API ATFPickupableActor : public ATFInteractableActor, public ITFPickupableInterface
+class TFWORLDACTORS_API ATFPickupableActor : public ATFInteractableActor, public ITFPickupableInterface
 {
 	GENERATED_BODY()
 
@@ -34,7 +34,7 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
+
 public:
 
 	ATFPickupableActor();

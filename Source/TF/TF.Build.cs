@@ -8,7 +8,7 @@ public class TF : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AIModule", "StateTreeModule", "GameplayStateTreeModule", "TFCharacters", "Widgets" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AIModule", "StateTreeModule", "GameplayStateTreeModule", "TFCharacters", "Widgets", "Interfaces", "TFWorldActors" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "UMG", "Slate", "SlateCore" });
 

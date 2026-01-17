@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "TFStaminaComponent.h"
+#include "Components/TFStaminaComponent.h"
 #include "TFCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/TimerHandle.h"

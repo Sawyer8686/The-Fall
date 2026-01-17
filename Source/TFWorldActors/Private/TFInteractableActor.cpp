@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Actors/TFInteractableActor.h"
+#include "TFInteractableActor.h"
 #include "TFPlayerCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"

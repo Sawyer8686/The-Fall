@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actors/TFPickupableActor.h"
+#include "TFPickupableActor.h"
 #include "TFKeyActor.generated.h"
 
 UCLASS(Blueprintable)
-class TFCHARACTERS_API ATFKeyActor : public ATFPickupableActor
+class TFWORLDACTORS_API ATFKeyActor : public ATFPickupableActor
 {
     GENERATED_BODY()
 

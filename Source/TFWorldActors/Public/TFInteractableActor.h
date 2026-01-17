@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interfaces/TFInteractableInterface.h"
+#include "TFInteractableInterface.h"
 #include "TFInteractableActor.generated.h"
 
 class UStaticMeshComponent;
 class USphereComponent;
 
 UCLASS(Blueprintable)
-class TFCHARACTERS_API ATFInteractableActor : public AActor, public ITFInteractableInterface
+class TFWORLDACTORS_API ATFInteractableActor : public AActor, public ITFInteractableInterface
 {
 	GENERATED_BODY()
 
