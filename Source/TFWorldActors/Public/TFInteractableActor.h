@@ -10,7 +10,6 @@
 class UStaticMeshComponent;
 class USceneComponent;
 class UTexture2D;
-class ATFPlayerCharacter;
 
 UCLASS(Blueprintable)
 class TFWORLDACTORS_API ATFInteractableActor : public AActor, public ITFInteractableInterface
@@ -85,7 +84,7 @@ public:
 #pragma region Blueprint Events
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	void OnInteracted(ATFPlayerCharacter* InstigatorCharacter);
+	void OnInteracted(APawn* InstigatorPawn);
 
 #pragma endregion Blueprint Events
 

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFKeyActor.h"
-#include "TFPlayerCharacter.h"
+#include "TFKeyHolderInterface.h"
 
 ATFKeyActor::ATFKeyActor()
 {
@@ -12,19 +12,23 @@ ATFKeyActor::ATFKeyActor()
 
 bool ATFKeyActor::OnPickup_Implementation(APawn* Picker)
 {
-    ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Picker);
-
-    if (!PlayerCharacter || KeyID.IsNone())
+    if (!Picker || KeyID.IsNone())
     {
         UE_LOG(LogTemp, Warning, TEXT("TFKeyActor: Invalid pickup - no character or KeyID"));
         return false;
     }
 
-    PlayerCharacter->AddKey(KeyID);
+    if (!Picker->Implements<UTFKeyHolderInterface>())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TFKeyActor: Picker does not implement ITFKeyHolderInterface"));
+        return false;
+    }
+
+    ITFKeyHolderInterface::Execute_AddKey(Picker, KeyID);
 
     UE_LOG(LogTemp, Log, TEXT("TFKeyActor: Collected key '%s' (%s)"), *KeyID.ToString(), *KeyName.ToString());
 
-    OnKeyCollected(PlayerCharacter);
+    OnKeyCollected(Picker);
 
     return true;
 }

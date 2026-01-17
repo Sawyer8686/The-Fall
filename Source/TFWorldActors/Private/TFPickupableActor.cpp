@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFPickupableActor.h"
-#include "TFPlayerCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -34,8 +33,7 @@ bool ATFPickupableActor::Interact_Implementation(APawn* InstigatorPawn)
 
 	if (bSuccess)
 	{
-		ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
-		OnItemPickedUp(PlayerCharacter);
+		OnItemPickedUp(InstigatorPawn);
 
 		if (bDestroyOnPickup)
 		{
@@ -117,8 +115,7 @@ void ATFPickupableActor::OnPickupFailed_Implementation(APawn* Picker, const FTex
 {
 	UE_LOG(LogTemp, Warning, TEXT("Pickup failed: %s"), *Reason.ToString());
 
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(Picker);
-	OnItemPickupFailed(PlayerCharacter, Reason);
+	OnItemPickupFailed(Picker, Reason);
 }
 
 bool ATFPickupableActor::ShouldDestroyOnPickup_Implementation() const

@@ -40,7 +40,7 @@ public:
 #pragma region Blueprint Events
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Key")
-    void OnKeyCollected(ATFPlayerCharacter* CollectorCharacter);
+    void OnKeyCollected(APawn* CollectorPawn);
 
 #pragma endregion Blueprint Events
 

@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFInteractableActor.h"
-#include "TFPlayerCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 
@@ -51,8 +50,7 @@ bool ATFInteractableActor::Interact_Implementation(APawn* InstigatorPawn)
 		bCanInteract = false;
 	}
 
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
-	OnInteracted(PlayerCharacter);
+	OnInteracted(InstigatorPawn);
 
 	return true;
 }

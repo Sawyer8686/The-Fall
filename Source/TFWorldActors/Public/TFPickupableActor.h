@@ -59,10 +59,10 @@ public:
 #pragma region Blueprint Events
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
-	void OnItemPickedUp(ATFPlayerCharacter* PickerCharacter);
+	void OnItemPickedUp(APawn* PickerPawn);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
-	void OnItemPickupFailed(ATFPlayerCharacter* PickerCharacter, const FText& Reason);
+	void OnItemPickupFailed(APawn* PickerPawn, const FText& Reason);
 
 #pragma endregion Blueprint Events
 
