@@ -66,7 +66,6 @@ void ATFBaseDoorActor::UpdateDoorAnimation(float DeltaTime)
 
 	ApplyDoorRotation(CurrentAngle);
 
-	// Check if animation complete
 	if (Alpha >= 1.0f)
 	{
 		if (DoorState == EDoorState::Opening)
@@ -215,40 +214,33 @@ bool ATFBaseDoorActor::Interact_Implementation(APawn* InstigatorPawn)
 		return false;
 	}
 
-	if (bRequiresKey)
+	// Caso A: porta in movimento - non fa nulla
+	if (IsMoving())
 	{
-		bool bHasKey = CharacterHasKey(InstigatorPawn);
-
-		// Case 1: Door is locked
-		if (bIsLocked)
-		{
-			if (bHasKey)
-			{
-				return UnlockDoor(InstigatorPawn);
-			}
-			else
-			{
-				PlayDoorSound(DoorLockedSound);
-				OnKeyRequired(InstigatorPawn);
-				OnDoorLocked(InstigatorPawn);
-				return false;
-			}
-		}
-
-		if (IsClosed())
-		{
-			return OpenDoor(InstigatorPawn);
-		}
-
-		if (IsOpen())
-		{
-			return CloseDoor();
-		}
-
 		return false;
 	}
 
-	return ToggleDoor(InstigatorPawn);
+	// Caso B: porta a chiave e bloccata - solo feedback, non sblocca mai
+	if (bRequiresKey && bIsLocked)
+	{
+		PlayDoorSound(DoorLockedSound);
+		OnKeyRequired(InstigatorPawn);
+		OnDoorLocked(InstigatorPawn);
+		return false;
+	}
+
+	// Caso C: porta sbloccata - Open/Close
+	if (IsClosed())
+	{
+		return OpenDoor(InstigatorPawn);
+	}
+
+	if (IsOpen())
+	{
+		return CloseDoor();
+	}
+
+	return false;
 }
 
 FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
@@ -499,4 +491,6 @@ bool ATFBaseDoorActor::ToggleLock_Implementation(APawn* Character)
 	}
 
 	return LockDoor(Character);
+
+	
 }
