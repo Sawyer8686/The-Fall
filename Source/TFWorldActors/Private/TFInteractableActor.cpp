@@ -20,13 +20,12 @@ ATFInteractableActor::ATFInteractableActor()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
-	// Create interaction sphere (optional, for proximity detection)
-	InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
+	/*InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
 	InteractionSphere->SetupAttachment(Root);
 	InteractionSphere->SetSphereRadius(MaxInteractionDistance);
 	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	InteractionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	InteractionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	InteractionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);*/
 }
 
 void ATFInteractableActor::BeginPlay()
@@ -34,13 +33,13 @@ void ATFInteractableActor::BeginPlay()
 	Super::BeginPlay();
 
 	// Update interaction sphere radius
-	if (InteractionSphere)
-	{
-		InteractionSphere->SetSphereRadius(MaxInteractionDistance);
-	}
+	//if (InteractionSphere)
+	//{
+	//	InteractionSphere->SetSphereRadius(MaxInteractionDistance);
+	//}
 }
 
-void ATFInteractableActor::ApplyHighlight()
+/*void ATFInteractableActor::ApplyHighlight()
 {
 	if (!bEnableHighlight || !MeshComponent)
 	{
@@ -66,7 +65,7 @@ void ATFInteractableActor::RemoveHighlight()
 	MeshComponent->SetCustomDepthStencilValue(0);
 
 	bIsHighlighted = false;
-}
+}*/
 
 bool ATFInteractableActor::CanBeUsedAgain() const
 {
@@ -141,7 +140,7 @@ bool ATFInteractableActor::CanInteract_Implementation(APawn* InstigatorPawn) con
 void ATFInteractableActor::OnBeginFocus_Implementation(APawn* InstigatorPawn)
 {
 	// Apply highlight
-	ApplyHighlight();
+	//ApplyHighlight();
 
 	// Call blueprint event with player character
 	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
@@ -151,7 +150,7 @@ void ATFInteractableActor::OnBeginFocus_Implementation(APawn* InstigatorPawn)
 void ATFInteractableActor::OnEndFocus_Implementation(APawn* InstigatorPawn)
 {
 	// Remove highlight
-	RemoveHighlight();
+	//RemoveHighlight();
 
 	// Call blueprint event with player character
 	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
