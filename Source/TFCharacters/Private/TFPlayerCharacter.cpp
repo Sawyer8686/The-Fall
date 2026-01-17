@@ -14,16 +14,11 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Create stamina component (player only)
 	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
-
-	// Create interaction component
 	InteractionComponent = CreateDefaultSubobject<UTFInteractionComponent>(TEXT("InteractionComponent"));
 
-	// Capsule component setup
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	// Character movement configuration
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -31,14 +26,12 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// First person camera setup (attached to head socket)
 	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCamera->SetupAttachment(GetMesh(), "head");
 	FirstPersonCamera->bUsePawnControlRotation = true;
 	FirstPersonCamera->SetRelativeLocation(FirstPersonCameraOffset);
 	FirstPersonCamera->SetRelativeRotation(FirstPersonCameraRotation);
 
-	// Configure for first person mode
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
@@ -49,7 +42,6 @@ void ATFPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Bind to stamina events
 	BindStaminaEvents();
 }
 
@@ -57,57 +49,47 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// Setup enhanced input mapping context
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			// Only add mapping context if not already present
 			if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 		}
 	}
-
-	// Bind enhanced input actions
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		// Bind movement
 		if (MoveAction)
 		{
 			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATFPlayerCharacter::Move);
 		}
 
-		// Bind look
 		if (LookAction)
 		{
 			EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATFPlayerCharacter::Look);
 		}
 
-		// Bind jump
 		if (JumpAction)
 		{
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::PlayerJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		}
 
-		// Bind sprint
 		if (SprintAction)
 		{
 			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::SprintOn);
 			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::SprintOff);
 		}
 
-		// Bind sneak
 		if (SneakAction)
 		{
 			EnhancedInputComponent->BindAction(SneakAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::SneakOn);
 			EnhancedInputComponent->BindAction(SneakAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::SneakOff);
 		}
 
-		// Bind interact
 		if (InteractAction)
 		{
 			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::InteractPressed);
@@ -122,15 +104,10 @@ void ATFPlayerCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
-		// Get controller rotation
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// Calculate movement direction
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// Add movement input
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
@@ -142,7 +119,6 @@ void ATFPlayerCharacter::Look(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
-		// Add controller input
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(-LookAxisVector.Y);
 	}
@@ -170,7 +146,6 @@ void ATFPlayerCharacter::SneakOff()
 
 void ATFPlayerCharacter::PlayerJump()
 {
-	// Only jump if character can jump and is not falling
 	if (CanCharacterJump() && !GetCharacterMovement()->IsFalling())
 	{
 		HasJumped();
@@ -181,7 +156,6 @@ void ATFPlayerCharacter::InteractPressed()
 {
 	if (InteractionComponent)
 	{
-		// Start hold interaction (will handle instant interactions automatically)
 		InteractionComponent->StartHoldInteraction();
 	}
 }
@@ -190,23 +164,19 @@ void ATFPlayerCharacter::InteractReleased()
 {
 	if (InteractionComponent)
 	{
-		// Stop hold interaction
 		InteractionComponent->StopHoldInteraction();
 	}
 }
 
 void ATFPlayerCharacter::SetSprinting(const bool bSprinting)
 {
-	// Check if can sprint
 	if (bSprinting)
 	{
-		// Can't sprint if exhausted or low stamina
 		if (!StaminaComponent || !StaminaComponent->CanSprint())
 		{
 			return;
 		}
 
-		// Can't sprint while sneaking
 		if (IsSneaking())
 		{
 			return;
@@ -214,7 +184,6 @@ void ATFPlayerCharacter::SetSprinting(const bool bSprinting)
 
 		bIsSprinting = true;
 
-		// Start stamina drain
 		if (StaminaComponent)
 		{
 			StaminaComponent->StartStaminaDrain(StaminaComponent->SprintDrainRate);
@@ -222,7 +191,6 @@ void ATFPlayerCharacter::SetSprinting(const bool bSprinting)
 	}
 	else
 	{
-		// Stop sprinting
 		if (!bIsSprinting)
 		{
 			return;
@@ -230,14 +198,11 @@ void ATFPlayerCharacter::SetSprinting(const bool bSprinting)
 
 		bIsSprinting = false;
 
-		// Stop stamina drain
 		if (StaminaComponent)
 		{
 			StaminaComponent->StopStaminaDrain();
 		}
 	}
-
-	// Update movement speed
 	UpdateMovementSpeed();
 }
 
@@ -264,7 +229,6 @@ void ATFPlayerCharacter::UpdateMovementSpeed()
 		TargetSpeed = GetSneakSpeed();
 	}
 
-	// Apply exhaustion penalty if exhausted
 	if (StaminaComponent && StaminaComponent->IsExhausted())
 	{
 		TargetSpeed *= ExhaustedSpeedMultiplier;
@@ -284,49 +248,38 @@ void ATFPlayerCharacter::BindStaminaEvents()
 
 void ATFPlayerCharacter::HandleStaminaDepleted()
 {
-	// Force stop sprinting when stamina depleted
 	if (bIsSprinting)
 	{
 		SetSprinting(false);
 	}
 
-	// Update movement speed for exhaustion penalty
 	UpdateMovementSpeed();
 
-	// Call blueprint native event
 	OnStaminaDepleted();
 }
 
 void ATFPlayerCharacter::HandleStaminaRecovered()
 {
-	// Remove exhaustion penalty
 	UpdateMovementSpeed();
 
-	// Call blueprint native event
 	OnStaminaRecovered();
 }
 
 void ATFPlayerCharacter::OnStaminaDepleted_Implementation()
 {
-	// Default C++ implementation (can be overridden in Blueprint)
-	// Add any default behavior here (audio, VFX, etc.)
 }
 
 void ATFPlayerCharacter::OnStaminaRecovered_Implementation()
 {
-	// Default C++ implementation (can be overridden in Blueprint)
-	// Add any default behavior here
 }
 
 bool ATFPlayerCharacter::CanCharacterJump() const
 {
-	// Check base jump conditions
 	if (!ATFCharacterBase::CanCharacterJump())
 	{
 		return false;
 	}
 
-	// Check stamina
 	if (StaminaComponent)
 	{
 		return StaminaComponent->CanJump();
@@ -337,7 +290,6 @@ bool ATFPlayerCharacter::CanCharacterJump() const
 
 void ATFPlayerCharacter::HasJumped()
 {
-	// Consume stamina for jump
 	if (StaminaComponent)
 	{
 		StaminaComponent->ConsumeStamina(
@@ -345,14 +297,8 @@ void ATFPlayerCharacter::HasJumped()
 			EStaminaDrainReason::Jump
 		);
 	}
-
-	// Execute jump
 	ATFCharacterBase::HasJumped();
 }
-
-// ============================================================================
- // Key Collection
- // ============================================================================
 
 bool ATFPlayerCharacter::HasKey(FName KeyID) const
 {

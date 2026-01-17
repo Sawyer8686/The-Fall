@@ -82,11 +82,6 @@ FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* In
 		);
 	}
 
-	if (ItemData.ItemIcon)
-	{
-		Data.InteractionIcon = ItemData.ItemIcon;
-	}
-
 	return Data;
 }
 

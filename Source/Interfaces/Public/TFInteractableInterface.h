@@ -14,67 +14,43 @@ struct FInteractionData
 {
 	GENERATED_BODY()
 
-	/** Display text shown to player (e.g., "Press E to Open Door") */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	FText InteractionText = FText::FromString("Interact");
 
-	/** Optional secondary text (e.g., "Locked" or "Requires Key") */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	FText SecondaryText = FText::GetEmpty();
 
-	/** Icon to display in UI (optional) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
-	UTexture2D* InteractionIcon = nullptr;
-
-	/** Duration of interaction (0 = instant, >0 = hold to interact) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	float InteractionDuration = 0.0f;
 
-	/** Can this object be interacted with right now */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	bool bCanInteract = true;
 
 	FInteractionData()
 		: InteractionText(FText::FromString("Interact"))
 		, SecondaryText(FText::GetEmpty())
-		, InteractionIcon(nullptr)
 		, InteractionDuration(0.0f)
 		, bCanInteract(true)
 	{
 	}
 };
 
-// This class does not need to be modified.
 UINTERFACE(MinimalAPI, Blueprintable)
 class UTFInteractableInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-/**
- * Interface for objects that can be interacted with by the player
- * Implement this interface on any actor that should respond to player interaction
- */
 class INTERFACES_API ITFInteractableInterface
 {
 	GENERATED_BODY()
 
 public:
 
-	/**
-	 * Called when player interacts with this object
-	 * @param Instigator - The pawn performing the interaction
-	 * @return True if interaction was successful
-	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	bool Interact(APawn* InstigatorPawn);
 	virtual bool Interact_Implementation(APawn* InstigatorPawn) { return false; }
 
-	/**
-	 * Get interaction data to display to player
-	 * @param InstigatorPawn - The pawn looking at this object
-	 * @return Interaction data with display information
-	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	FInteractionData GetInteractionData(APawn* InstigatorPawn) const;
 	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const
@@ -82,35 +58,18 @@ public:
 		return FInteractionData();
 	}
 
-	/**
-	 * Check if this object can currently be interacted with
-	 * @param InstigatorPawn - The pawn attempting to interact
-	 * @return True if interaction is possible
-	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	bool CanInteract(APawn* InstigatorPawn) const;
 	virtual bool CanInteract_Implementation(APawn* InstigatorPawn) const { return true; }
 
-	/**
-	 * Called when player starts looking at this object
-	 * @param InstigatorPawn - The pawn now focusing on this object
-	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	void OnBeginFocus(APawn* InstigatorPawn);
 	virtual void OnBeginFocus_Implementation(APawn* InstigatorPawn) {}
 
-	/**
-	 * Called when player stops looking at this object
-	 * @param InstigatorPawn - The pawn no longer focusing on this object
-	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	void OnEndFocus(APawn* InstigatorPawn);
 	virtual void OnEndFocus_Implementation(APawn* InstigatorPawn) {}
 
-	/**
-	 * Get the interaction distance for this object
-	 * @return Maximum distance player can be to interact
-	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	float GetInteractionDistance() const;
 	virtual float GetInteractionDistance_Implementation() const { return 200.0f; }

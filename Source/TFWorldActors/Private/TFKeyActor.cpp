@@ -50,11 +50,6 @@ FInteractionData ATFKeyActor::GetInteractionData_Implementation(APawn* Instigato
         Data.SecondaryText = KeyDescription;
     }
 
-    if (ItemData.ItemIcon)
-    {
-        Data.InteractionIcon = ItemData.ItemIcon;
-    }
-
     return Data;
 }
 

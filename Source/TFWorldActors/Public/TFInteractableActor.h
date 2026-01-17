@@ -74,8 +74,6 @@ public:
 	virtual bool Interact_Implementation(APawn* InstigatorPawn) override;
 	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const override;
 	virtual bool CanInteract_Implementation(APawn* InstigatorPawn) const override;
-	virtual void OnBeginFocus_Implementation(APawn* InstigatorPawn) override;
-	virtual void OnEndFocus_Implementation(APawn* InstigatorPawn) override;
 	virtual float GetInteractionDistance_Implementation() const override;
 
 #pragma endregion Interface Implementation

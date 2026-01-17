@@ -9,73 +9,30 @@ ATFInteractableActor::ATFInteractableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Create root component
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 
-	// Create mesh component
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetupAttachment(Root);
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
-	/*InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
-	InteractionSphere->SetupAttachment(Root);
-	InteractionSphere->SetSphereRadius(MaxInteractionDistance);
-	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	InteractionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	InteractionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);*/
 }
 
 void ATFInteractableActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Update interaction sphere radius
-	//if (InteractionSphere)
-	//{
-	//	InteractionSphere->SetSphereRadius(MaxInteractionDistance);
-	//}
 }
 
-/*void ATFInteractableActor::ApplyHighlight()
-{
-	if (!bEnableHighlight || !MeshComponent)
-	{
-		return;
-	}
-
-	// Enable custom depth for outline effect
-	MeshComponent->SetRenderCustomDepth(true);
-	MeshComponent->SetCustomDepthStencilValue(1);
-
-	bIsHighlighted = true;
-}
-
-void ATFInteractableActor::RemoveHighlight()
-{
-	if (!MeshComponent)
-	{
-		return;
-	}
-
-	// Disable custom depth
-	MeshComponent->SetRenderCustomDepth(false);
-	MeshComponent->SetCustomDepthStencilValue(0);
-
-	bIsHighlighted = false;
-}*/
 
 bool ATFInteractableActor::CanBeUsedAgain() const
 {
-	// Infinite uses
 	if (MaxUses < 0)
 	{
 		return true;
 	}
-
-	// Check use count
 	return CurrentUses < MaxUses;
 }
 
@@ -86,17 +43,14 @@ bool ATFInteractableActor::Interact_Implementation(APawn* InstigatorPawn)
 		return false;
 	}
 
-	// Increment use count
 	CurrentUses++;
 	bHasBeenUsed = true;
 
-	// Check if can still be used
 	if (!CanBeUsedAgain())
 	{
 		bCanInteract = false;
 	}
 
-	// Call blueprint event with player character
 	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
 	OnInteracted(PlayerCharacter);
 
@@ -108,7 +62,6 @@ FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* 
 	FInteractionData Data;
 	Data.InteractionText = InteractionText;
 	Data.SecondaryText = SecondaryText;
-	Data.InteractionIcon = InteractionIcon;
 	Data.InteractionDuration = InteractionDuration;
 	Data.bCanInteract = bCanInteract;
 
@@ -122,39 +75,17 @@ bool ATFInteractableActor::CanInteract_Implementation(APawn* InstigatorPawn) con
 		return false;
 	}
 
-	// Check if reusable
 	if (!bIsReusable && bHasBeenUsed)
 	{
 		return false;
 	}
 
-	// Check use count
 	if (!CanBeUsedAgain())
 	{
 		return false;
 	}
 
 	return true;
-}
-
-void ATFInteractableActor::OnBeginFocus_Implementation(APawn* InstigatorPawn)
-{
-	// Apply highlight
-	//ApplyHighlight();
-
-	// Call blueprint event with player character
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
-	OnFocusBegin(PlayerCharacter);
-}
-
-void ATFInteractableActor::OnEndFocus_Implementation(APawn* InstigatorPawn)
-{
-	// Remove highlight
-	//RemoveHighlight();
-
-	// Call blueprint event with player character
-	ATFPlayerCharacter* PlayerCharacter = Cast<ATFPlayerCharacter>(InstigatorPawn);
-	OnFocusEnd(PlayerCharacter);
 }
 
 float ATFInteractableActor::GetInteractionDistance_Implementation() const
