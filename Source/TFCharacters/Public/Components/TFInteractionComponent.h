@@ -42,23 +42,6 @@ private:
 
 #pragma endregion Detection Settings
 
-#pragma region Hold Interaction
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Hold", meta = (AllowPrivateAccess = "true"))
-	bool bEnableHoldInteraction = true;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Hold", meta = (AllowPrivateAccess = "true"))
-	float HoldProgress = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Hold", meta = (AllowPrivateAccess = "true"))
-	bool bIsHolding = false;
-
-	float HoldTimer = 0.0f;
-
-	float RequiredHoldDuration = 0.0f;
-
-#pragma endregion Hold Interaction
-
 #pragma region State
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|State", meta = (AllowPrivateAccess = "true"))
@@ -86,9 +69,7 @@ protected:
 	void ProcessHitResult(const FHitResult& HitResult);
 	void UpdateFocusedActor(AActor* NewFocus);
 	void ClearFocus();
-	void UpdateHoldInteraction(float DeltaTime);
-	void CompleteHoldInteraction();
-	void CancelHoldInteraction();
+	
 
 public:
 
@@ -113,12 +94,6 @@ public:
 	void Interact();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StartHoldInteraction();
-
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void StopHoldInteraction();
-
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	bool InteractWithActor(AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
@@ -136,12 +111,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Interaction")
 	FORCEINLINE FInteractionData GetCurrentInteractionData() const { return CurrentInteractionData; }
-
-	UFUNCTION(BlueprintPure, Category = "Interaction")
-	FORCEINLINE bool IsHolding() const { return bIsHolding; }
-
-	UFUNCTION(BlueprintPure, Category = "Interaction")
-	FORCEINLINE float GetHoldProgress() const { return HoldProgress; }
 
 #pragma endregion Queries
 

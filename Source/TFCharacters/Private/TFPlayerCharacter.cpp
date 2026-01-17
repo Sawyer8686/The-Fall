@@ -93,7 +93,6 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		if (InteractAction)
 		{
 			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::InteractPressed);
-			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::InteractReleased);
 		}
 	}
 }
@@ -156,15 +155,7 @@ void ATFPlayerCharacter::InteractPressed()
 {
 	if (InteractionComponent)
 	{
-		InteractionComponent->StartHoldInteraction();
-	}
-}
-
-void ATFPlayerCharacter::InteractReleased()
-{
-	if (InteractionComponent)
-	{
-		InteractionComponent->StopHoldInteraction();
+		InteractionComponent->Interact();
 	}
 }
 
