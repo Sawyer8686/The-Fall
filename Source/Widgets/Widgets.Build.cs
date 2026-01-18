@@ -17,7 +17,8 @@ public class Widgets : ModuleRules
 				"Slate",
 				"SlateCore",
 				"TFCharacters",
-				"Components"
+				"Components",
+				"WorldEnvironment"
 			}
 			);
 			

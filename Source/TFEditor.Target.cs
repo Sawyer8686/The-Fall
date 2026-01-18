@@ -14,6 +14,7 @@ public class TFEditorTarget : TargetRules
 		ExtraModuleNames.Add("TFCharacters");
 		ExtraModuleNames.Add("Widgets");
 		ExtraModuleNames.Add("TFWorldActors");
+		ExtraModuleNames.Add("WorldEnvironment");
 		
 	}
 }

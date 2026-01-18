@@ -3,7 +3,9 @@
     "allow": [
       "Bash(dir \"C:\\\\UnrealProjects\\\\TF\\\\Source\" /s /b)",
       "Bash(findstr:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(done)",
+      "Bash(tree:*)"
     ]
   }
 }

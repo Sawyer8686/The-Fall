@@ -12,7 +12,8 @@ public class TFTarget : TargetRules
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
 		ExtraModuleNames.Add("TF");
 		ExtraModuleNames.Add("TFCharacters");
-        ExtraModuleNames.Add("TFWidgets");
-        ExtraModuleNames.Add("TFWorldActors");
+		ExtraModuleNames.Add("Widgets");
+		ExtraModuleNames.Add("TFWorldActors");
+		ExtraModuleNames.Add("WorldEnvironment");
     }
 }
