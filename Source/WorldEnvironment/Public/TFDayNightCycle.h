@@ -58,7 +58,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.0", ClampMax = "24.0"))
     float DayStartHour;
 
-    /** Hour when night starts (sunset). Default: 20:00 */
+    /** Hour when night starts (sunset). Default: 18:00 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.0", ClampMax = "24.0"))
     float NightStartHour;
 

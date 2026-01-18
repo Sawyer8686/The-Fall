@@ -15,7 +15,7 @@ ATFDayNightCycle::ATFDayNightCycle()
     // Default cycle settings
     RealSecondsPerGameHour = 60.0f;  // 1 real minute = 1 game hour (24 minutes for full day)
     DayStartHour = 6.0f;   // 6 AM
-    NightStartHour = 20.0f; // 8 PM
+    NightStartHour = 18.0f; // 6 PM
     bCycleActive = true;
 
     // Sun light defaults
