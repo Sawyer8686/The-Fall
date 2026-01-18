@@ -1,4 +1,6 @@
 #include "TFDayNightCycle.h"
+#include "Engine/DirectionalLight.h"
+#include "Components/LightComponent.h"
 
 ATFDayNightCycle::ATFDayNightCycle()
 {
@@ -16,6 +18,10 @@ ATFDayNightCycle::ATFDayNightCycle()
     NightStartHour = 20.0f; // 8 PM
     bCycleActive = true;
 
+    // Sun light defaults
+    SunLight = nullptr;
+    bControlSunLight = true;
+
     bWasDay = true;
 }
 
@@ -32,6 +38,9 @@ void ATFDayNightCycle::BeginPlay()
     BroadcastTimeChanged();
     OnDayChanged.Broadcast(CurrentDay);
     OnDayNightStateChanged.Broadcast(bWasDay);
+
+    // Initialize sun light
+    UpdateSunLight();
 }
 
 void ATFDayNightCycle::Tick(float DeltaTime)
@@ -70,6 +79,9 @@ void ATFDayNightCycle::UpdateTime(float DeltaTime)
 
     // Broadcast time update
     BroadcastTimeChanged();
+
+    // Update sun light
+    UpdateSunLight();
 }
 
 void ATFDayNightCycle::BroadcastTimeChanged()
@@ -198,4 +210,172 @@ void ATFDayNightCycle::SkipToSunset()
 void ATFDayNightCycle::SetCycleSpeed(float NewRealSecondsPerGameHour)
 {
     RealSecondsPerGameHour = FMath::Max(0.1f, NewRealSecondsPerGameHour);
+}
+
+void ATFDayNightCycle::SetSunLight(ADirectionalLight* NewSunLight)
+{
+    SunLight = NewSunLight;
+    UpdateSunLight();
+}
+
+FLinearColor ATFDayNightCycle::GetCurrentLightColor() const
+{
+    const int32 Phase = GetDayPhase();
+    const float Alpha = GetPhaseAlpha();
+
+    switch (Phase)
+    {
+    case 0: // Night
+        return NightLightColor;
+
+    case 1: // Dawn (night -> day)
+        return FMath::Lerp(NightLightColor, DawnLightColor, Alpha);
+
+    case 2: // Morning (dawn -> day)
+        return FMath::Lerp(DawnLightColor, DayLightColor, Alpha);
+
+    case 3: // Day
+        return DayLightColor;
+
+    case 4: // Dusk (day -> dusk)
+        return FMath::Lerp(DayLightColor, DuskLightColor, Alpha);
+
+    case 5: // Evening (dusk -> night)
+        return FMath::Lerp(DuskLightColor, NightLightColor, Alpha);
+
+    default:
+        return DayLightColor;
+    }
+}
+
+float ATFDayNightCycle::GetCurrentLightIntensity() const
+{
+    const int32 Phase = GetDayPhase();
+    const float Alpha = GetPhaseAlpha();
+
+    switch (Phase)
+    {
+    case 0: // Night
+        return NightLightIntensity;
+
+    case 1: // Dawn (night -> day)
+        return FMath::Lerp(NightLightIntensity, DayLightIntensity * 0.5f, Alpha);
+
+    case 2: // Morning (dawn -> day)
+        return FMath::Lerp(DayLightIntensity * 0.5f, DayLightIntensity, Alpha);
+
+    case 3: // Day
+        return DayLightIntensity;
+
+    case 4: // Dusk (day -> dusk)
+        return FMath::Lerp(DayLightIntensity, DayLightIntensity * 0.5f, Alpha);
+
+    case 5: // Evening (dusk -> night)
+        return FMath::Lerp(DayLightIntensity * 0.5f, NightLightIntensity, Alpha);
+
+    default:
+        return DayLightIntensity;
+    }
+}
+
+void ATFDayNightCycle::RefreshSunLight()
+{
+    UpdateSunLight();
+}
+
+void ATFDayNightCycle::UpdateSunLight()
+{
+    if (!SunLight || !bControlSunLight)
+    {
+        return;
+    }
+
+    // Update rotation
+    // Sun rises in the east, sets in the west
+    // Pitch rotation: -90 at midnight (below horizon), 0 at sunrise, 90 at noon, 180 at sunset
+    const float SunPitch = GetSunRotation();
+    FRotator NewRotation = SunRotationAxis;
+    NewRotation.Pitch = SunPitch;
+    SunLight->SetActorRotation(NewRotation);
+
+    // Update light color
+    ULightComponent* LightComponent = SunLight->GetLightComponent();
+    if (LightComponent)
+    {
+        LightComponent->SetLightColor(GetCurrentLightColor());
+        LightComponent->SetIntensity(GetCurrentLightIntensity());
+    }
+}
+
+int32 ATFDayNightCycle::GetDayPhase() const
+{
+    const float DawnEnd = DayStartHour + DawnDurationHours;
+    const float DuskStart = NightStartHour - DuskDurationHours;
+
+    // Phase 0: Night (before dawn)
+    if (CurrentTimeHours < DayStartHour)
+    {
+        return 0;
+    }
+
+    // Phase 1: Dawn first half (night -> dawn color)
+    if (CurrentTimeHours < DayStartHour + DawnDurationHours * 0.5f)
+    {
+        return 1;
+    }
+
+    // Phase 2: Dawn second half (dawn -> day color)
+    if (CurrentTimeHours < DawnEnd)
+    {
+        return 2;
+    }
+
+    // Phase 3: Day
+    if (CurrentTimeHours < DuskStart)
+    {
+        return 3;
+    }
+
+    // Phase 4: Dusk first half (day -> dusk color)
+    if (CurrentTimeHours < DuskStart + DuskDurationHours * 0.5f)
+    {
+        return 4;
+    }
+
+    // Phase 5: Dusk second half (dusk -> night color)
+    if (CurrentTimeHours < NightStartHour)
+    {
+        return 5;
+    }
+
+    // Phase 0: Night (after dusk)
+    return 0;
+}
+
+float ATFDayNightCycle::GetPhaseAlpha() const
+{
+    const float DawnEnd = DayStartHour + DawnDurationHours;
+    const float DuskStart = NightStartHour - DuskDurationHours;
+    const float HalfDawn = DawnDurationHours * 0.5f;
+    const float HalfDusk = DuskDurationHours * 0.5f;
+
+    const int32 Phase = GetDayPhase();
+
+    switch (Phase)
+    {
+    case 1: // Dawn first half
+        return (CurrentTimeHours - DayStartHour) / HalfDawn;
+
+    case 2: // Dawn second half
+        return (CurrentTimeHours - (DayStartHour + HalfDawn)) / HalfDawn;
+
+    case 4: // Dusk first half
+        return (CurrentTimeHours - DuskStart) / HalfDusk;
+
+    case 5: // Dusk second half
+        return (CurrentTimeHours - (DuskStart + HalfDusk)) / HalfDusk;
+
+    default:
+        return 0.0f;
+    }
 }

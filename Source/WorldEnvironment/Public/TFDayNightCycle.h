@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "TFDayNightCycle.generated.h"
 
+class ADirectionalLight;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeChanged, float, CurrentTimeHours);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDayChanged, int32, CurrentDay);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDayNightStateChanged, bool, bIsDay);
@@ -63,6 +65,54 @@ public:
     /** Whether the time cycle is currently active */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings")
     bool bCycleActive;
+
+#pragma endregion
+
+#pragma region Sun Light Settings
+
+    /** Reference to the directional light acting as the sun */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light")
+    ADirectionalLight* SunLight;
+
+    /** Enable automatic sun light control */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light")
+    bool bControlSunLight = true;
+
+    /** Rotation axis for the sun (typically pitch for east-west movement) */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light")
+    FRotator SunRotationAxis = FRotator(0.0f, 0.0f, 0.0f);
+
+    /** Sun light color at dawn */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Colors")
+    FLinearColor DawnLightColor = FLinearColor(1.0f, 0.6f, 0.3f);
+
+    /** Sun light color at noon */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Colors")
+    FLinearColor DayLightColor = FLinearColor(1.0f, 0.98f, 0.95f);
+
+    /** Sun light color at dusk */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Colors")
+    FLinearColor DuskLightColor = FLinearColor(1.0f, 0.5f, 0.2f);
+
+    /** Moon light color at night */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Colors")
+    FLinearColor NightLightColor = FLinearColor(0.2f, 0.3f, 0.5f);
+
+    /** Sun light intensity during the day */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Intensity", meta = (ClampMin = "0.0"))
+    float DayLightIntensity = 10.0f;
+
+    /** Moon light intensity during the night */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Intensity", meta = (ClampMin = "0.0"))
+    float NightLightIntensity = 0.5f;
+
+    /** Duration of dawn transition in hours */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Transition", meta = (ClampMin = "0.1", ClampMax = "6.0"))
+    float DawnDurationHours = 1.5f;
+
+    /** Duration of dusk transition in hours */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Sun Light|Transition", meta = (ClampMin = "0.1", ClampMax = "6.0"))
+    float DuskDurationHours = 1.5f;
 
 #pragma endregion
 
@@ -152,6 +202,22 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Day Night Cycle")
     void SetCycleSpeed(float NewRealSecondsPerGameHour);
 
+    /** Set the sun light reference */
+    UFUNCTION(BlueprintCallable, Category = "Day Night Cycle|Sun Light")
+    void SetSunLight(ADirectionalLight* NewSunLight);
+
+    /** Get the current light color based on time of day */
+    UFUNCTION(BlueprintPure, Category = "Day Night Cycle|Sun Light")
+    FLinearColor GetCurrentLightColor() const;
+
+    /** Get the current light intensity based on time of day */
+    UFUNCTION(BlueprintPure, Category = "Day Night Cycle|Sun Light")
+    float GetCurrentLightIntensity() const;
+
+    /** Manually refresh the sun light (useful after changing properties) */
+    UFUNCTION(BlueprintCallable, Category = "Day Night Cycle|Sun Light")
+    void RefreshSunLight();
+
 #pragma endregion
 
 private:
@@ -163,4 +229,13 @@ private:
 
     /** Broadcast time changed event */
     void BroadcastTimeChanged();
+
+    /** Update sun light rotation, color, and intensity */
+    void UpdateSunLight();
+
+    /** Calculate the current phase of the day (0=night, 1=dawn, 2=day, 3=dusk) */
+    int32 GetDayPhase() const;
+
+    /** Get interpolation alpha for current phase transition */
+    float GetPhaseAlpha() const;
 };
