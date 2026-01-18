@@ -2,6 +2,7 @@
 
 #include "TFPlayerCharacter.h"
 #include "TFStaminaComponent.h"
+#include "TFStatsComponent.h"
 #include "TFInteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -16,6 +17,7 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 	PrimaryActorTick.bCanEverTick = false;
 
 	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
+	StatsComponent = CreateDefaultSubobject<UTFStatsComponent>(TEXT("StatsComponent"));
 	InteractionComponent = CreateDefaultSubobject<UTFInteractionComponent>(TEXT("InteractionComponent"));
 
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);

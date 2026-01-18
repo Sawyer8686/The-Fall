@@ -13,6 +13,7 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class UTFStaminaComponent;
+class UTFStatsComponent;
 class UTFInteractionComponent;
 
 /** Reason why sprint was blocked */
@@ -34,6 +35,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UTFStaminaComponent* StaminaComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UTFStatsComponent* StatsComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UTFInteractionComponent* InteractionComponent;
@@ -160,6 +164,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Components")
 	UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
+
+	UFUNCTION(BlueprintPure, Category = "Components")
+	UTFStatsComponent* GetStatsComponent() const { return StatsComponent; }
 
 	UFUNCTION(BlueprintPure, Category = "Components")
 	UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
