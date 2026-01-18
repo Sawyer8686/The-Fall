@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "TFStaminaComponent.generated.h"
 
-class ATFCharacterBase;
+class ACharacter;
 
 /** Delegate for stamina changes */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStaminaChanged, float, CurrentStamina, float, MaxStamina);
@@ -23,7 +23,7 @@ enum class EStaminaDrainReason : uint8
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class TFCHARACTERS_API UTFStaminaComponent : public UActorComponent
+class COMPONENTS_API UTFStaminaComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -43,11 +43,11 @@ private:
 
 	/** Stamina percentage threshold for exhaustion state (0.0 - 1.0) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Exhaustion", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "1.0"))
-	float ExhaustionThreshold = 0.2f;
+	float ExhaustionThreshold = 0.0f;
 
 	/** Stamina percentage threshold for recovering from exhaustion (hysteresis). Should be higher than ExhaustionThreshold. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Exhaustion", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "1.0"))
-	float ExhaustionRecoveryThreshold = 0.24f;
+	float ExhaustionRecoveryThreshold = 0.50f;
 
 #pragma endregion Stamina Values
 
@@ -63,11 +63,11 @@ private:
 
 	/** Delay before stamina starts regenerating after depletion (seconds) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Regeneration", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))
-	float RegenDelayAfterDepletion = 2.0f;
+	float RegenDelayAfterDepletion = 5.0f;
 
 	/** Delay before stamina starts regenerating after usage (seconds) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Regeneration", meta = (AllowPrivateAccess = "true", ClampMin = "0.0"))
-	float RegenDelayAfterUsage = 0.5f;
+	float RegenDelayAfterUsage = 2.5f;
 
 	/** Multiplier for regeneration when exhausted */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina|Exhaustion", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "2.0"))
@@ -116,7 +116,7 @@ public:
 
 	/** Cached owner character reference */
 	UPROPERTY()
-	ATFCharacterBase* OwnerCharacter;
+	ACharacter* OwnerCharacter;
 
 #pragma endregion State
 
@@ -275,4 +275,6 @@ public:
 	float GetEffectiveRegenRate() const;
 
 #pragma endregion Modifiers
+
+	void EnsureTickEnabledIfNeeded();
 };

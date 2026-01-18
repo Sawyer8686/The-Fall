@@ -7,14 +7,14 @@
 #include "TFInteractableInterface.h"
 #include "TFInteractionComponent.generated.h"
 
-class ATFPlayerCharacter;
+class ACharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionChanged, AActor*, InteractableActor, FInteractionData, InteractionData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionCompleted, AActor*, InteractedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractionLost);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class TFCHARACTERS_API UTFInteractionComponent : public UActorComponent
+class COMPONENTS_API UTFInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ private:
 	AActor* PreviousInteractable = nullptr;
 
 	UPROPERTY()
-	ATFPlayerCharacter* OwnerCharacter = nullptr;
+	ACharacter* OwnerCharacter = nullptr;
 
 	FTimerHandle DetectionTimerHandle;
 
@@ -65,7 +65,7 @@ protected:
 	void ProcessHitResult(const FHitResult& HitResult);
 	void UpdateFocusedActor(AActor* NewFocus);
 	void ClearFocus();
-	
+
 
 public:
 

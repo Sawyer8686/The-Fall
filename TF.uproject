@@ -15,6 +15,11 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "Components",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "TFCharacters",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

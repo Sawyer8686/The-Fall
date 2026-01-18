@@ -1,8 +1,8 @@
 // TFInteractionComponent.cpp
 
-#include "Components/TFInteractionComponent.h"
+#include "TFInteractionComponent.h"
 
-#include "TFPlayerCharacter.h"
+#include "GameFramework/Character.h"
 #include "TFInteractableInterface.h"
 #include "TFPickupableInterface.h"
 
@@ -20,10 +20,10 @@ void UTFInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwnerCharacter = Cast<ATFPlayerCharacter>(GetOwner());
+	OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
-		UE_LOG(LogTemp, Error, TEXT("TFInteractionComponent: Owner is not a TFPlayerCharacter!"));
+		UE_LOG(LogTemp, Error, TEXT("TFInteractionComponent: Owner is not a Character!"));
 		return;
 	}
 

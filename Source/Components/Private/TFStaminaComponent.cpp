@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Components/TFStaminaComponent.h"
-#include "TFCharacterBase.h"
+#include "TFStaminaComponent.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/TimerHandle.h"
 
@@ -18,8 +18,10 @@ void UTFStaminaComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	EnsureTickEnabledIfNeeded();
+
 	// Cache owner character reference
-	OwnerCharacter = Cast<ATFCharacterBase>(GetOwner());
+	OwnerCharacter = Cast<ACharacter>(GetOwner());
 
 	// Initialize stamina to max
 	CurrentStamina = MaxStamina;
@@ -226,13 +228,17 @@ void UTFStaminaComponent::StopStaminaDrain()
 	bIsDraining = false;
 
 	// Clear the drain timer to stop the looping callback
-	 if (GetWorld())
-		 {
-		  GetWorld()->GetTimerManager().ClearTimer(DrainTimerHandle);
-		 }
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(DrainTimerHandle);
+	}
 
-	// Reset regeneration delay after usage
-	ResetRegenDelay(false);
+	// Reset regeneration delay after usage, but only if stamina wasn't depleted
+	// (depletion already set the longer delay in StartStaminaDrain)
+	if (CurrentStamina > 0.0f)
+	{
+		ResetRegenDelay(false);
+	}
 }
 
 void UTFStaminaComponent::RestoreStamina(float Amount)
@@ -245,12 +251,16 @@ void UTFStaminaComponent::RestoreStamina(float Amount)
 	{
 		OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 	}
+
+	EnsureTickEnabledIfNeeded();
 }
 
 void UTFStaminaComponent::SetStamina(float NewStamina)
 {
 	CurrentStamina = FMath::Clamp(NewStamina, 0.0f, MaxStamina);
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+
+	EnsureTickEnabledIfNeeded();
 }
 
 void UTFStaminaComponent::FullyRestoreStamina()
@@ -321,6 +331,8 @@ void UTFStaminaComponent::SetMaxStamina(float NewMax)
 	CurrentStamina = MaxStamina * Percentage;
 
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+
+	EnsureTickEnabledIfNeeded();
 }
 
 void UTFStaminaComponent::SetRegenRate(float NewRate)
@@ -352,4 +364,12 @@ float UTFStaminaComponent::GetEffectiveDrainRate(float BaseDrainRate) const
 float UTFStaminaComponent::GetEffectiveRegenRate() const
 {
 	return GetCurrentRegenRate() * RegenRateMultiplier;
+}
+
+void UTFStaminaComponent::EnsureTickEnabledIfNeeded()
+{
+	if (CurrentStamina < MaxStamina || bIsDraining || bIsExhausted || RegenDelayTimer > 0.0f)
+	{
+		SetComponentTickEnabled(true);
+	}
 }

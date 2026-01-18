@@ -16,7 +16,8 @@ public class Widgets : ModuleRules
 				"UMG",
 				"Slate",
 				"SlateCore",
-				"TFCharacters"
+				"TFCharacters",
+				"Components"
 			}
 			);
 			

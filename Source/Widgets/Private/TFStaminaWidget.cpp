@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFStaminaWidget.h"
-#include "Components/TFStaminaComponent.h"
+#include "TFStaminaComponent.h"
 #include "TFCharacterBase.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"

@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TFPlayerCharacter.h"
-#include "Components/TFStaminaComponent.h"
-#include "Components/TFInteractionComponent.h"
+#include "TFStaminaComponent.h"
+#include "TFInteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
