@@ -59,10 +59,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night|Format")
 	FString DayTextFormat = TEXT("Day {day}");
 
-	/** Show 24h format (true) or 12h AM/PM format (false) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night|Format")
-	bool bUse24HourFormat = true;
-
 	/** Hour considered dawn start (for color transition) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night|Transition", meta = (ClampMin = "0.0", ClampMax = "24.0"))
 	float DawnStartHour = 5.0f;
@@ -124,9 +120,6 @@ protected:
 
 	/** Get the appropriate color for the current time */
 	FLinearColor GetTimeColor(float CurrentTimeHours) const;
-
-	/** Format time in 12-hour format with AM/PM */
-	FString FormatTime12Hour(float TimeHours) const;
 
 	/** Callback for time changes from the cycle */
 	UFUNCTION()

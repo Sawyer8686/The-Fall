@@ -61,30 +61,16 @@ void UTFDayNightWidget::InitializeDayNightCycle()
 
 void UTFDayNightWidget::UpdateTimeDisplay(float CurrentTimeHours)
 {
-	if (!TimeText)
+	if (!TimeText || !CachedDayNightCycle)
 	{
 		return;
 	}
 
-	FString TimeString;
-	if (bUse24HourFormat)
-	{
-		// Use the formatted time from the cycle (HH:MM)
-		if (CachedDayNightCycle)
-		{
-			TimeString = CachedDayNightCycle->GetFormattedTime();
-		}
-	}
-	else
-	{
-		// Use 12-hour format
-		TimeString = FormatTime12Hour(CurrentTimeHours);
-	}
+	// Always use 24h format (HH:MM)
+	TimeText->SetText(FText::FromString(CachedDayNightCycle->GetFormattedTime()));
 
-	TimeText->SetText(FText::FromString(TimeString));
-
-	// Update seconds text if available
-	if (TimeWithSecondsText && CachedDayNightCycle)
+	// Update seconds text if available (HH:MM:SS)
+	if (TimeWithSecondsText)
 	{
 		TimeWithSecondsText->SetText(FText::FromString(CachedDayNightCycle->GetFormattedTimeWithSeconds()));
 	}
@@ -179,23 +165,6 @@ FLinearColor UTFDayNightWidget::GetTimeColor(float CurrentTimeHours) const
 	return NightTimeColor;
 }
 
-FString UTFDayNightWidget::FormatTime12Hour(float TimeHours) const
-{
-	int32 Hours = FMath::FloorToInt32(TimeHours);
-	int32 Minutes = FMath::FloorToInt32(FMath::Frac(TimeHours) * 60.0f);
-
-	bool bIsPM = Hours >= 12;
-	int32 DisplayHours = Hours % 12;
-	if (DisplayHours == 0)
-	{
-		DisplayHours = 12;
-	}
-
-	FString Period = bIsPM ? TEXT("PM") : TEXT("AM");
-
-	return FString::Printf(TEXT("%d:%02d %s"), DisplayHours, Minutes, *Period);
-}
-
 void UTFDayNightWidget::OnTimeChanged(float CurrentTimeHours)
 {
 	UpdateTimeDisplay(CurrentTimeHours);
@@ -250,14 +219,7 @@ FString UTFDayNightWidget::GetCurrentTimeString() const
 		return TEXT("--:--");
 	}
 
-	if (bUse24HourFormat)
-	{
-		return CachedDayNightCycle->GetFormattedTime();
-	}
-	else
-	{
-		return FormatTime12Hour(CachedDayNightCycle->GetCurrentTimeHours());
-	}
+	return CachedDayNightCycle->GetFormattedTime();
 }
 
 int32 UTFDayNightWidget::GetCurrentDay() const
