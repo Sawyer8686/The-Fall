@@ -51,8 +51,6 @@ bool ATFInteractableActor::Interact(APawn* InstigatorPawn)
 FInteractionData ATFInteractableActor::GetInteractionData(APawn* InstigatorPawn) const
 {
 	FInteractionData Data;
-	Data.InteractionText = InteractionText;
-	Data.SecondaryText = SecondaryText;
 	Data.InteractionDuration = InteractionDuration;
 	Data.bCanInteract = bCanInteract;
 
@@ -87,11 +85,6 @@ float ATFInteractableActor::GetInteractionDistance() const
 void ATFInteractableActor::SetCanInteract(bool bNewCanInteract)
 {
 	bCanInteract = bNewCanInteract;
-}
-
-void ATFInteractableActor::SetInteractionText(FText NewText)
-{
-	InteractionText = NewText;
 }
 
 void ATFInteractableActor::ResetUses()

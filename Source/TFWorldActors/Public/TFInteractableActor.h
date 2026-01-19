@@ -31,12 +31,6 @@ protected:
 #pragma region Interaction Settings
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
-	FText InteractionText = FText::FromString("Interact");
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
-	FText SecondaryText = FText::GetEmpty();
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
 	UTexture2D* InteractionIcon = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (ClampMin = "0.0", ClampMax = "10.0"))
@@ -87,7 +81,6 @@ public:
 
 	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
 	void SetCanInteract(bool bNewCanInteract);
-	void SetInteractionText(FText NewText);
 	void ResetUses();
 
 #pragma endregion Accessors

@@ -13,21 +13,13 @@ struct FInteractionData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
-	FText InteractionText = FText::FromString("Interact");
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
-	FText SecondaryText = FText::GetEmpty();
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float InteractionDuration = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	bool bCanInteract = true;
 
 	FInteractionData()
-		: InteractionText(FText::FromString("Interact"))
-		, SecondaryText(FText::GetEmpty())
-		, InteractionDuration(0.0f)
+		: InteractionDuration(0.0f)
 		, bCanInteract(true)
 	{
 	}
