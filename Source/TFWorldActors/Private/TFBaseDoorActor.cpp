@@ -8,7 +8,7 @@
 ATFBaseDoorActor::ATFBaseDoorActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = false; // Only tick during animation
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	DoorFrameMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorFrame"));
 	DoorFrameMesh->SetupAttachment(Root);
@@ -220,7 +220,6 @@ void ATFBaseDoorActor::PlayDoorMovementSound()
 		return;
 	}
 
-	// Only play if not already playing the movement sound
 	if (AudioComponent->Sound != DoorMovementSound || !AudioComponent->IsPlaying())
 	{
 		AudioComponent->SetSound(DoorMovementSound);
@@ -265,13 +264,11 @@ bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 		return false;
 	}
 
-	// Door is animating - do nothing
 	if (IsMoving())
 	{
 		return false;
 	}
 
-	// Door requires key and is locked - only feedback, never unlock via interact
 	if (bRequiresKey && bIsLocked)
 	{
 		PlayDoorSound(DoorLockedSound);
@@ -280,7 +277,6 @@ bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 		return false;
 	}
 
-	// Door is unlocked - Open/Close
 	if (IsClosed())
 	{
 		return OpenDoor(InstigatorPawn);

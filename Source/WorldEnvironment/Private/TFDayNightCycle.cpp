@@ -114,13 +114,36 @@ bool ATFDayNightCycle::IsDay() const
 
 float ATFDayNightCycle::GetSunRotation() const
 {
-    // Map 0-24 hours to 0-360 degrees
-    // 0 (midnight) = 90 degrees (sun below horizon)
-    // 6 (sunrise) = 0 degrees
-    // 12 (noon) = -90 degrees (sun at zenith)
-    // 18 (sunset) = -180 degrees
-    // 24 (midnight) = -270 degrees
-    return 90.0f - (CurrentTimeHours / 24.0f) * 360.0f;
+    // Map time to rotation based on DayStartHour and NightStartHour
+    // DayStartHour (sunrise) = 0 degrees (sun at horizon)
+    // Midday = -90 degrees (sun at zenith)
+    // NightStartHour (sunset) = -180 degrees (sun at opposite horizon)
+    // Midnight = -270 degrees (sun below horizon)
+
+    const float DayDuration = NightStartHour - DayStartHour;
+    const float NightDuration = 24.0f - DayDuration;
+
+    if (CurrentTimeHours >= DayStartHour && CurrentTimeHours < NightStartHour)
+    {
+        // Daytime: sun goes from 0° (sunrise) to -180° (sunset)
+        const float Alpha = (CurrentTimeHours - DayStartHour) / DayDuration;
+        return -Alpha * 180.0f;
+    }
+    else
+    {
+        // Nighttime: sun goes from -180° (sunset) to -360° (sunrise)
+        float TimeIntoNight;
+        if (CurrentTimeHours >= NightStartHour)
+        {
+            TimeIntoNight = CurrentTimeHours - NightStartHour;
+        }
+        else
+        {
+            TimeIntoNight = (24.0f - NightStartHour) + CurrentTimeHours;
+        }
+        const float Alpha = TimeIntoNight / NightDuration;
+        return -180.0f - Alpha * 180.0f;
+    }
 }
 
 void ATFDayNightCycle::SetTime(float NewTimeHours)
