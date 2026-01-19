@@ -24,7 +24,6 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 	AudioComponent->SetupAttachment(DoorMesh);
 	AudioComponent->bAutoActivate = false;
 
-	InteractionText = FText::FromString("Open Door");
 	MaxInteractionDistance = 200.0f;
 
 	bIsReusable = true;
@@ -307,20 +306,10 @@ FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) con
 		{
 			if (bHasKey)
 			{
-				Data.InteractionText = NSLOCTEXT("TFDoor", "UnlockDoor", "Unlock Door");
-				Data.SecondaryText = FText::Format(
-					NSLOCTEXT("TFDoor", "UsingKey", "Using {0}"),
-					RequiredKeyName
-				);
 				Data.bCanInteract = true;
 			}
 			else
 			{
-				Data.InteractionText = NSLOCTEXT("TFDoor", "Locked", "Locked");
-				Data.SecondaryText = FText::Format(
-					NSLOCTEXT("TFDoor", "RequiresKey", "Requires {0}"),
-					RequiredKeyName
-				);
 				Data.bCanInteract = false;
 			}
 		}
@@ -328,17 +317,14 @@ FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) con
 		{
 			if (IsClosed())
 			{
-				Data.InteractionText = NSLOCTEXT("TFDoor", "OpenDoor", "Open Door");
 				Data.bCanInteract = true;
 			}
 			else if (IsOpen())
 			{
-				Data.InteractionText = NSLOCTEXT("TFDoor", "CloseDoor", "Close Door");
 				Data.bCanInteract = true;
 			}
 			else
 			{
-				Data.InteractionText = NSLOCTEXT("TFDoor", "Wait", "Wait...");
 				Data.bCanInteract = false;
 			}
 		}
@@ -346,17 +332,8 @@ FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) con
 		return Data;
 	}
 
-	if (IsClosed())
-	{
-		Data.InteractionText = NSLOCTEXT("TFDoor", "OpenDoor", "Open Door");
-	}
-	else if (IsOpen())
-	{
-		Data.InteractionText = NSLOCTEXT("TFDoor", "CloseDoor", "Close Door");
-	}
 	else
 	{
-		Data.InteractionText = NSLOCTEXT("TFDoor", "Wait", "Wait...");
 		Data.bCanInteract = false;
 	}
 

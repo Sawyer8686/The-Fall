@@ -173,8 +173,7 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 			{
 				FInteractionData NewData = Interactable->GetInteractionData(OwnerCharacter);
 
-				if (!CurrentInteractionData.InteractionText.EqualTo(NewData.InteractionText) ||
-					!CurrentInteractionData.SecondaryText.EqualTo(NewData.SecondaryText) ||
+				if (
 					CurrentInteractionData.bCanInteract != NewData.bCanInteract)
 				{
 					CurrentInteractionData = NewData;
