@@ -42,16 +42,16 @@ public:
 
 #pragma region Cycle Settings
 
-    UPROPERTY(EditAnywhere, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.1"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.1"))
     float RealSecondsPerGameHour;
 
-    UPROPERTY(EditAnywhere, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.0", ClampMax = "24.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.0", ClampMax = "24.0"))
     float DayStartHour;
 
-    UPROPERTY(EditAnywhere, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.0", ClampMax = "24.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings", meta = (ClampMin = "0.0", ClampMax = "24.0"))
     float NightStartHour;
 
-    UPROPERTY(EditAnywhere, Category = "Day Night Cycle|Settings")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Day Night Cycle|Settings")
     bool bCycleActive;
 
 #pragma endregion

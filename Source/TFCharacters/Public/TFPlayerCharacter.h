@@ -109,7 +109,6 @@ protected:
 	void SneakOff();
 	void PlayerJump();
 	void InteractPressed();
-	//void InteractReleased();
 	void LockPressed();
 
 #pragma endregion Input Handlers
@@ -168,7 +167,6 @@ public:
 	virtual bool HasKey(FName KeyID) const override;
 	virtual void AddKey(FName KeyID) override;
 	virtual bool RemoveKey(FName KeyID) override;
-
 	virtual void OnKeyAdded(FName KeyID) {}
 	virtual void OnKeyRemoved(FName KeyID) {}
 
