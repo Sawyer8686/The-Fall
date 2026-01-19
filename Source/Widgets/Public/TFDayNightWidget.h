@@ -10,10 +10,6 @@ class ATFDayNightCycle;
 class UTextBlock;
 class UImage;
 
-/**
- * Day/Night HUD Widget
- * Displays current time and day information
- */
 UCLASS()
 class WIDGETS_API UTFDayNightWidget : public UUserWidget
 {
@@ -23,19 +19,15 @@ protected:
 
 #pragma region Widget Bindings
 
-	/** Text block displaying the current time (HH:MM) */
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TimeText;
 
-	/** Optional text block displaying the current day */
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* DayText;
 
-	/** Optional image for day/night icon */
 	UPROPERTY(meta = (BindWidgetOptional))
 	UImage* DayNightIcon;
 
-	/** Optional text block displaying seconds (HH:MM:SS format) */
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* TimeWithSecondsText;
 
@@ -81,35 +73,20 @@ protected:
 
 private:
 
-	/** Cached day night cycle reference */
 	UPROPERTY()
 	ATFDayNightCycle* CachedDayNightCycle;
 
-	/** Last known day state for change detection */
 	bool bLastWasDay = true;
 
 protected:
 
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
-	/** Find and cache the day night cycle actor in the world */
 	void InitializeDayNightCycle();
-
-	/** Update the time display */
 	void UpdateTimeDisplay(float CurrentTimeHours);
-
-	/** Update the day display */
 	void UpdateDayDisplay(int32 CurrentDay);
-
-	/** Update the color based on time of day */
-	void UpdateTimeColor(float CurrentTimeHours);
-
-	/** Update the day/night icon */
 	void UpdateDayNightIcon(bool bIsDay);
-
 	FLinearColor GetTimeColor(float CurrentTimeHours) const;
-
 	void OnTimeChanged(float CurrentTimeHours);
 	void OnDayChanged(int32 CurrentDay);
 	void OnDayNightStateChanged(bool bIsDay);
