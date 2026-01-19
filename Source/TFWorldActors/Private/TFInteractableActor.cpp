@@ -28,9 +28,9 @@ bool ATFInteractableActor::CanBeUsedAgain() const
 	return CurrentUses < MaxUses;
 }
 
-bool ATFInteractableActor::Interact_Implementation(APawn* InstigatorPawn)
+bool ATFInteractableActor::Interact(APawn* InstigatorPawn)
 {
-	if (!CanInteract_Implementation(InstigatorPawn))
+	if (!CanInteract(InstigatorPawn))
 	{
 		return false;
 	}
@@ -48,7 +48,7 @@ bool ATFInteractableActor::Interact_Implementation(APawn* InstigatorPawn)
 	return true;
 }
 
-FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
+FInteractionData ATFInteractableActor::GetInteractionData(APawn* InstigatorPawn) const
 {
 	FInteractionData Data;
 	Data.InteractionText = InteractionText;
@@ -59,7 +59,7 @@ FInteractionData ATFInteractableActor::GetInteractionData_Implementation(APawn* 
 	return Data;
 }
 
-bool ATFInteractableActor::CanInteract_Implementation(APawn* InstigatorPawn) const
+bool ATFInteractableActor::CanInteract(APawn* InstigatorPawn) const
 {
 	if (!bCanInteract)
 	{
@@ -79,7 +79,7 @@ bool ATFInteractableActor::CanInteract_Implementation(APawn* InstigatorPawn) con
 	return true;
 }
 
-float ATFInteractableActor::GetInteractionDistance_Implementation() const
+float ATFInteractableActor::GetInteractionDistance() const
 {
 	return MaxInteractionDistance;
 }

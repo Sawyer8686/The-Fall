@@ -5,7 +5,7 @@
 #include "UObject/Interface.h"
 #include "TFKeyHolderInterface.generated.h"
 
-UINTERFACE(MinimalAPI, Blueprintable)
+UINTERFACE(MinimalAPI)
 class UTFKeyHolderInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -17,15 +17,9 @@ class INTERFACES_API ITFKeyHolderInterface
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Keys")
-	bool HasKey(FName KeyID) const;
-	virtual bool HasKey_Implementation(FName KeyID) const { return false; }
+	virtual bool HasKey(FName KeyID) const { return false; }
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Keys")
-	void AddKey(FName KeyID);
-	virtual void AddKey_Implementation(FName KeyID) {}
+	virtual void AddKey(FName KeyID) {}
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Keys")
-	bool RemoveKey(FName KeyID);
-	virtual bool RemoveKey_Implementation(FName KeyID) { return false; }
+	virtual bool RemoveKey(FName KeyID) { return false; }
 };

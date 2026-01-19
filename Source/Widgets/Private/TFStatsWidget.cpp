@@ -84,10 +84,10 @@ void UTFStatsWidget::InitializeStatsComponent()
 	}
 
 	// Bind to events
-	CachedStatsComponent->OnHungerChanged.AddDynamic(this, &UTFStatsWidget::OnHungerChanged);
-	CachedStatsComponent->OnThirstChanged.AddDynamic(this, &UTFStatsWidget::OnThirstChanged);
-	CachedStatsComponent->OnStatDepleted.AddDynamic(this, &UTFStatsWidget::OnStatDepleted);
-	CachedStatsComponent->OnStatCritical.AddDynamic(this, &UTFStatsWidget::OnStatCritical);
+	CachedStatsComponent->OnHungerChanged.AddUObject(this, &UTFStatsWidget::OnHungerChanged);
+	CachedStatsComponent->OnThirstChanged.AddUObject(this, &UTFStatsWidget::OnThirstChanged);
+	CachedStatsComponent->OnStatDepleted.AddUObject(this, &UTFStatsWidget::OnStatDepleted);
+	CachedStatsComponent->OnStatCritical.AddUObject(this, &UTFStatsWidget::OnStatCritical);
 
 	// Initialize display
 	UpdateHungerBar(CachedStatsComponent->GetCurrentHunger(), CachedStatsComponent->GetMaxHunger());
@@ -287,10 +287,10 @@ void UTFStatsWidget::SetStatsComponent(UTFStatsComponent* NewStatsComponent)
 	// Unbind from old component
 	if (CachedStatsComponent)
 	{
-		CachedStatsComponent->OnHungerChanged.RemoveDynamic(this, &UTFStatsWidget::OnHungerChanged);
-		CachedStatsComponent->OnThirstChanged.RemoveDynamic(this, &UTFStatsWidget::OnThirstChanged);
-		CachedStatsComponent->OnStatDepleted.RemoveDynamic(this, &UTFStatsWidget::OnStatDepleted);
-		CachedStatsComponent->OnStatCritical.RemoveDynamic(this, &UTFStatsWidget::OnStatCritical);
+		CachedStatsComponent->OnHungerChanged.RemoveAll(this);
+		CachedStatsComponent->OnThirstChanged.RemoveAll(this);
+		CachedStatsComponent->OnStatDepleted.RemoveAll(this);
+		CachedStatsComponent->OnStatCritical.RemoveAll(this);
 	}
 
 	// Set new component
@@ -299,10 +299,10 @@ void UTFStatsWidget::SetStatsComponent(UTFStatsComponent* NewStatsComponent)
 	// Bind to new component
 	if (CachedStatsComponent)
 	{
-		CachedStatsComponent->OnHungerChanged.AddDynamic(this, &UTFStatsWidget::OnHungerChanged);
-		CachedStatsComponent->OnThirstChanged.AddDynamic(this, &UTFStatsWidget::OnThirstChanged);
-		CachedStatsComponent->OnStatDepleted.AddDynamic(this, &UTFStatsWidget::OnStatDepleted);
-		CachedStatsComponent->OnStatCritical.AddDynamic(this, &UTFStatsWidget::OnStatCritical);
+		CachedStatsComponent->OnHungerChanged.AddUObject(this, &UTFStatsWidget::OnHungerChanged);
+		CachedStatsComponent->OnThirstChanged.AddUObject(this, &UTFStatsWidget::OnThirstChanged);
+		CachedStatsComponent->OnStatDepleted.AddUObject(this, &UTFStatsWidget::OnStatDepleted);
+		CachedStatsComponent->OnStatCritical.AddUObject(this, &UTFStatsWidget::OnStatCritical);
 
 		// Initialize display
 		UpdateHungerBar(CachedStatsComponent->GetCurrentHunger(), CachedStatsComponent->GetMaxHunger());

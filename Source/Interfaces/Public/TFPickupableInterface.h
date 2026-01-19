@@ -10,49 +10,39 @@
  * Item data for pickupable objects
  * This will be expanded when inventory system is created
  */
-USTRUCT(BlueprintType)
+USTRUCT()
 struct FItemData
 {
 	GENERATED_BODY()
 
-	/** Unique identifier for this item type */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	FName ItemID = NAME_None;
 
-	/** Display name of the item */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	FText ItemName = FText::FromString("Item");
 
-	/** Item description */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	FText ItemDescription = FText::GetEmpty();
 
-	/** Icon to display in inventory */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	UTexture2D* ItemIcon = nullptr;
 
-	/** Item mesh for preview */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	UStaticMesh* ItemMesh = nullptr;
 
-	/** Quantity of this item */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 Quantity = 1;
 
-	/** Can this item stack in inventory */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bIsStackable = false;
 
-	/** Maximum stack size (if stackable) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 MaxStackSize = 99;
 
-	/** Item weight (for inventory management) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	float Weight = 1.0f;
 
-	/** Item value (for trading) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 Value = 10;
 
 	FItemData()
@@ -70,63 +60,25 @@ struct FItemData
 	}
 };
 
-// This class does not need to be modified.
-UINTERFACE(MinimalAPI, Blueprintable)
+UINTERFACE(MinimalAPI)
 class UTFPickupableInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-/**
- * Interface for objects that can be picked up and added to inventory
- * Inherits from Interactable - pickup is a specific type of interaction
- */
 class INTERFACES_API ITFPickupableInterface
 {
 	GENERATED_BODY()
 
 public:
 
-	/**
-	 * Called when this item is picked up by player
-	 * @param Picker - The pawn picking up this item
-	 * @return True if pickup was successful
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	bool OnPickup(APawn* Picker);
-	virtual bool OnPickup_Implementation(APawn* Picker) { return false; }
+	virtual bool OnPickup(APawn* Picker) { return false; }
 
-	/**
-	 * Get item data for this pickupable object
-	 * @return Item data to be added to inventory
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	FItemData GetItemData() const;
-	virtual FItemData GetItemData_Implementation() const { return FItemData(); }
+	virtual FItemData GetItemData() const { return FItemData(); }
 
-	/**
-	 * Check if this item can currently be picked up
-	 * @param Picker - The pawn attempting to pick up
-	 * @return True if pickup is possible (inventory space, etc.)
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	bool CanPickup(APawn* Picker) const;
-	virtual bool CanPickup_Implementation(APawn* Picker) const { return true; }
+	virtual bool CanPickup(APawn* Picker) const { return true; }
 
-	/**
-	 * Called when pickup fails (inventory full, etc.)
-	 * @param Picker - The pawn who failed to pick up
-	 * @param Reason - Reason for failure
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	void OnPickupFailed(APawn* Picker, const FText& Reason);
-	virtual void OnPickupFailed_Implementation(APawn* Picker, const FText& Reason) {}
+	virtual void OnPickupFailed(APawn* Picker, const FText& Reason) {}
 
-	/**
-	 * Should this item be destroyed after successful pickup
-	 * @return True if actor should be destroyed (default for most items)
-	 */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pickup")
-	bool ShouldDestroyOnPickup() const;
-	virtual bool ShouldDestroyOnPickup_Implementation() const { return true; }
+	virtual bool ShouldDestroyOnPickup() const { return true; }
 };

@@ -7,7 +7,7 @@
 #include "TFCharacterBase.generated.h"
 
 
-UCLASS(Abstract, NotBlueprintable)
+UCLASS(Abstract)
 class TFCHARACTERS_API ATFCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
@@ -16,13 +16,13 @@ private:
 
 #pragma region Movement
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Movement")
 	bool bIsSneaking;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SneakSpeed = 35.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float WalkSpeed = 150.f;
 
 #pragma endregion Movement
@@ -40,6 +40,5 @@ public:
 
 	ATFCharacterBase();
 
-	UFUNCTION(BlueprintPure, Category = "Movement")
 	FORCEINLINE bool IsSneaking() const { return bIsSneaking; }
 };

@@ -74,9 +74,9 @@ void UTFStaminaWidget::InitializeStaminaComponent()
 	}
 
 	// Bind to events
-	CachedStaminaComponent->OnStaminaChanged.AddDynamic(this, &UTFStaminaWidget::OnStaminaChanged);
-	CachedStaminaComponent->OnStaminaDepleted.AddDynamic(this, &UTFStaminaWidget::OnExhaustion);
-	CachedStaminaComponent->OnStaminaRecovered.AddDynamic(this, &UTFStaminaWidget::OnRecovery);
+	CachedStaminaComponent->OnStaminaChanged.AddUObject(this, &UTFStaminaWidget::OnStaminaChanged);
+	CachedStaminaComponent->OnStaminaDepleted.AddUObject(this, &UTFStaminaWidget::OnExhaustion);
+	CachedStaminaComponent->OnStaminaRecovered.AddUObject(this, &UTFStaminaWidget::OnRecovery);
 
 	// Initialize display
 	UpdateStaminaBar(CachedStaminaComponent->GetCurrentStamina(), CachedStaminaComponent->GetMaxStamina());
@@ -223,9 +223,9 @@ void UTFStaminaWidget::SetStaminaComponent(UTFStaminaComponent* NewStaminaCompon
 	// Unbind from old component
 	if (CachedStaminaComponent)
 	{
-		CachedStaminaComponent->OnStaminaChanged.RemoveDynamic(this, &UTFStaminaWidget::OnStaminaChanged);
-		CachedStaminaComponent->OnStaminaDepleted.RemoveDynamic(this, &UTFStaminaWidget::OnExhaustion);
-		CachedStaminaComponent->OnStaminaRecovered.RemoveDynamic(this, &UTFStaminaWidget::OnRecovery);
+		CachedStaminaComponent->OnStaminaChanged.RemoveAll(this);
+		CachedStaminaComponent->OnStaminaDepleted.RemoveAll(this);
+		CachedStaminaComponent->OnStaminaRecovered.RemoveAll(this);
 	}
 
 	// Set new component
@@ -234,9 +234,9 @@ void UTFStaminaWidget::SetStaminaComponent(UTFStaminaComponent* NewStaminaCompon
 	// Bind to new component
 	if (CachedStaminaComponent)
 	{
-		CachedStaminaComponent->OnStaminaChanged.AddDynamic(this, &UTFStaminaWidget::OnStaminaChanged);
-		CachedStaminaComponent->OnStaminaDepleted.AddDynamic(this, &UTFStaminaWidget::OnExhaustion);
-		CachedStaminaComponent->OnStaminaRecovered.AddDynamic(this, &UTFStaminaWidget::OnRecovery);
+		CachedStaminaComponent->OnStaminaChanged.AddUObject(this, &UTFStaminaWidget::OnStaminaChanged);
+		CachedStaminaComponent->OnStaminaDepleted.AddUObject(this, &UTFStaminaWidget::OnExhaustion);
+		CachedStaminaComponent->OnStaminaRecovered.AddUObject(this, &UTFStaminaWidget::OnRecovery);
 
 		// Initialize display
 		UpdateStaminaBar(CachedStaminaComponent->GetCurrentStamina(), CachedStaminaComponent->GetMaxStamina());

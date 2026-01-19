@@ -7,7 +7,7 @@
 #include "TFPickupableInterface.h"
 #include "TFPickupableActor.generated.h"
 
-UCLASS(Blueprintable)
+UCLASS()
 class TFWORLDACTORS_API ATFPickupableActor : public ATFInteractableActor, public ITFPickupableInterface
 {
 	GENERATED_BODY()
@@ -16,19 +16,18 @@ protected:
 
 #pragma region Item Data
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditAnywhere, Category = "Item")
 	FItemData ItemData;
 
 #pragma endregion Item Data
 
 #pragma region Pickup Settings
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+	UPROPERTY(EditAnywhere, Category = "Pickup")
 	bool bDestroyOnPickup = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "Pickup", meta = (ClampMin = "0.0"))
 	float DestroyDelay = 0.0f;
-
 
 #pragma endregion Pickup Settings
 
@@ -40,40 +39,32 @@ public:
 
 #pragma region Interactable Interface Override
 
-	virtual bool Interact_Implementation(APawn* InstigatorPawn) override;
-	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const override;
+	virtual bool Interact(APawn* InstigatorPawn) override;
+	virtual FInteractionData GetInteractionData(APawn* InstigatorPawn) const override;
 
 #pragma endregion Interactable Interface Override
 
 #pragma region Pickupable Interface Implementation
 
-	virtual bool OnPickup_Implementation(APawn* Picker) override;
-	virtual FItemData GetItemData_Implementation() const override;
-	virtual bool CanPickup_Implementation(APawn* Picker) const override;
-	virtual void OnPickupFailed_Implementation(APawn* Picker, const FText& Reason) override;
-	virtual bool ShouldDestroyOnPickup_Implementation() const override;
+	virtual bool OnPickup(APawn* Picker) override;
+	virtual FItemData GetItemData() const override;
+	virtual bool CanPickup(APawn* Picker) const override;
+	virtual void OnPickupFailed(APawn* Picker, const FText& Reason) override;
+	virtual bool ShouldDestroyOnPickup() const override;
 
 #pragma endregion Pickupable Interface Implementation
 
-#pragma region Blueprint Events
+#pragma region Events
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
-	void OnItemPickedUp(APawn* PickerPawn);
+	virtual void OnItemPickedUp(APawn* PickerPawn) {}
+	virtual void OnItemPickupFailed(APawn* PickerPawn, const FText& Reason) {}
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Pickup")
-	void OnItemPickupFailed(APawn* PickerPawn, const FText& Reason);
-
-#pragma endregion Blueprint Events
+#pragma endregion Events
 
 #pragma region Accessors
 
-	UFUNCTION(BlueprintPure, Category = "Item")
 	FItemData GetItemInfo() const { return ItemData; }
-
-	UFUNCTION(BlueprintCallable, Category = "Item")
 	void SetItemData(const FItemData& NewItemData);
-
-	UFUNCTION(BlueprintCallable, Category = "Item")
 	void SetQuantity(int32 NewQuantity);
 
 #pragma endregion Accessors

@@ -5,7 +5,7 @@
 #include "UObject/Interface.h"
 #include "TFLockableInterface.generated.h"
 
-UINTERFACE(MinimalAPI, Blueprintable)
+UINTERFACE(MinimalAPI)
 class UTFLockableInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -17,7 +17,5 @@ class INTERFACES_API ITFLockableInterface
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Lock")
-	bool ToggleLock(APawn* Character);
-	virtual bool ToggleLock_Implementation(APawn* Character) { return false; }
+	virtual bool ToggleLock(APawn* Character) { return false; }
 };

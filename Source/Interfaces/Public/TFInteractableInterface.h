@@ -7,21 +7,21 @@
 
 
 
-USTRUCT(BlueprintType)
+USTRUCT()
 struct FInteractionData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	FText InteractionText = FText::FromString("Interact");
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	FText SecondaryText = FText::GetEmpty();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float InteractionDuration = 0.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	bool bCanInteract = true;
 
 	FInteractionData()
@@ -33,7 +33,7 @@ struct FInteractionData
 	}
 };
 
-UINTERFACE(MinimalAPI, Blueprintable)
+UINTERFACE(MinimalAPI)
 class UTFInteractableInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -45,22 +45,14 @@ class INTERFACES_API ITFInteractableInterface
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	bool Interact(APawn* InstigatorPawn);
-	virtual bool Interact_Implementation(APawn* InstigatorPawn) { return false; }
+	virtual bool Interact(APawn* InstigatorPawn) { return false; }
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	FInteractionData GetInteractionData(APawn* InstigatorPawn) const;
-	virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const
+	virtual FInteractionData GetInteractionData(APawn* InstigatorPawn) const
 	{
 		return FInteractionData();
 	}
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	bool CanInteract(APawn* InstigatorPawn) const;
-	virtual bool CanInteract_Implementation(APawn* InstigatorPawn) const { return true; }
+	virtual bool CanInteract(APawn* InstigatorPawn) const { return true; }
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	float GetInteractionDistance() const;
-	virtual float GetInteractionDistance_Implementation() const { return 200.0f; }
+	virtual float GetInteractionDistance() const { return 200.0f; }
 };

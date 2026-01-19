@@ -44,9 +44,9 @@ void UTFDayNightWidget::InitializeDayNightCycle()
 		if (CachedDayNightCycle)
 		{
 			// Bind to events
-			CachedDayNightCycle->OnTimeChanged.AddDynamic(this, &UTFDayNightWidget::OnTimeChanged);
-			CachedDayNightCycle->OnDayChanged.AddDynamic(this, &UTFDayNightWidget::OnDayChanged);
-			CachedDayNightCycle->OnDayNightStateChanged.AddDynamic(this, &UTFDayNightWidget::OnDayNightStateChanged);
+			CachedDayNightCycle->OnTimeChanged.AddUObject(this, &UTFDayNightWidget::OnTimeChanged);
+			CachedDayNightCycle->OnDayChanged.AddUObject(this, &UTFDayNightWidget::OnDayChanged);
+			CachedDayNightCycle->OnDayNightStateChanged.AddUObject(this, &UTFDayNightWidget::OnDayNightStateChanged);
 
 			// Initialize display
 			UpdateTimeDisplay(CachedDayNightCycle->GetCurrentTimeHours());
@@ -187,9 +187,9 @@ void UTFDayNightWidget::SetDayNightCycle(ATFDayNightCycle* NewDayNightCycle)
 	// Unbind from old cycle
 	if (CachedDayNightCycle)
 	{
-		CachedDayNightCycle->OnTimeChanged.RemoveDynamic(this, &UTFDayNightWidget::OnTimeChanged);
-		CachedDayNightCycle->OnDayChanged.RemoveDynamic(this, &UTFDayNightWidget::OnDayChanged);
-		CachedDayNightCycle->OnDayNightStateChanged.RemoveDynamic(this, &UTFDayNightWidget::OnDayNightStateChanged);
+		CachedDayNightCycle->OnTimeChanged.RemoveAll(this);
+		CachedDayNightCycle->OnDayChanged.RemoveAll(this);
+		CachedDayNightCycle->OnDayNightStateChanged.RemoveAll(this);
 	}
 
 	// Set new cycle
@@ -198,9 +198,9 @@ void UTFDayNightWidget::SetDayNightCycle(ATFDayNightCycle* NewDayNightCycle)
 	// Bind to new cycle
 	if (CachedDayNightCycle)
 	{
-		CachedDayNightCycle->OnTimeChanged.AddDynamic(this, &UTFDayNightWidget::OnTimeChanged);
-		CachedDayNightCycle->OnDayChanged.AddDynamic(this, &UTFDayNightWidget::OnDayChanged);
-		CachedDayNightCycle->OnDayNightStateChanged.AddDynamic(this, &UTFDayNightWidget::OnDayNightStateChanged);
+		CachedDayNightCycle->OnTimeChanged.AddUObject(this, &UTFDayNightWidget::OnTimeChanged);
+		CachedDayNightCycle->OnDayChanged.AddUObject(this, &UTFDayNightWidget::OnDayChanged);
+		CachedDayNightCycle->OnDayNightStateChanged.AddUObject(this, &UTFDayNightWidget::OnDayNightStateChanged);
 
 		// Initialize display
 		UpdateTimeDisplay(CachedDayNightCycle->GetCurrentTimeHours());

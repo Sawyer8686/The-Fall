@@ -16,15 +16,14 @@ class UTFStaminaComponent;
 class UTFStatsComponent;
 class UTFInteractionComponent;
 
-/** Reason why sprint was blocked */
-UENUM(BlueprintType)
+UENUM()
 enum class ESprintBlockReason : uint8
 {
-	Sneaking	UMETA(DisplayName = "Sneaking"),
-	NoStamina	UMETA(DisplayName = "No Stamina")
+	Sneaking,
+	NoStamina
 };
 
-UCLASS(Blueprintable)
+UCLASS()
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface
 {
 	GENERATED_BODY()
@@ -33,67 +32,67 @@ private:
 
 #pragma region Components
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTFStaminaComponent* StaminaComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTFStatsComponent* StatsComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTFInteractionComponent* InteractionComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	UCameraComponent* FirstPersonCamera;
 
 #pragma endregion Components
 
-#pragma region Input 
+#pragma region Input
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* DefaultMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* JumpAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* SprintAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* SneakAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* InteractAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* LockAction;
 
 #pragma endregion Input
 
 #pragma region Movement & Sprint
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Movement")
 	bool bIsSprinting;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintSpeed = 300.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Stamina", meta = (AllowPrivateAccess = "true", ClampMin = "0.1", ClampMax = "1.0"))
+	UPROPERTY(EditDefaultsOnly, Category = "Movement|Stamina", meta = (ClampMin = "0.1", ClampMax = "1.0"))
 	float ExhaustedSpeedMultiplier = 0.7f;
 
 #pragma endregion Movement & Sprint
 
 #pragma region Camera Settings
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	FVector FirstPersonCameraOffset = FVector(15.0f, 20.0f, 2.5f);
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	FRotator FirstPersonCameraRotation = FRotator(0.0f, -90.0f, 90.0f);
 
 #pragma endregion Camera Settings
@@ -127,24 +126,11 @@ protected:
 
 	void BindStaminaEvents();
 	void UnbindStaminaEvents();
-
-	UFUNCTION()
 	void HandleStaminaDepleted();
-
-	UFUNCTION()
 	void HandleStaminaRecovered();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Stamina")
-	void OnStaminaDepleted();
-	virtual void OnStaminaDepleted_Implementation();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Stamina")
-	void OnStaminaRecovered();
-	virtual void OnStaminaRecovered_Implementation();
-
-	/** Called when sprint is blocked for any reason. Override in Blueprint for feedback. */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Movement")
-	void OnSprintBlocked(ESprintBlockReason Reason);
+	virtual void OnStaminaDepleted();
+	virtual void OnStaminaRecovered();
+	virtual void OnSprintBlocked(ESprintBlockReason Reason) {}
 
 #pragma endregion Stamina Events
 
@@ -162,18 +148,10 @@ public:
 
 #pragma region Accessors
 
-	UFUNCTION(BlueprintPure, Category = "Components")
 	UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
-
-	UFUNCTION(BlueprintPure, Category = "Components")
 	UTFStatsComponent* GetStatsComponent() const { return StatsComponent; }
-
-	UFUNCTION(BlueprintPure, Category = "Components")
 	UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
-
 	UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
-
-	UFUNCTION(BlueprintPure, Category = "Movement")
 	bool IsSprinting() const { return bIsSprinting; }
 
 #pragma endregion Accessors
@@ -182,23 +160,17 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Keys", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Keys")
 	TSet<FName> CollectedKeys;
 
 public:
 
-	
-	virtual bool HasKey_Implementation(FName KeyID) const override;
+	virtual bool HasKey(FName KeyID) const override;
+	virtual void AddKey(FName KeyID) override;
+	virtual bool RemoveKey(FName KeyID) override;
 
-	virtual void AddKey_Implementation(FName KeyID) override;
-
-	virtual bool RemoveKey_Implementation(FName KeyID) override;
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
-	void OnKeyAdded(FName KeyID);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Keys")
-	void OnKeyRemoved(FName KeyID);
+	virtual void OnKeyAdded(FName KeyID) {}
+	virtual void OnKeyRemoved(FName KeyID) {}
 
 #pragma endregion Key Collection
 

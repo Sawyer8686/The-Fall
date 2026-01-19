@@ -247,8 +247,8 @@ void ATFPlayerCharacter::BindStaminaEvents()
 {
 	if (StaminaComponent)
 	{
-		StaminaComponent->OnStaminaDepleted.AddDynamic(this, &ATFPlayerCharacter::HandleStaminaDepleted);
-		StaminaComponent->OnStaminaRecovered.AddDynamic(this, &ATFPlayerCharacter::HandleStaminaRecovered);
+		StaminaComponent->OnStaminaDepleted.AddUObject(this, &ATFPlayerCharacter::HandleStaminaDepleted);
+		StaminaComponent->OnStaminaRecovered.AddUObject(this, &ATFPlayerCharacter::HandleStaminaRecovered);
 	}
 }
 
@@ -256,8 +256,8 @@ void ATFPlayerCharacter::UnbindStaminaEvents()
 {
 	if (StaminaComponent)
 	{
-		StaminaComponent->OnStaminaDepleted.RemoveDynamic(this, &ATFPlayerCharacter::HandleStaminaDepleted);
-		StaminaComponent->OnStaminaRecovered.RemoveDynamic(this, &ATFPlayerCharacter::HandleStaminaRecovered);
+		StaminaComponent->OnStaminaDepleted.RemoveAll(this);
+		StaminaComponent->OnStaminaRecovered.RemoveAll(this);
 	}
 }
 
@@ -280,11 +280,11 @@ void ATFPlayerCharacter::HandleStaminaRecovered()
 	OnStaminaRecovered();
 }
 
-void ATFPlayerCharacter::OnStaminaDepleted_Implementation()
+void ATFPlayerCharacter::OnStaminaDepleted()
 {
 }
 
-void ATFPlayerCharacter::OnStaminaRecovered_Implementation()
+void ATFPlayerCharacter::OnStaminaRecovered()
 {
 }
 
@@ -315,12 +315,12 @@ void ATFPlayerCharacter::HasJumped()
 	ATFCharacterBase::HasJumped();
 }
 
-bool ATFPlayerCharacter::HasKey_Implementation(FName KeyID) const
+bool ATFPlayerCharacter::HasKey(FName KeyID) const
 {
 	return CollectedKeys.Contains(KeyID);
 }
 
-void ATFPlayerCharacter::AddKey_Implementation(FName KeyID)
+void ATFPlayerCharacter::AddKey(FName KeyID)
 {
 	if (KeyID.IsNone())
 	{
@@ -337,7 +337,7 @@ void ATFPlayerCharacter::AddKey_Implementation(FName KeyID)
 	}
 }
 
-bool ATFPlayerCharacter::RemoveKey_Implementation(FName KeyID)
+bool ATFPlayerCharacter::RemoveKey(FName KeyID)
 {
 	if (KeyID.IsNone())
 	{
@@ -369,8 +369,8 @@ void ATFPlayerCharacter::LockPressed()
 		return;
 	}
 
-	if (Target->Implements<UTFLockableInterface>())
+	if (ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(Target))
 	{
-		ITFLockableInterface::Execute_ToggleLock(Target, this);
+		Lockable->ToggleLock(this);
 	}
 }

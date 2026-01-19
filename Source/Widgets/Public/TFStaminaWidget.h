@@ -41,39 +41,39 @@ protected:
 #pragma region Visual Settings
 
 	/** Color when stamina is high */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Colors")
+	UPROPERTY(EditAnywhere, Category = "Stamina|Colors")
 	FLinearColor HighStaminaColor = FLinearColor::Green;
 
 	/** Color when stamina is medium */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Colors")
+	UPROPERTY(EditAnywhere, Category = "Stamina|Colors")
 	FLinearColor MediumStaminaColor = FLinearColor::Yellow;
 
 	/** Color when stamina is low */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Colors")
+	UPROPERTY(EditAnywhere, Category = "Stamina|Colors")
 	FLinearColor LowStaminaColor = FLinearColor::Red;
 
 	/** Threshold for medium stamina (0.0 - 1.0) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Colors", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "Stamina|Colors", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float MediumStaminaThreshold = 0.5f;
 
 	/** Threshold for low stamina (0.0 - 1.0) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Colors", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "Stamina|Colors", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float LowStaminaThreshold = 0.25f;
 
 	/** Enable pulsing effect when low stamina */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Effects")
+	UPROPERTY(EditAnywhere, Category = "Stamina|Effects")
 	bool bEnablePulseEffect = true;
 
 	/** Pulse speed multiplier */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Effects", meta = (ClampMin = "0.1", ClampMax = "10.0"))
+	UPROPERTY(EditAnywhere, Category = "Stamina|Effects", meta = (ClampMin = "0.1", ClampMax = "10.0"))
 	float PulseSpeed = 2.0f;
 
 	/** Hide stamina bar when full */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Visibility")
+	UPROPERTY(EditAnywhere, Category = "Stamina|Visibility")
 	bool bHideWhenFull = true;
 
 	/** Delay before hiding when full (seconds) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina|Visibility", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "Stamina|Visibility", meta = (ClampMin = "0.0"))
 	float HideDelay = 2.0f;
 
 #pragma endregion Visual Settings
@@ -114,28 +114,22 @@ protected:
 	void UpdateVisibility(float StaminaPercent, float DeltaTime);
 
 	/** Callback for stamina changes */
-	UFUNCTION()
 	void OnStaminaChanged(float CurrentStamina, float MaxStamina);
 
 	/** Callback for exhaustion */
-	UFUNCTION()
 	void OnExhaustion();
 
 	/** Callback for recovery */
-	UFUNCTION()
 	void OnRecovery();
 
 public:
 
 	/** Manually set stamina component (optional, auto-detects by default) */
-	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	void SetStaminaComponent(UTFStaminaComponent* NewStaminaComponent);
 
 	/** Get current stamina percentage (for animations) */
-	UFUNCTION(BlueprintPure, Category = "Stamina")
 	float GetStaminaPercent() const;
 
 	/** Check if currently exhausted */
-	UFUNCTION(BlueprintPure, Category = "Stamina")
 	bool IsExhausted() const;
 };

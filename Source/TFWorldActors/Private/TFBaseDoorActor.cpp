@@ -259,7 +259,7 @@ bool ATFBaseDoorActor::IsPlayerOnCorrectSide(const FVector& PlayerLocation) cons
 	return DotProduct >= 0.0f;
 }
 
-bool ATFBaseDoorActor::Interact_Implementation(APawn* InstigatorPawn)
+bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 {
 	if (!InstigatorPawn)
 	{
@@ -295,9 +295,9 @@ bool ATFBaseDoorActor::Interact_Implementation(APawn* InstigatorPawn)
 	return false;
 }
 
-FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
+FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) const
 {
-	FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorPawn);
+	FInteractionData Data = Super::GetInteractionData(InstigatorPawn);
 
 	if (bRequiresKey)
 	{
@@ -363,9 +363,9 @@ FInteractionData ATFBaseDoorActor::GetInteractionData_Implementation(APawn* Inst
 	return Data;
 }
 
-bool ATFBaseDoorActor::CanInteract_Implementation(APawn* InstigatorPawn) const
+bool ATFBaseDoorActor::CanInteract(APawn* InstigatorPawn) const
 {
-	if (!Super::CanInteract_Implementation(InstigatorPawn))
+	if (!Super::CanInteract(InstigatorPawn))
 	{
 		return false;
 	}
@@ -429,12 +429,12 @@ float ATFBaseDoorActor::GetDoorOpenPercentage() const
 	return CurrentAngle / MaxOpenAngle;
 }
 
-bool ATFBaseDoorActor::IsDoorLocked_Implementation() const
+bool ATFBaseDoorActor::IsDoorLocked() const
 {
 	return bRequiresKey && bIsLocked;
 }
 
-bool ATFBaseDoorActor::UnlockDoor_Implementation(APawn* UnlockingCharacter)
+bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
 {
 	if (!bRequiresKey)
 	{
@@ -512,15 +512,15 @@ bool ATFBaseDoorActor::CharacterHasKey(const APawn* Character) const
 		return false;
 	}
 
-	if (Character->Implements<UTFKeyHolderInterface>())
+	if (const ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Character))
 	{
-		return ITFKeyHolderInterface::Execute_HasKey(Character, RequiredKeyID);
+		return KeyHolder->HasKey(RequiredKeyID);
 	}
 
 	return false;
 }
 
-bool ATFBaseDoorActor::ToggleLock_Implementation(APawn* Character)
+bool ATFBaseDoorActor::ToggleLock(APawn* Character)
 {
 	if (!bRequiresKey)
 	{

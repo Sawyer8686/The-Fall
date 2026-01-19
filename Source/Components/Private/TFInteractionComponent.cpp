@@ -147,14 +147,14 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 		return;
 	}
 
-	if (!HitActor->Implements<UTFInteractableInterface>())
+	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
+	if (!Interactable)
 	{
 		ClearFocus();
 		return;
 	}
 
-	// Only consider actor as interactable if CanInteract returns true
-	if (!ITFInteractableInterface::Execute_CanInteract(HitActor, OwnerCharacter))
+	if (!Interactable->CanInteract(OwnerCharacter))
 	{
 		ClearFocus();
 		return;
@@ -169,15 +169,17 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 	{
 		if (CurrentInteractable)
 		{
-			FInteractionData NewData = ITFInteractableInterface::Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
-
-			// Only broadcast if data actually changed to avoid unnecessary UI updates
-			if (!CurrentInteractionData.InteractionText.EqualTo(NewData.InteractionText) ||
-				!CurrentInteractionData.SecondaryText.EqualTo(NewData.SecondaryText) ||
-				CurrentInteractionData.bCanInteract != NewData.bCanInteract)
+			if (ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable))
 			{
-				CurrentInteractionData = NewData;
-				OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+				FInteractionData NewData = Interactable->GetInteractionData(OwnerCharacter);
+
+				if (!CurrentInteractionData.InteractionText.EqualTo(NewData.InteractionText) ||
+					!CurrentInteractionData.SecondaryText.EqualTo(NewData.SecondaryText) ||
+					CurrentInteractionData.bCanInteract != NewData.bCanInteract)
+				{
+					CurrentInteractionData = NewData;
+					OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+				}
 			}
 		}
 		return;
@@ -188,8 +190,11 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 
 	if (CurrentInteractable)
 	{
-		CurrentInteractionData = ITFInteractableInterface::Execute_GetInteractionData(CurrentInteractable, OwnerCharacter);
-		OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+		if (ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable))
+		{
+			CurrentInteractionData = Interactable->GetInteractionData(OwnerCharacter);
+			OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+		}
 	}
 	else
 	{
@@ -219,22 +224,22 @@ void UTFInteractionComponent::Interact()
 		return;
 	}
 
-	if (!CurrentInteractable->Implements<UTFInteractableInterface>())
+	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable);
+	if (!Interactable)
 	{
 		ClearFocus();
 		return;
 	}
 
-	const bool bSuccess = ITFInteractableInterface::Execute_Interact(CurrentInteractable, OwnerCharacter);
+	const bool bSuccess = Interactable->Interact(OwnerCharacter);
 
 	if (bSuccess)
 	{
 		OnInteractionCompleted.Broadcast(CurrentInteractable);
 
-		// Clear focus if pickup destroys itself
-		if (CurrentInteractable && CurrentInteractable->Implements<UTFPickupableInterface>())
+		if (ITFPickupableInterface* Pickupable = Cast<ITFPickupableInterface>(CurrentInteractable))
 		{
-			if (ITFPickupableInterface::Execute_ShouldDestroyOnPickup(CurrentInteractable))
+			if (Pickupable->ShouldDestroyOnPickup())
 			{
 				ClearFocus();
 			}
@@ -249,17 +254,18 @@ bool UTFInteractionComponent::InteractWithActor(AActor* Actor)
 		return false;
 	}
 
-	if (!Actor->Implements<UTFInteractableInterface>())
+	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(Actor);
+	if (!Interactable)
 	{
 		return false;
 	}
 
-	if (!ITFInteractableInterface::Execute_CanInteract(Actor, OwnerCharacter))
+	if (!Interactable->CanInteract(OwnerCharacter))
 	{
 		return false;
 	}
 
-	const bool bSuccess = ITFInteractableInterface::Execute_Interact(Actor, OwnerCharacter);
+	const bool bSuccess = Interactable->Interact(OwnerCharacter);
 
 	if (bSuccess)
 	{

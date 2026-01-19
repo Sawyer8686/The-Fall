@@ -10,7 +10,7 @@ ATFKeyActor::ATFKeyActor()
     bDestroyOnPickup = true;
 }
 
-bool ATFKeyActor::OnPickup_Implementation(APawn* Picker)
+bool ATFKeyActor::OnPickup(APawn* Picker)
 {
     if (!Picker || KeyID.IsNone())
     {
@@ -18,13 +18,14 @@ bool ATFKeyActor::OnPickup_Implementation(APawn* Picker)
         return false;
     }
 
-    if (!Picker->Implements<UTFKeyHolderInterface>())
+    ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Picker);
+    if (!KeyHolder)
     {
         UE_LOG(LogTemp, Warning, TEXT("TFKeyActor: Picker does not implement ITFKeyHolderInterface"));
         return false;
     }
 
-    ITFKeyHolderInterface::Execute_AddKey(Picker, KeyID);
+    KeyHolder->AddKey(KeyID);
 
     UE_LOG(LogTemp, Log, TEXT("TFKeyActor: Collected key '%s' (%s)"), *KeyID.ToString(), *KeyName.ToString());
 
@@ -33,9 +34,9 @@ bool ATFKeyActor::OnPickup_Implementation(APawn* Picker)
     return true;
 }
 
-FInteractionData ATFKeyActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
+FInteractionData ATFKeyActor::GetInteractionData(APawn* InstigatorPawn) const
 {
-    FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorPawn);
+    FInteractionData Data = Super::GetInteractionData(InstigatorPawn);
 
     if (!KeyName.IsEmpty())
     {

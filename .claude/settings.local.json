@@ -5,7 +5,9 @@
       "Bash(findstr:*)",
       "Bash(git add:*)",
       "Bash(done)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(xargs:*)"
     ]
   }
 }

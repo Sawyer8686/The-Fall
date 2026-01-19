@@ -6,7 +6,7 @@
 #include "TFPickupableActor.h"
 #include "TFKeyActor.generated.h"
 
-UCLASS(Blueprintable)
+UCLASS()
 class TFWORLDACTORS_API ATFKeyActor : public ATFPickupableActor
 {
     GENERATED_BODY()
@@ -15,13 +15,13 @@ protected:
 
 #pragma region Key Settings
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+    UPROPERTY(EditAnywhere, Category = "Key")
     FName KeyID = NAME_None;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+    UPROPERTY(EditAnywhere, Category = "Key")
     FText KeyName = FText::FromString("Key");
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+    UPROPERTY(EditAnywhere, Category = "Key")
     FText KeyDescription = FText::GetEmpty();
 
 #pragma endregion Key Settings
@@ -32,27 +32,21 @@ public:
 
 #pragma region Pickupable Interface Override
 
-    virtual bool OnPickup_Implementation(APawn* Picker) override;
-    virtual FInteractionData GetInteractionData_Implementation(APawn* InstigatorPawn) const override;
+    virtual bool OnPickup(APawn* Picker) override;
+    virtual FInteractionData GetInteractionData(APawn* InstigatorPawn) const override;
 
 #pragma endregion Pickupable Interface Override
 
-#pragma region Blueprint Events
+#pragma region Events
 
-    UFUNCTION(BlueprintImplementableEvent, Category = "Key")
-    void OnKeyCollected(APawn* CollectorPawn);
+    virtual void OnKeyCollected(APawn* CollectorPawn) {}
 
-#pragma endregion Blueprint Events
+#pragma endregion Events
 
 #pragma region Accessors
 
-    UFUNCTION(BlueprintPure, Category = "Key")
     FORCEINLINE FName GetKeyID() const { return KeyID; }
-
-    UFUNCTION(BlueprintPure, Category = "Key")
     FORCEINLINE FText GetKeyName() const { return KeyName; }
-
-    UFUNCTION(BlueprintCallable, Category = "Key")
     void SetKeyID(FName NewKeyID);
 
 #pragma endregion Accessors

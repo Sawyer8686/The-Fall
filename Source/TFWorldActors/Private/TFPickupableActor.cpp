@@ -22,9 +22,9 @@ void ATFPickupableActor::BeginPlay()
 	}
 }
 
-bool ATFPickupableActor::Interact_Implementation(APawn* InstigatorPawn)
+bool ATFPickupableActor::Interact(APawn* InstigatorPawn)
 {
-	bool bSuccess = OnPickup_Implementation(InstigatorPawn);
+	bool bSuccess = OnPickup(InstigatorPawn);
 
 	if (bSuccess)
 	{
@@ -55,9 +55,9 @@ bool ATFPickupableActor::Interact_Implementation(APawn* InstigatorPawn)
 	return false;
 }
 
-FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* InstigatorPawn) const
+FInteractionData ATFPickupableActor::GetInteractionData(APawn* InstigatorPawn) const
 {
-	FInteractionData Data = Super::GetInteractionData_Implementation(InstigatorPawn);
+	FInteractionData Data = Super::GetInteractionData(InstigatorPawn);
 
 	if (!ItemData.ItemName.IsEmpty())
 	{
@@ -78,11 +78,11 @@ FInteractionData ATFPickupableActor::GetInteractionData_Implementation(APawn* In
 	return Data;
 }
 
-bool ATFPickupableActor::OnPickup_Implementation(APawn* Picker)
+bool ATFPickupableActor::OnPickup(APawn* Picker)
 {
-	if (!CanPickup_Implementation(Picker))
+	if (!CanPickup(Picker))
 	{
-		OnPickupFailed_Implementation(Picker, FText::FromString("Cannot pickup item"));
+		OnPickupFailed(Picker, FText::FromString("Cannot pickup item"));
 		return false;
 	}
 
@@ -91,12 +91,12 @@ bool ATFPickupableActor::OnPickup_Implementation(APawn* Picker)
 	return true;
 }
 
-FItemData ATFPickupableActor::GetItemData_Implementation() const
+FItemData ATFPickupableActor::GetItemData() const
 {
 	return ItemData;
 }
 
-bool ATFPickupableActor::CanPickup_Implementation(APawn* Picker) const
+bool ATFPickupableActor::CanPickup(APawn* Picker) const
 {
 	if (!Picker)
 	{
@@ -106,14 +106,14 @@ bool ATFPickupableActor::CanPickup_Implementation(APawn* Picker) const
 	return true;
 }
 
-void ATFPickupableActor::OnPickupFailed_Implementation(APawn* Picker, const FText& Reason)
+void ATFPickupableActor::OnPickupFailed(APawn* Picker, const FText& Reason)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Pickup failed: %s"), *Reason.ToString());
 
 	OnItemPickupFailed(Picker, Reason);
 }
 
-bool ATFPickupableActor::ShouldDestroyOnPickup_Implementation() const
+bool ATFPickupableActor::ShouldDestroyOnPickup() const
 {
 	return bDestroyOnPickup;
 }
