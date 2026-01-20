@@ -4,7 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Sound/SoundBase.h"
 #include "TFPickupableInterface.generated.h"
+
+/**
+ * Enum representing different types of pickupable items
+ */
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	Generic     UMETA(DisplayName = "Generic Item"),
+	Key         UMETA(DisplayName = "Key"),
+	Consumable  UMETA(DisplayName = "Consumable"),
+	Weapon      UMETA(DisplayName = "Weapon"),
+	Ammo        UMETA(DisplayName = "Ammunition"),
+	Document    UMETA(DisplayName = "Document"),
+	Quest       UMETA(DisplayName = "Quest Item")
+};
 
 /**
  * Item data for pickupable objects
@@ -19,6 +35,9 @@ struct FItemData
 	FName ItemID = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
+	EItemType ItemType = EItemType::Generic;
+
+	UPROPERTY(EditAnywhere, Category = "Item")
 	FText ItemName = FText::FromString("Item");
 
 	UPROPERTY(EditAnywhere, Category = "Item")
@@ -29,6 +48,9 @@ struct FItemData
 
 	UPROPERTY(EditAnywhere, Category = "Item")
 	UStaticMesh* ItemMesh = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Item|Audio")
+	USoundBase* PickupSound = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 Quantity = 1;
@@ -45,17 +67,24 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 Value = 10;
 
+	/** Key ID used only when ItemType == Key. Used to match with door RequiredKeyID */
+	UPROPERTY(EditAnywhere, Category = "Item|Key")
+	FName KeyID = NAME_None;
+
 	FItemData()
 		: ItemID(NAME_None)
+		, ItemType(EItemType::Generic)
 		, ItemName(FText::FromString("Item"))
 		, ItemDescription(FText::GetEmpty())
 		, ItemIcon(nullptr)
 		, ItemMesh(nullptr)
+		, PickupSound(nullptr)
 		, Quantity(1)
 		, bIsStackable(false)
 		, MaxStackSize(99)
 		, Weight(1.0f)
 		, Value(10)
+		, KeyID(NAME_None)
 	{
 	}
 };

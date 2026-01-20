@@ -7,7 +7,9 @@
       "Bash(done)",
       "Bash(tree:*)",
       "Bash(dir:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TFWorldActors\\\\Public\\\\TFKeyActor.h\")",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TFWorldActors\\\\Private\\\\TFKeyActor.cpp\")"
     ]
   }
 }

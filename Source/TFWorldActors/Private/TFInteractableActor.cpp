@@ -3,6 +3,7 @@
 #include "TFInteractableActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Misc/ConfigCacheIni.h"
 
 ATFInteractableActor::ATFInteractableActor()
 {
@@ -17,6 +18,89 @@ ATFInteractableActor::ATFInteractableActor()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
+}
+
+void ATFInteractableActor::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (bUseDataDrivenConfig && !InteractableID.IsNone())
+	{
+		LoadConfigFromINI();
+	}
+}
+
+void ATFInteractableActor::LoadConfigFromINI()
+{
+	const FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("InteractableConfig.ini");
+
+	if (!FPaths::FileExists(ConfigFilePath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: InteractableConfig.ini not found at %s"), *ConfigFilePath);
+		return;
+	}
+
+	const FString SectionName = InteractableID.ToString();
+
+	FConfigFile ConfigFile;
+	ConfigFile.Read(ConfigFilePath);
+
+	if (!ConfigFile.Contains(SectionName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: Section [%s] not found in InteractableConfig.ini"), *SectionName);
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("ATFInteractableActor: Loading config for InteractableID '%s'"), *SectionName);
+
+	FString StringValue;
+
+#pragma region Interaction Settings
+
+	GConfig->GetFloat(*SectionName, TEXT("InteractionDuration"), InteractionDuration, ConfigFilePath);
+	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bCanInteract"), bCanInteract, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bIsReusable"), bIsReusable, ConfigFilePath);
+	GConfig->GetInt(*SectionName, TEXT("MaxUses"), MaxUses, ConfigFilePath);
+
+#pragma endregion Interaction Settings
+
+#pragma region Icon Loading
+
+	if (GConfig->GetString(*SectionName, TEXT("InteractionIcon"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		if (UTexture2D* LoadedIcon = LoadObject<UTexture2D>(nullptr, *StringValue))
+		{
+			InteractionIcon = LoadedIcon;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: Failed to load InteractionIcon: %s"), *StringValue);
+		}
+	}
+
+#pragma endregion Icon Loading
+
+#pragma region Mesh Loading
+
+	if (GConfig->GetString(*SectionName, TEXT("Mesh"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		if (UStaticMesh* LoadedMesh = LoadObject<UStaticMesh>(nullptr, *StringValue))
+		{
+			if (MeshComponent)
+			{
+				MeshComponent->SetStaticMesh(LoadedMesh);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: Failed to load Mesh: %s"), *StringValue);
+		}
+	}
+
+#pragma endregion Mesh Loading
+
+	UE_LOG(LogTemp, Log, TEXT("ATFInteractableActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
 }
 
 bool ATFInteractableActor::CanBeUsedAgain() const

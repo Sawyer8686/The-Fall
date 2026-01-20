@@ -31,18 +31,29 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 
 void ATFBaseDoorActor::BeginPlay()
 {
-	Super::BeginPlay();
-
-	if (bUseDataDrivenConfig && !DoorID.IsNone())
+	// Use DoorID as InteractableID if not explicitly set
+	if (InteractableID.IsNone() && !DoorID.IsNone())
 	{
-		LoadConfigFromINI();
+		InteractableID = DoorID;
 	}
+
+	// Call parent BeginPlay which handles base data-driven config
+	Super::BeginPlay();
 
 	InitialRotation = DoorMesh->GetRelativeRotation();
 }
 
 void ATFBaseDoorActor::LoadConfigFromINI()
 {
+	// First load base interactable config (InteractionDuration, MaxInteractionDistance, etc.)
+	Super::LoadConfigFromINI();
+
+	// Then load door-specific config
+	if (DoorID.IsNone())
+	{
+		return;
+	}
+
 	const FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("DoorConfig.ini");
 
 	if (!FPaths::FileExists(ConfigFilePath))

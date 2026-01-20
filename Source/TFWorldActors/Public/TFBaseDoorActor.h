@@ -53,10 +53,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Door|Config")
 	FName DoorID = NAME_None;
 
-	/** If true, configuration will be loaded from INI file on BeginPlay */
-	UPROPERTY(EditAnywhere, Category = "Door|Config")
-	bool bUseDataDrivenConfig = true;
-
 #pragma endregion Data-Driven Config
 
 #pragma region Door Settings
@@ -146,7 +142,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	/** Load door configuration from INI file based on DoorID */
-	void LoadConfigFromINI();
+	virtual void LoadConfigFromINI() override;
 	void UpdateDoorAnimation(float DeltaTime);
 	void ApplyDoorRotation(float Angle);
 	float CalculateTargetAngle(const FVector& PlayerLocation);
