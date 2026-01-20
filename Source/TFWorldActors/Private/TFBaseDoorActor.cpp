@@ -33,7 +33,157 @@ void ATFBaseDoorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (bUseDataDrivenConfig && !DoorID.IsNone())
+	{
+		LoadConfigFromINI();
+	}
+
 	InitialRotation = DoorMesh->GetRelativeRotation();
+}
+
+void ATFBaseDoorActor::LoadConfigFromINI()
+{
+	const FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("DoorConfig.ini");
+
+	if (!FPaths::FileExists(ConfigFilePath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: DoorConfig.ini not found at %s"), *ConfigFilePath);
+		return;
+	}
+
+	const FString SectionName = DoorID.ToString();
+
+	// Check if section exists
+	FConfigFile ConfigFile;
+	ConfigFile.Read(ConfigFilePath);
+
+	if (!ConfigFile.Contains(SectionName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Section [%s] not found in DoorConfig.ini"), *SectionName);
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Loading config for DoorID '%s'"), *SectionName);
+
+	// Door Settings
+	FString StringValue;
+
+	if (GConfig->GetString(*SectionName, TEXT("HingeType"), StringValue, ConfigFilePath))
+	{
+		if (StringValue.Equals(TEXT("Left"), ESearchCase::IgnoreCase))
+		{
+			HingeType = EDoorHinge::Left;
+		}
+		else if (StringValue.Equals(TEXT("Right"), ESearchCase::IgnoreCase))
+		{
+			HingeType = EDoorHinge::Right;
+		}
+	}
+
+	GConfig->GetFloat(*SectionName, TEXT("MaxOpenAngle"), MaxOpenAngle, ConfigFilePath);
+	GConfig->GetFloat(*SectionName, TEXT("OpenDuration"), OpenDuration, ConfigFilePath);
+	GConfig->GetFloat(*SectionName, TEXT("CloseDuration"), CloseDuration, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bAutoClose"), bAutoClose, ConfigFilePath);
+	GConfig->GetFloat(*SectionName, TEXT("AutoCloseDelay"), AutoCloseDelay, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bCanOpenFromBothSides"), bCanOpenFromBothSides, ConfigFilePath);
+
+	// Key Settings
+	GConfig->GetBool(*SectionName, TEXT("bRequiresKey"), bRequiresKey, ConfigFilePath);
+
+	if (GConfig->GetString(*SectionName, TEXT("RequiredKeyID"), StringValue, ConfigFilePath))
+	{
+		RequiredKeyID = FName(*StringValue);
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("RequiredKeyName"), StringValue, ConfigFilePath))
+	{
+		RequiredKeyName = FText::FromString(StringValue);
+	}
+
+	GConfig->GetBool(*SectionName, TEXT("bIsLocked"), bIsLocked, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bCanRelock"), bCanRelock, ConfigFilePath);
+
+	// Mesh Loading
+	if (GConfig->GetString(*SectionName, TEXT("DoorFrameMesh"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		if (UStaticMesh* LoadedMesh = LoadObject<UStaticMesh>(nullptr, *StringValue))
+		{
+			DoorFrameMesh->SetStaticMesh(LoadedMesh);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorFrameMesh: %s"), *StringValue);
+		}
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("DoorMesh"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		if (UStaticMesh* LoadedMesh = LoadObject<UStaticMesh>(nullptr, *StringValue))
+		{
+			DoorMesh->SetStaticMesh(LoadedMesh);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorMesh: %s"), *StringValue);
+		}
+	}
+
+	// Audio Loading
+	if (GConfig->GetString(*SectionName, TEXT("DoorOpenSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		DoorOpenSound = LoadObject<USoundBase>(nullptr, *StringValue);
+		if (!DoorOpenSound)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorOpenSound: %s"), *StringValue);
+		}
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("DoorCloseSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		DoorCloseSound = LoadObject<USoundBase>(nullptr, *StringValue);
+		if (!DoorCloseSound)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorCloseSound: %s"), *StringValue);
+		}
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("DoorLockedSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		DoorLockedSound = LoadObject<USoundBase>(nullptr, *StringValue);
+		if (!DoorLockedSound)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorLockedSound: %s"), *StringValue);
+		}
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("DoorMovementSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		DoorMovementSound = LoadObject<USoundBase>(nullptr, *StringValue);
+		if (!DoorMovementSound)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorMovementSound: %s"), *StringValue);
+		}
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("DoorUnlockSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		DoorUnlockSound = LoadObject<USoundBase>(nullptr, *StringValue);
+		if (!DoorUnlockSound)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorUnlockSound: %s"), *StringValue);
+		}
+	}
+
+	if (GConfig->GetString(*SectionName, TEXT("DoorLockSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	{
+		DoorLockSound = LoadObject<USoundBase>(nullptr, *StringValue);
+		if (!DoorLockSound)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorLockSound: %s"), *StringValue);
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for DoorID '%s'"), *SectionName);
 }
 
 void ATFBaseDoorActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
