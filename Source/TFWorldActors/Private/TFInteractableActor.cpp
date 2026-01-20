@@ -32,11 +32,12 @@ void ATFInteractableActor::BeginPlay()
 
 void ATFInteractableActor::LoadConfigFromINI()
 {
-	const FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("InteractableConfig.ini");
+	FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("InteractableConfig.ini");
+	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
 
 	if (!FPaths::FileExists(ConfigFilePath))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: InteractableConfig.ini not found at %s"), *ConfigFilePath);
+		// Silently return - derived classes may use their own INI files
 		return;
 	}
 
@@ -47,7 +48,7 @@ void ATFInteractableActor::LoadConfigFromINI()
 
 	if (!ConfigFile.Contains(SectionName))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: Section [%s] not found in InteractableConfig.ini"), *SectionName);
+		// Silently return - derived classes may use their own INI files with different section names
 		return;
 	}
 

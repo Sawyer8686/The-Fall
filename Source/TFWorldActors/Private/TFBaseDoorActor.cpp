@@ -4,6 +4,7 @@
 #include "Components/AudioComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Misc/ConfigCacheIni.h"
 
 ATFBaseDoorActor::ATFBaseDoorActor()
 {
@@ -54,7 +55,8 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		return;
 	}
 
-	const FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("DoorConfig.ini");
+	FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("DoorConfig.ini");
+	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
 
 	if (!FPaths::FileExists(ConfigFilePath))
 	{

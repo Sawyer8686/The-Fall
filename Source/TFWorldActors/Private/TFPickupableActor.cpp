@@ -47,7 +47,8 @@ void ATFPickupableActor::LoadConfigFromINI()
 		return;
 	}
 
-	const FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("ItemConfig.ini");
+	FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("ItemConfig.ini");
+	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
 
 	if (!FPaths::FileExists(ConfigFilePath))
 	{
