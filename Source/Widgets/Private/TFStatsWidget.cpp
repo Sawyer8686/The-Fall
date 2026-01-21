@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFStatsWidget.h"
-#include "TF.h"
+#include "TFTypes.h"
 #include "TFStatsComponent.h"
 #include "TFPlayerCharacter.h"
 #include "Components/ProgressBar.h"

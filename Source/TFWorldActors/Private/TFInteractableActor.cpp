@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFInteractableActor.h"
-#include "TF.h"
+#include "TFTypes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Misc/ConfigCacheIni.h"
 
@@ -32,29 +32,16 @@ void ATFInteractableActor::BeginPlay()
 
 void ATFInteractableActor::LoadConfigFromINI()
 {
-	FString ConfigFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectConfigDir() / TEXT("InteractableConfig.ini"));
-	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
-
-	if (!FPaths::FileExists(ConfigFilePath))
-	{
-		// Silently return - derived classes may use their own INI files
-		return;
-	}
-
 	const FString SectionName = InteractableID.ToString();
+	FString ConfigFilePath;
 
-	FConfigFile ConfigFile;
-	ConfigFile.Read(ConfigFilePath);
-
-	if (!ConfigFile.Contains(SectionName))
+	// Use helper function - silent on missing since derived classes may use their own INI files
+	if (!TFConfigUtils::LoadINISection(TEXT("InteractableConfig.ini"), SectionName, ConfigFilePath, LogTFInteraction, true))
 	{
-		// Silently return - derived classes may use their own INI files with different section names
 		return;
 	}
 
 	UE_LOG(LogTFInteraction, Log, TEXT("ATFInteractableActor: Loading config for InteractableID '%s'"), *SectionName);
-
-	FString StringValue;
 
 #pragma region Interaction Settings
 
@@ -64,38 +51,28 @@ void ATFInteractableActor::LoadConfigFromINI()
 	GConfig->GetBool(*SectionName, TEXT("bIsReusable"), bIsReusable, ConfigFilePath);
 	GConfig->GetInt(*SectionName, TEXT("MaxUses"), MaxUses, ConfigFilePath);
 
+	// Validate loaded values
+	InteractionDuration = FMath::Clamp(InteractionDuration, 0.0f, 10.0f);
+	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
+
 #pragma endregion Interaction Settings
 
 #pragma region Icon Loading
 
-	if (GConfig->GetString(*SectionName, TEXT("InteractionIcon"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	if (UTexture2D* LoadedIcon = TFConfigUtils::LoadAssetFromConfig<UTexture2D>(SectionName, TEXT("InteractionIcon"), ConfigFilePath, LogTFInteraction, TEXT("InteractionIcon")))
 	{
-		if (UTexture2D* LoadedIcon = LoadObject<UTexture2D>(nullptr, *StringValue))
-		{
-			InteractionIcon = LoadedIcon;
-		}
-		else
-		{
-			UE_LOG(LogTFInteraction, Warning, TEXT("ATFInteractableActor: Failed to load InteractionIcon: %s"), *StringValue);
-		}
+		InteractionIcon = LoadedIcon;
 	}
 
 #pragma endregion Icon Loading
 
 #pragma region Mesh Loading
 
-	if (GConfig->GetString(*SectionName, TEXT("Mesh"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
+	if (UStaticMesh* LoadedMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("Mesh"), ConfigFilePath, LogTFInteraction, TEXT("Mesh")))
 	{
-		if (UStaticMesh* LoadedMesh = LoadObject<UStaticMesh>(nullptr, *StringValue))
+		if (MeshComponent)
 		{
-			if (MeshComponent)
-			{
-				MeshComponent->SetStaticMesh(LoadedMesh);
-			}
-		}
-		else
-		{
-			UE_LOG(LogTFInteraction, Warning, TEXT("ATFInteractableActor: Failed to load Mesh: %s"), *StringValue);
+			MeshComponent->SetStaticMesh(LoadedMesh);
 		}
 	}
 

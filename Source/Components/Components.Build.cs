@@ -13,8 +13,7 @@ public class Components : ModuleRules
 			new string[]
 			{
 				"Core",
-				"Interfaces",
-				"TF"
+				"Interfaces"
 			}
 			);
 

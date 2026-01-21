@@ -16,8 +16,7 @@ public class TFCharacters : ModuleRules
 				"EnhancedInput",
 				"InputCore",
 				"Interfaces",
-				"Components",
-				"TF"
+				"Components"
 			}
 			);
 

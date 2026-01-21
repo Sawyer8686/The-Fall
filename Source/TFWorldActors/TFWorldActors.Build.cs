@@ -13,8 +13,7 @@ public class TFWorldActors : ModuleRules
 			new string[]
 			{
 				"Core",
-				"Interfaces",
-				"TF"
+				"Interfaces"
 			}
 			);
 

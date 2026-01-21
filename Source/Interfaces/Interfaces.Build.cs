@@ -8,6 +8,8 @@ public class Interfaces : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		// Define INTERFACES_EXPORTS when building this module
+		PrivateDefinitions.Add("INTERFACES_EXPORTS=1");
 
 		PublicDependencyModuleNames.AddRange(
 			new string[]

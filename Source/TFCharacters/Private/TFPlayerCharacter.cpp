@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFPlayerCharacter.h"
-#include "TF.h"
+#include "TFTypes.h"
 #include "TFStaminaComponent.h"
 #include "TFStatsComponent.h"
 #include "TFInteractionComponent.h"

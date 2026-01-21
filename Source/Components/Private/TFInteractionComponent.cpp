@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFInteractionComponent.h"
-#include "TF.h"
+#include "TFTypes.h"
 
 #include "GameFramework/Character.h"
 #include "TFInteractableInterface.h"

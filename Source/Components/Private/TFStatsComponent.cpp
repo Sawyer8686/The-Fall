@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFStatsComponent.h"
-#include "TF.h"
+#include "TFTypes.h"
 #include "TimerManager.h"
 
 UTFStatsComponent::UTFStatsComponent()

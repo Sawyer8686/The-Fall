@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFPickupableActor.h"
-#include "TF.h"
+#include "TFTypes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -48,23 +48,11 @@ void ATFPickupableActor::LoadConfigFromINI()
 		return;
 	}
 
-	FString ConfigFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectConfigDir() / TEXT("ItemConfig.ini"));
-	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
-
-	if (!FPaths::FileExists(ConfigFilePath))
-	{
-		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: ItemConfig.ini not found at %s"), *ConfigFilePath);
-		return;
-	}
-
 	const FString SectionName = ItemID.ToString();
+	FString ConfigFilePath;
 
-	FConfigFile ConfigFile;
-	ConfigFile.Read(ConfigFilePath);
-
-	if (!ConfigFile.Contains(SectionName))
+	if (!TFConfigUtils::LoadINISection(TEXT("ItemConfig.ini"), SectionName, ConfigFilePath, LogTFItem))
 	{
-		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Section [%s] not found in ItemConfig.ini"), *SectionName);
 		return;
 	}
 
@@ -78,33 +66,21 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 	if (GConfig->GetString(*SectionName, TEXT("ItemType"), StringValue, ConfigFilePath))
 	{
-		if (StringValue.Equals(TEXT("Generic"), ESearchCase::IgnoreCase))
+		static const TMap<FString, EItemType> ItemTypeMap = {
+			{TEXT("Generic"), EItemType::Generic},
+			{TEXT("Key"), EItemType::Key},
+			{TEXT("Consumable"), EItemType::Consumable},
+			{TEXT("Weapon"), EItemType::Weapon},
+			{TEXT("Ammo"), EItemType::Ammo},
+			{TEXT("Document"), EItemType::Document},
+			{TEXT("Quest"), EItemType::Quest}
+		};
+
+		bool bMatched = false;
+		ItemData.ItemType = TFConfigUtils::StringToEnum(StringValue, ItemTypeMap, EItemType::Generic, &bMatched);
+		if (!bMatched)
 		{
-			ItemData.ItemType = EItemType::Generic;
-		}
-		else if (StringValue.Equals(TEXT("Key"), ESearchCase::IgnoreCase))
-		{
-			ItemData.ItemType = EItemType::Key;
-		}
-		else if (StringValue.Equals(TEXT("Consumable"), ESearchCase::IgnoreCase))
-		{
-			ItemData.ItemType = EItemType::Consumable;
-		}
-		else if (StringValue.Equals(TEXT("Weapon"), ESearchCase::IgnoreCase))
-		{
-			ItemData.ItemType = EItemType::Weapon;
-		}
-		else if (StringValue.Equals(TEXT("Ammo"), ESearchCase::IgnoreCase))
-		{
-			ItemData.ItemType = EItemType::Ammo;
-		}
-		else if (StringValue.Equals(TEXT("Document"), ESearchCase::IgnoreCase))
-		{
-			ItemData.ItemType = EItemType::Document;
-		}
-		else if (StringValue.Equals(TEXT("Quest"), ESearchCase::IgnoreCase))
-		{
-			ItemData.ItemType = EItemType::Quest;
+			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Unknown ItemType '%s', defaulting to Generic"), *StringValue);
 		}
 	}
 
@@ -128,13 +104,19 @@ void ATFPickupableActor::LoadConfigFromINI()
 	GConfig->GetFloat(*SectionName, TEXT("Weight"), ItemData.Weight, ConfigFilePath);
 	GConfig->GetInt(*SectionName, TEXT("Value"), ItemData.Value, ConfigFilePath);
 
+	// Validate item data
+	ItemData.Quantity = FMath::Max(1, ItemData.Quantity);
+	ItemData.MaxStackSize = FMath::Max(1, ItemData.MaxStackSize);
+	ItemData.Weight = FMath::Max(0.0f, ItemData.Weight);
+	ItemData.Value = FMath::Max(0, ItemData.Value);
+
 #pragma endregion Basic Item Data
 
 #pragma region Key-Specific Data
 
 	if (ItemData.ItemType == EItemType::Key)
 	{
-		if (GConfig->GetString(*SectionName, TEXT("KeyID"), StringValue, ConfigFilePath))
+		if (GConfig->GetString(*SectionName, TEXT("KeyID"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
 		{
 			ItemData.KeyID = FName(*StringValue);
 		}
@@ -146,55 +128,21 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma endregion Key-Specific Data
 
-#pragma region Mesh Loading
+#pragma region Asset Loading
 
-	if (GConfig->GetString(*SectionName, TEXT("ItemMesh"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
-	{
-		if (UStaticMesh* LoadedMesh = LoadObject<UStaticMesh>(nullptr, *StringValue))
-		{
-			ItemData.ItemMesh = LoadedMesh;
-		}
-		else
-		{
-			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to load ItemMesh: %s"), *StringValue);
-		}
-	}
+	ItemData.ItemMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("ItemMesh"), ConfigFilePath, LogTFItem, TEXT("ItemMesh"));
+	ItemData.ItemIcon = TFConfigUtils::LoadAssetFromConfig<UTexture2D>(SectionName, TEXT("ItemIcon"), ConfigFilePath, LogTFItem, TEXT("ItemIcon"));
+	ItemData.PickupSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("PickupSound"), ConfigFilePath, LogTFItem, TEXT("PickupSound"));
 
-#pragma endregion Mesh Loading
-
-#pragma region Icon Loading
-
-	if (GConfig->GetString(*SectionName, TEXT("ItemIcon"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
-	{
-		if (UTexture2D* LoadedIcon = LoadObject<UTexture2D>(nullptr, *StringValue))
-		{
-			ItemData.ItemIcon = LoadedIcon;
-		}
-		else
-		{
-			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to load ItemIcon: %s"), *StringValue);
-		}
-	}
-
-#pragma endregion Icon Loading
-
-#pragma region Audio Loading
-
-	if (GConfig->GetString(*SectionName, TEXT("PickupSound"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
-	{
-		ItemData.PickupSound = LoadObject<USoundBase>(nullptr, *StringValue);
-		if (!ItemData.PickupSound)
-		{
-			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to load PickupSound: %s"), *StringValue);
-		}
-	}
-
-#pragma endregion Audio Loading
+#pragma endregion Asset Loading
 
 #pragma region Pickup Settings
 
 	GConfig->GetBool(*SectionName, TEXT("bDestroyOnPickup"), bDestroyOnPickup, ConfigFilePath);
 	GConfig->GetFloat(*SectionName, TEXT("DestroyDelay"), DestroyDelay, ConfigFilePath);
+
+	// Validate pickup settings
+	DestroyDelay = FMath::Max(0.0f, DestroyDelay);
 
 #pragma endregion Pickup Settings
 

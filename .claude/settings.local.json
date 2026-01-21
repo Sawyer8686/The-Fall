@@ -9,7 +9,13 @@
       "Bash(dir:*)",
       "Bash(xargs:*)",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TFWorldActors\\\\Public\\\\TFKeyActor.h\")",
-      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TFWorldActors\\\\Private\\\\TFKeyActor.cpp\")"
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TFWorldActors\\\\Private\\\\TFKeyActor.cpp\")",
+      "Bash(\"C:\\\\Program Files\\\\Epic Games\\\\UE_5.7\\\\Engine\\\\Build\\\\BatchFiles\\\\Build.bat\" TFEditor Win64 Development -Project=\"C:\\\\UnrealProjects\\\\TF\\\\TF.uproject\" -WaitMutex -FromMsBuild -architecture=x64)",
+      "Bash(cmd.exe /c \"del \\\\?\\\\C:\\\\UnrealProjects\\\\TF\\\\nul\")",
+      "Bash(git -C \"C:/UnrealProjects/TF\" status --porcelain)",
+      "Bash(powershell:*)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\UnrealProjects\\\\TF && del /f /q nul 2>nul || echo Trying alternative method\")",
+      "Bash(cmd.exe /c \"dir C:\\\\UnrealProjects\\\\TF\\\\nul\")"
     ]
   }
 }
