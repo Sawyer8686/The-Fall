@@ -45,8 +45,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides))
 	UTexture2D* InteractionIcon = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides, ClampMin = "0.0", ClampMax = "10.0"))
-	float InteractionDuration = 0.0f;
+	//UPROPERTY(EditAnywhere, Category = "Interaction", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides, ClampMin = "0.0", ClampMax = "10.0"))
+	//float InteractionDuration = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides, ClampMin = "50.0", ClampMax = "1000.0"))
 	float MaxInteractionDistance = 200.0f;
