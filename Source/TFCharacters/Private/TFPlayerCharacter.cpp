@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFPlayerCharacter.h"
+#include "TF.h"
 #include "TFStaminaComponent.h"
 #include "TFStatsComponent.h"
 #include "TFInteractionComponent.h"
@@ -160,7 +161,8 @@ void ATFPlayerCharacter::SneakOff()
 
 void ATFPlayerCharacter::PlayerJump()
 {
-	if (CanCharacterJump() && !GetCharacterMovement()->IsFalling())
+	UCharacterMovementComponent* MovementComp = GetCharacterMovement();
+	if (CanCharacterJump() && MovementComp && !MovementComp->IsFalling())
 	{
 		HasJumped();
 	}
@@ -333,7 +335,7 @@ void ATFPlayerCharacter::AddKey(FName KeyID)
 	if (!bWasAlreadyInSet)
 	{
 		OnKeyAdded(KeyID);
-		UE_LOG(LogTemp, Log, TEXT("Key added: %s"), *KeyID.ToString());
+		UE_LOG(LogTFCharacter, Log, TEXT("Key added: %s"), *KeyID.ToString());
 	}
 }
 
@@ -349,7 +351,7 @@ bool ATFPlayerCharacter::RemoveKey(FName KeyID)
 	if (NumRemoved > 0)
 	{
 		OnKeyRemoved(KeyID);
-		UE_LOG(LogTemp, Log, TEXT("Key removed: %s"), *KeyID.ToString());
+		UE_LOG(LogTFCharacter, Log, TEXT("Key removed: %s"), *KeyID.ToString());
 		return true;
 	}
 

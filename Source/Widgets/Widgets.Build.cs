@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright TF Project. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -7,8 +7,8 @@ public class Widgets : ModuleRules
 	public Widgets (ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -18,20 +18,19 @@ public class Widgets : ModuleRules
 				"SlateCore",
 				"TFCharacters",
 				"Components",
-				"WorldEnvironment"
+				"WorldEnvironment",
+				"TF"
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
-                
-
+				"Engine"
             }
 			);
-		
+
 	}
 }

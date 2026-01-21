@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright TF Project. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -7,17 +7,18 @@ public class TFWorldActors : ModuleRules
 	public TFWorldActors (ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				"Interfaces"
+				"Interfaces",
+				"TF"
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -25,6 +26,6 @@ public class TFWorldActors : ModuleRules
 				"Engine"
 			}
 			);
-		
+
 	}
 }

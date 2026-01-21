@@ -1,9 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFBaseDoorActor.h"
+#include "TF.h"
 #include "Components/AudioComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Misc/ConfigCacheIni.h"
 
 ATFBaseDoorActor::ATFBaseDoorActor()
@@ -55,12 +55,12 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		return;
 	}
 
-	FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("DoorConfig.ini");
+	FString ConfigFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectConfigDir() / TEXT("DoorConfig.ini"));
 	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
 
 	if (!FPaths::FileExists(ConfigFilePath))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: DoorConfig.ini not found at %s"), *ConfigFilePath);
+		UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: DoorConfig.ini not found at %s"), *ConfigFilePath);
 		return;
 	}
 
@@ -72,11 +72,11 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 
 	if (!ConfigFile.Contains(SectionName))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Section [%s] not found in DoorConfig.ini"), *SectionName);
+		UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Section [%s] not found in DoorConfig.ini"), *SectionName);
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Loading config for DoorID '%s'"), *SectionName);
+	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Loading config for DoorID '%s'"), *SectionName);
 
 	// Door Settings
 	FString StringValue;
@@ -125,7 +125,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorFrameMesh: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorFrameMesh: %s"), *StringValue);
 		}
 	}
 
@@ -137,7 +137,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorMesh: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorMesh: %s"), *StringValue);
 		}
 	}
 
@@ -147,7 +147,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		DoorOpenSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!DoorOpenSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorOpenSound: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorOpenSound: %s"), *StringValue);
 		}
 	}
 
@@ -156,7 +156,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		DoorCloseSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!DoorCloseSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorCloseSound: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorCloseSound: %s"), *StringValue);
 		}
 	}
 
@@ -165,7 +165,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		DoorLockedSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!DoorLockedSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorLockedSound: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorLockedSound: %s"), *StringValue);
 		}
 	}
 
@@ -174,7 +174,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		DoorMovementSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!DoorMovementSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorMovementSound: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorMovementSound: %s"), *StringValue);
 		}
 	}
 
@@ -183,7 +183,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		DoorUnlockSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!DoorUnlockSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorUnlockSound: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorUnlockSound: %s"), *StringValue);
 		}
 	}
 
@@ -192,11 +192,11 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		DoorLockSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!DoorLockSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorLockSound: %s"), *StringValue);
+			UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Failed to load DoorLockSound: %s"), *StringValue);
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for DoorID '%s'"), *SectionName);
+	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for DoorID '%s'"), *SectionName);
 }
 
 void ATFBaseDoorActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -593,7 +593,7 @@ bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
 
 	OnDoorUnlocked(UnlockingCharacter);
 
-	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Door unlocked with key '%s'"), *RequiredKeyID.ToString());
+	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Door unlocked with key '%s'"), *RequiredKeyID.ToString());
 
 	return true;
 }
@@ -631,7 +631,7 @@ bool ATFBaseDoorActor::LockDoor(APawn* LockingCharacter)
 
 	OnDoorRelocked(LockingCharacter);
 
-	UE_LOG(LogTemp, Log, TEXT("ATFBaseDoorActor: Door locked with key '%s'"), *RequiredKeyID.ToString());
+	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Door locked with key '%s'"), *RequiredKeyID.ToString());
 
 	return true;
 }

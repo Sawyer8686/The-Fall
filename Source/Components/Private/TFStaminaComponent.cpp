@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFStaminaComponent.h"
 #include "GameFramework/Character.h"
@@ -8,10 +8,7 @@
 UTFStaminaComponent::UTFStaminaComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = false; // Start disabled, enable only when needed
-
-	// Initialize stamina to max
-	CurrentStamina = MaxStamina;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void UTFStaminaComponent::BeginPlay()

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFDayNightWidget.h"
 #include "TFDayNightCycle.h"
@@ -11,6 +11,20 @@ void UTFDayNightWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	InitializeDayNightCycle();
+}
+
+void UTFDayNightWidget::NativeDestruct()
+{
+	// Unbind from day/night cycle to prevent crashes
+	if (CachedDayNightCycle)
+	{
+		CachedDayNightCycle->OnTimeChanged.RemoveAll(this);
+		CachedDayNightCycle->OnDayChanged.RemoveAll(this);
+		CachedDayNightCycle->OnDayNightStateChanged.RemoveAll(this);
+		CachedDayNightCycle = nullptr;
+	}
+
+	Super::NativeDestruct();
 }
 
 void UTFDayNightWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -89,41 +103,6 @@ void UTFDayNightWidget::UpdateDayNightIcon(bool bIsDay)
 	{
 		DayNightIcon->SetBrushFromTexture(IconTexture);
 	}
-}
-
-FLinearColor UTFDayNightWidget::GetTimeColor(float CurrentTimeHours) const
-{
-	if (CurrentTimeHours >= DawnStartHour && CurrentTimeHours < DawnEndHour)
-	{
-		float Alpha = (CurrentTimeHours - DawnStartHour) / (DawnEndHour - DawnStartHour);
-		return FMath::Lerp(NightTimeColor, TransitionColor, Alpha * 2.0f); 
-	}
-
-	if (CurrentTimeHours >= DawnEndHour && CurrentTimeHours < (DawnEndHour + 1.0f))
-	{
-		float Alpha = CurrentTimeHours - DawnEndHour;
-		return FMath::Lerp(TransitionColor, DayTimeColor, Alpha);
-	}
-
-	if (CurrentTimeHours >= (DawnEndHour + 1.0f) && CurrentTimeHours < DuskStartHour)
-	{
-		return DayTimeColor;
-	}
-
-	if (CurrentTimeHours >= DuskStartHour && CurrentTimeHours < DuskEndHour)
-	{
-		float Alpha = (CurrentTimeHours - DuskStartHour) / (DuskEndHour - DuskStartHour);
-		if (Alpha < 0.5f)
-		{
-			return FMath::Lerp(DayTimeColor, TransitionColor, Alpha * 2.0f);
-		}
-		else
-		{
-			return FMath::Lerp(TransitionColor, NightTimeColor, (Alpha - 0.5f) * 2.0f);
-		}
-	}
-
-	return NightTimeColor;
 }
 
 void UTFDayNightWidget::OnTimeChanged(float CurrentTimeHours)

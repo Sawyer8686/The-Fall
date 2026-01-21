@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFPickupableActor.h"
+#include "TF.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -47,12 +48,12 @@ void ATFPickupableActor::LoadConfigFromINI()
 		return;
 	}
 
-	FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("ItemConfig.ini");
+	FString ConfigFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectConfigDir() / TEXT("ItemConfig.ini"));
 	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
 
 	if (!FPaths::FileExists(ConfigFilePath))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: ItemConfig.ini not found at %s"), *ConfigFilePath);
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: ItemConfig.ini not found at %s"), *ConfigFilePath);
 		return;
 	}
 
@@ -63,13 +64,13 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 	if (!ConfigFile.Contains(SectionName))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: Section [%s] not found in ItemConfig.ini"), *SectionName);
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Section [%s] not found in ItemConfig.ini"), *SectionName);
 		return;
 	}
 
 	ItemData.ItemID = ItemID;
 
-	UE_LOG(LogTemp, Log, TEXT("ATFPickupableActor: Loading config for ItemID '%s'"), *SectionName);
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Loading config for ItemID '%s'"), *SectionName);
 
 	FString StringValue;
 
@@ -155,7 +156,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: Failed to load ItemMesh: %s"), *StringValue);
+			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to load ItemMesh: %s"), *StringValue);
 		}
 	}
 
@@ -171,7 +172,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: Failed to load ItemIcon: %s"), *StringValue);
+			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to load ItemIcon: %s"), *StringValue);
 		}
 	}
 
@@ -184,7 +185,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 		ItemData.PickupSound = LoadObject<USoundBase>(nullptr, *StringValue);
 		if (!ItemData.PickupSound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: Failed to load PickupSound: %s"), *StringValue);
+			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to load PickupSound: %s"), *StringValue);
 		}
 	}
 
@@ -197,7 +198,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma endregion Pickup Settings
 
-	UE_LOG(LogTemp, Log, TEXT("ATFPickupableActor: Config loaded successfully for ItemID '%s' (Type: %d)"),
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Config loaded successfully for ItemID '%s' (Type: %d)"),
 		*SectionName, static_cast<int32>(ItemData.ItemType));
 }
 
@@ -205,21 +206,21 @@ bool ATFPickupableActor::HandleKeyPickup(APawn* Picker)
 {
 	if (!Picker || ItemData.KeyID.IsNone())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: Key pickup failed - invalid Picker or KeyID"));
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Key pickup failed - invalid Picker or KeyID"));
 		return false;
 	}
 
 	ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Picker);
 	if (!KeyHolder)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ATFPickupableActor: Picker does not implement ITFKeyHolderInterface"));
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Picker does not implement ITFKeyHolderInterface"));
 		return false;
 	}
 
 	KeyHolder->AddKey(ItemData.KeyID);
 	OnKeyCollected(Picker);
 
-	UE_LOG(LogTemp, Log, TEXT("ATFPickupableActor: Key '%s' added to key holder"), *ItemData.KeyID.ToString());
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Key '%s' added to key holder"), *ItemData.KeyID.ToString());
 	return true;
 }
 
@@ -289,7 +290,7 @@ bool ATFPickupableActor::OnPickup(APawn* Picker)
 
 	PlayPickupSound();
 
-	UE_LOG(LogTemp, Log, TEXT("Picked up item: %s (x%d) [Type: %d]"),
+	UE_LOG(LogTFItem, Log, TEXT("Picked up item: %s (x%d) [Type: %d]"),
 		*ItemData.ItemName.ToString(), ItemData.Quantity, static_cast<int32>(ItemData.ItemType));
 
 	return true;
@@ -312,7 +313,7 @@ bool ATFPickupableActor::CanPickup(APawn* Picker) const
 
 void ATFPickupableActor::OnPickupFailed(APawn* Picker, const FText& Reason)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Pickup failed: %s"), *Reason.ToString());
+	UE_LOG(LogTFItem, Warning, TEXT("Pickup failed: %s"), *Reason.ToString());
 
 	OnItemPickupFailed(Picker, Reason);
 }

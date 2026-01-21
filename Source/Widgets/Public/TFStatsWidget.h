@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #pragma once
 
@@ -108,6 +108,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Stats|Effects", meta = (ClampMin = "0.1", ClampMax = "10.0"))
 	float PulseSpeed = 2.0f;
 
+	/** Base opacity for pulse effect */
+	UPROPERTY(EditAnywhere, Category = "Stats|Effects", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float PulseBaseOpacity = 0.7f;
+
 #pragma endregion Effects Settings
 
 private:
@@ -125,6 +129,7 @@ private:
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	/** Find and cache stats component from owning player */

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFStaminaWidget.h"
 #include "TFStaminaComponent.h"
@@ -21,6 +21,20 @@ void UTFStaminaWidget::NativeConstruct()
 	{
 		ExhaustionWarning->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void UTFStaminaWidget::NativeDestruct()
+{
+	// Unbind from stamina component to prevent crashes
+	if (CachedStaminaComponent)
+	{
+		CachedStaminaComponent->OnStaminaChanged.RemoveAll(this);
+		CachedStaminaComponent->OnStaminaDepleted.RemoveAll(this);
+		CachedStaminaComponent->OnStaminaRecovered.RemoveAll(this);
+		CachedStaminaComponent = nullptr;
+	}
+
+	Super::NativeDestruct();
 }
 
 void UTFStaminaWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -152,12 +166,11 @@ void UTFStaminaWidget::UpdatePulseEffect(float DeltaTime, float StaminaPercent)
 	// Update pulse timer
 	PulseTimer += DeltaTime * PulseSpeed;
 
-	// Calculate pulse intensity (sine wave)
-	float PulseIntensity = (FMath::Sin(PulseTimer) + 1.0f) * 0.5f; // 0.0 to 1.0
+	// Calculate pulse intensity (sine wave: 0.0 to 1.0)
+	float PulseIntensity = (FMath::Sin(PulseTimer) + 1.0f) * 0.5f;
 
 	// Apply pulse to opacity
-	float BaseOpacity = 0.7f;
-	float PulseOpacity = FMath::Lerp(BaseOpacity, 1.0f, PulseIntensity);
+	float PulseOpacity = FMath::Lerp(PulseBaseOpacity, 1.0f, PulseIntensity);
 
 	FLinearColor CurrentColor = StaminaBar->GetFillColorAndOpacity();
 	CurrentColor.A = PulseOpacity;

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright TF Project. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -7,8 +7,8 @@ public class TFCharacters : ModuleRules
 	public TFCharacters (ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -16,11 +16,12 @@ public class TFCharacters : ModuleRules
 				"EnhancedInput",
 				"InputCore",
 				"Interfaces",
-				"Components"
+				"Components",
+				"TF"
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -28,6 +29,6 @@ public class TFCharacters : ModuleRules
 				"Engine"
             }
 			);
-		
+
 	}
 }

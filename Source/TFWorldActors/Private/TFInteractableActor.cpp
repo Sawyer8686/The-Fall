@@ -1,8 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFInteractableActor.h"
+#include "TF.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/SphereComponent.h"
 #include "Misc/ConfigCacheIni.h"
 
 ATFInteractableActor::ATFInteractableActor()
@@ -32,7 +32,7 @@ void ATFInteractableActor::BeginPlay()
 
 void ATFInteractableActor::LoadConfigFromINI()
 {
-	FString ConfigFilePath = FPaths::ProjectConfigDir() / TEXT("InteractableConfig.ini");
+	FString ConfigFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectConfigDir() / TEXT("InteractableConfig.ini"));
 	FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
 
 	if (!FPaths::FileExists(ConfigFilePath))
@@ -52,7 +52,7 @@ void ATFInteractableActor::LoadConfigFromINI()
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("ATFInteractableActor: Loading config for InteractableID '%s'"), *SectionName);
+	UE_LOG(LogTFInteraction, Log, TEXT("ATFInteractableActor: Loading config for InteractableID '%s'"), *SectionName);
 
 	FString StringValue;
 
@@ -76,7 +76,7 @@ void ATFInteractableActor::LoadConfigFromINI()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: Failed to load InteractionIcon: %s"), *StringValue);
+			UE_LOG(LogTFInteraction, Warning, TEXT("ATFInteractableActor: Failed to load InteractionIcon: %s"), *StringValue);
 		}
 	}
 
@@ -95,13 +95,13 @@ void ATFInteractableActor::LoadConfigFromINI()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ATFInteractableActor: Failed to load Mesh: %s"), *StringValue);
+			UE_LOG(LogTFInteraction, Warning, TEXT("ATFInteractableActor: Failed to load Mesh: %s"), *StringValue);
 		}
 	}
 
 #pragma endregion Mesh Loading
 
-	UE_LOG(LogTemp, Log, TEXT("ATFInteractableActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
+	UE_LOG(LogTFInteraction, Log, TEXT("ATFInteractableActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
 }
 
 bool ATFInteractableActor::CanBeUsedAgain() const

@@ -1,6 +1,7 @@
-// TFInteractionComponent.cpp
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFInteractionComponent.h"
+#include "TF.h"
 
 #include "GameFramework/Character.h"
 #include "TFInteractableInterface.h"
@@ -23,7 +24,7 @@ void UTFInteractionComponent::BeginPlay()
 	OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
-		UE_LOG(LogTemp, Error, TEXT("TFInteractionComponent: Owner is not a Character!"));
+		UE_LOG(LogTFInteraction, Error, TEXT("TFInteractionComponent: Owner is not a Character!"));
 		return;
 	}
 

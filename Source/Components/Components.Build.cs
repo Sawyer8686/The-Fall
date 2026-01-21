@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright TF Project. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -13,7 +13,8 @@ public class Components : ModuleRules
 			new string[]
 			{
 				"Core",
-				"Interfaces"
+				"Interfaces",
+				"TF"
 			}
 			);
 

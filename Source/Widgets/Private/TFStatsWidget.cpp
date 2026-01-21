@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFStatsWidget.h"
+#include "TF.h"
 #include "TFStatsComponent.h"
 #include "TFPlayerCharacter.h"
 #include "Components/ProgressBar.h"
@@ -24,6 +25,21 @@ void UTFStatsWidget::NativeConstruct()
 	{
 		ThirstWarning->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void UTFStatsWidget::NativeDestruct()
+{
+	// Unbind from stats component to prevent crashes
+	if (CachedStatsComponent)
+	{
+		CachedStatsComponent->OnHungerChanged.RemoveAll(this);
+		CachedStatsComponent->OnThirstChanged.RemoveAll(this);
+		CachedStatsComponent->OnStatDepleted.RemoveAll(this);
+		CachedStatsComponent->OnStatCritical.RemoveAll(this);
+		CachedStatsComponent = nullptr;
+	}
+
+	Super::NativeDestruct();
 }
 
 void UTFStatsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -206,8 +222,7 @@ void UTFStatsWidget::UpdateHungerPulseEffect(float DeltaTime, float HungerPercen
 	float PulseIntensity = (FMath::Sin(HungerPulseTimer) + 1.0f) * 0.5f;
 
 	// Apply pulse to opacity
-	float BaseOpacity = 0.7f;
-	float PulseOpacity = FMath::Lerp(BaseOpacity, 1.0f, PulseIntensity);
+	float PulseOpacity = FMath::Lerp(PulseBaseOpacity, 1.0f, PulseIntensity);
 
 	FLinearColor CurrentColor = HungerBar->GetFillColorAndOpacity();
 	CurrentColor.A = PulseOpacity;
@@ -228,8 +243,7 @@ void UTFStatsWidget::UpdateThirstPulseEffect(float DeltaTime, float ThirstPercen
 	float PulseIntensity = (FMath::Sin(ThirstPulseTimer) + 1.0f) * 0.5f;
 
 	// Apply pulse to opacity
-	float BaseOpacity = 0.7f;
-	float PulseOpacity = FMath::Lerp(BaseOpacity, 1.0f, PulseIntensity);
+	float PulseOpacity = FMath::Lerp(PulseBaseOpacity, 1.0f, PulseIntensity);
 
 	FLinearColor CurrentColor = ThirstBar->GetFillColorAndOpacity();
 	CurrentColor.A = PulseOpacity;
@@ -248,14 +262,14 @@ void UTFStatsWidget::OnThirstChanged(float CurrentThirst, float MaxThirst)
 
 void UTFStatsWidget::OnStatDepleted(FName StatName)
 {
-	if (StatName == FName("Hunger"))
+	if (StatName == TFStatNames::Hunger)
 	{
 		if (HungerWarning)
 		{
 			HungerWarning->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
-	else if (StatName == FName("Thirst"))
+	else if (StatName == TFStatNames::Thirst)
 	{
 		if (ThirstWarning)
 		{
@@ -266,14 +280,14 @@ void UTFStatsWidget::OnStatDepleted(FName StatName)
 
 void UTFStatsWidget::OnStatCritical(FName StatName, float Percent)
 {
-	if (StatName == FName("Hunger"))
+	if (StatName == TFStatNames::Hunger)
 	{
 		if (HungerWarning)
 		{
 			HungerWarning->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
-	else if (StatName == FName("Thirst"))
+	else if (StatName == TFStatNames::Thirst)
 	{
 		if (ThirstWarning)
 		{

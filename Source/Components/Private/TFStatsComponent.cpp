@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #include "TFStatsComponent.h"
+#include "TF.h"
 #include "TimerManager.h"
 
 UTFStatsComponent::UTFStatsComponent()
@@ -86,7 +87,7 @@ void UTFStatsComponent::UpdateHungerCriticalState()
 	// Broadcast critical event when entering critical state
 	if (bIsHungerCritical && !bWasCritical)
 	{
-		OnStatCritical.Broadcast(FName("Hunger"), HungerPercent);
+		OnStatCritical.Broadcast(TFStatNames::Hunger, HungerPercent);
 	}
 
 	// Check for depletion
@@ -95,7 +96,7 @@ void UTFStatsComponent::UpdateHungerCriticalState()
 
 	if (bIsHungerDepleted && !bWasDepleted)
 	{
-		OnStatDepleted.Broadcast(FName("Hunger"));
+		OnStatDepleted.Broadcast(TFStatNames::Hunger);
 	}
 }
 
@@ -109,7 +110,7 @@ void UTFStatsComponent::UpdateThirstCriticalState()
 	// Broadcast critical event when entering critical state
 	if (bIsThirstCritical && !bWasCritical)
 	{
-		OnStatCritical.Broadcast(FName("Thirst"), ThirstPercent);
+		OnStatCritical.Broadcast(TFStatNames::Thirst, ThirstPercent);
 	}
 
 	// Check for depletion
@@ -118,7 +119,7 @@ void UTFStatsComponent::UpdateThirstCriticalState()
 
 	if (bIsThirstDepleted && !bWasDepleted)
 	{
-		OnStatDepleted.Broadcast(FName("Thirst"));
+		OnStatDepleted.Broadcast(TFStatNames::Thirst);
 	}
 }
 

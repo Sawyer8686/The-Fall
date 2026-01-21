@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright TF Project. All Rights Reserved.
 
 #pragma once
 
@@ -81,12 +81,12 @@ private:
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	void InitializeDayNightCycle();
 	void UpdateTimeDisplay(float CurrentTimeHours);
 	void UpdateDayDisplay(int32 CurrentDay);
 	void UpdateDayNightIcon(bool bIsDay);
-	FLinearColor GetTimeColor(float CurrentTimeHours) const;
 	void OnTimeChanged(float CurrentTimeHours);
 	void OnDayChanged(int32 CurrentDay);
 	void OnDayNightStateChanged(bool bIsDay);
