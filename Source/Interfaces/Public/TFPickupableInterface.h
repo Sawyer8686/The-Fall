@@ -7,9 +7,6 @@
 #include "Sound/SoundBase.h"
 #include "TFPickupableInterface.generated.h"
 
-/**
- * Enum representing different types of pickupable items
- */
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
@@ -22,10 +19,6 @@ enum class EItemType : uint8
 	Quest       UMETA(DisplayName = "Quest Item")
 };
 
-/**
- * Item data for pickupable objects
- * This will be expanded when inventory system is created
- */
 USTRUCT()
 struct FItemData
 {
@@ -67,7 +60,6 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 Value = 10;
 
-	/** Key ID used only when ItemType == Key. Used to match with door RequiredKeyID */
 	UPROPERTY(EditAnywhere, Category = "Item|Key")
 	FName KeyID = NAME_None;
 
@@ -102,12 +94,8 @@ class INTERFACES_API ITFPickupableInterface
 public:
 
 	virtual bool OnPickup(APawn* Picker) { return false; }
-
 	virtual FItemData GetItemData() const { return FItemData(); }
-
 	virtual bool CanPickup(APawn* Picker) const { return true; }
-
 	virtual void OnPickupFailed(APawn* Picker, const FText& Reason) {}
-
 	virtual bool ShouldDestroyOnPickup() const { return true; }
 };

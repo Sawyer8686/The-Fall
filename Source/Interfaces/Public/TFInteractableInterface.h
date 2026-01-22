@@ -13,14 +13,10 @@ struct FInteractionData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
-	float InteractionDuration = 0.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
 	bool bCanInteract = true;
 
 	FInteractionData()
-		: InteractionDuration(0.0f)
-		, bCanInteract(true)
+		: bCanInteract(true)
 	{
 	}
 };

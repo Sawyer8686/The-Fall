@@ -25,8 +25,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Interaction|Detection", meta = (ClampMin = "50.0", ClampMax = "1000.0"))
 	float InteractionDistance = 300.0f;
 
-	//UPROPERTY(EditAnywhere, Category = "Interaction|Detection", meta = (ClampMin = "0.0", ClampMax = "50.0"))
-	//float InteractionRadius = 0.0f;
+	UPROPERTY(EditAnywhere, Category = "Interaction|Detection", meta = (ClampMin = "0.0", ClampMax = "50.0"))
+	float InteractionRadius = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Interaction|Detection", meta = (ClampMin = "0.01", ClampMax = "0.5"))
 	float DetectionTickRate = 0.1f;

@@ -18,7 +18,6 @@ protected:
 
 #pragma region Data-Driven Config
 
-	/** Unique identifier for this item. Used to load configuration from ItemConfig.ini */
 	UPROPERTY(EditAnywhere, Category = "Item|Config")
 	FName ItemID = NAME_None;
 
@@ -33,7 +32,6 @@ protected:
 
 #pragma region Item Data
 
-	/** Item data - populated from INI if bUseDataDrivenConfig is true */
 	UPROPERTY(EditAnywhere, Category = "Item", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides))
 	FItemData ItemData;
 
@@ -50,14 +48,8 @@ protected:
 #pragma endregion Pickup Settings
 
 	virtual void BeginPlay() override;
-
-	/** Load item-specific configuration from ItemConfig.ini */
 	virtual void LoadConfigFromINI() override;
-
-	/** Play pickup sound effect */
 	void PlayPickupSound();
-
-	/** Handle key-specific pickup logic */
 	bool HandleKeyPickup(APawn* Picker);
 
 public:
@@ -85,8 +77,6 @@ public:
 
 	virtual void OnItemPickedUp(APawn* PickerPawn) {}
 	virtual void OnItemPickupFailed(APawn* PickerPawn, const FText& Reason) {}
-
-	/** Called when a key item is collected (only when ItemType == Key) */
 	virtual void OnKeyCollected(APawn* CollectorPawn) {}
 
 #pragma endregion Events

@@ -12,7 +12,7 @@
 ATFPickupableActor::ATFPickupableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	InteractionDuration = 0.0f;
+		
 
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	AudioComponent->SetupAttachment(Root);

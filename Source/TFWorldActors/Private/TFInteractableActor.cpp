@@ -35,7 +35,6 @@ void ATFInteractableActor::LoadConfigFromINI()
 	const FString SectionName = InteractableID.ToString();
 	FString ConfigFilePath;
 
-	// Use helper function - silent on missing since derived classes may use their own INI files
 	if (!TFConfigUtils::LoadINISection(TEXT("InteractableConfig.ini"), SectionName, ConfigFilePath, LogTFInteraction, true))
 	{
 		return;
@@ -45,26 +44,13 @@ void ATFInteractableActor::LoadConfigFromINI()
 
 #pragma region Interaction Settings
 
-	GConfig->GetFloat(*SectionName, TEXT("InteractionDuration"), InteractionDuration, ConfigFilePath);
+	
 	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
 	GConfig->GetBool(*SectionName, TEXT("bCanInteract"), bCanInteract, ConfigFilePath);
-	GConfig->GetBool(*SectionName, TEXT("bIsReusable"), bIsReusable, ConfigFilePath);
-	GConfig->GetInt(*SectionName, TEXT("MaxUses"), MaxUses, ConfigFilePath);
-
-	// Validate loaded values
-	InteractionDuration = FMath::Clamp(InteractionDuration, 0.0f, 10.0f);
+	
 	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
 
 #pragma endregion Interaction Settings
-
-#pragma region Icon Loading
-
-	if (UTexture2D* LoadedIcon = TFConfigUtils::LoadAssetFromConfig<UTexture2D>(SectionName, TEXT("InteractionIcon"), ConfigFilePath, LogTFInteraction, TEXT("InteractionIcon")))
-	{
-		InteractionIcon = LoadedIcon;
-	}
-
-#pragma endregion Icon Loading
 
 #pragma region Mesh Loading
 
@@ -81,28 +67,13 @@ void ATFInteractableActor::LoadConfigFromINI()
 	UE_LOG(LogTFInteraction, Log, TEXT("ATFInteractableActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
 }
 
-bool ATFInteractableActor::CanBeUsedAgain() const
-{
-	if (MaxUses < 0)
-	{
-		return true;
-	}
-	return CurrentUses < MaxUses;
-}
+
 
 bool ATFInteractableActor::Interact(APawn* InstigatorPawn)
 {
 	if (!CanInteract(InstigatorPawn))
 	{
 		return false;
-	}
-
-	CurrentUses++;
-	bHasBeenUsed = true;
-
-	if (!CanBeUsedAgain())
-	{
-		bCanInteract = false;
 	}
 
 	OnInteracted(InstigatorPawn);
@@ -113,7 +84,6 @@ bool ATFInteractableActor::Interact(APawn* InstigatorPawn)
 FInteractionData ATFInteractableActor::GetInteractionData(APawn* InstigatorPawn) const
 {
 	FInteractionData Data;
-	Data.InteractionDuration = InteractionDuration;
 	Data.bCanInteract = bCanInteract;
 
 	return Data;
@@ -122,16 +92,6 @@ FInteractionData ATFInteractableActor::GetInteractionData(APawn* InstigatorPawn)
 bool ATFInteractableActor::CanInteract(APawn* InstigatorPawn) const
 {
 	if (!bCanInteract)
-	{
-		return false;
-	}
-
-	if (!bIsReusable && bHasBeenUsed)
-	{
-		return false;
-	}
-
-	if (!CanBeUsedAgain())
 	{
 		return false;
 	}
@@ -149,9 +109,3 @@ void ATFInteractableActor::SetCanInteract(bool bNewCanInteract)
 	bCanInteract = bNewCanInteract;
 }
 
-void ATFInteractableActor::ResetUses()
-{
-	CurrentUses = 0;
-	bHasBeenUsed = false;
-	bCanInteract = true;
-}

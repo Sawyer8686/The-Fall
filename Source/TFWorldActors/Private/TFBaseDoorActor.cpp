@@ -27,7 +27,7 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 
 	MaxInteractionDistance = 200.0f;
 
-	bIsReusable = true;
+	//bIsReusable = true;
 }
 
 void ATFBaseDoorActor::BeginPlay()
@@ -46,10 +46,8 @@ void ATFBaseDoorActor::BeginPlay()
 
 void ATFBaseDoorActor::LoadConfigFromINI()
 {
-	// First load base interactable config (InteractionDuration, MaxInteractionDistance, etc.)
 	Super::LoadConfigFromINI();
 
-	// Then load door-specific config
 	if (DoorID.IsNone())
 	{
 		return;
@@ -67,7 +65,6 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 
 #pragma region Door Settings
 
-	// HingeType with enum mapping
 	FString StringValue;
 	if (GConfig->GetString(*SectionName, TEXT("HingeType"), StringValue, ConfigFilePath))
 	{
@@ -91,7 +88,6 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 	GConfig->GetFloat(*SectionName, TEXT("AutoCloseDelay"), AutoCloseDelay, ConfigFilePath);
 	GConfig->GetBool(*SectionName, TEXT("bCanOpenFromBothSides"), bCanOpenFromBothSides, ConfigFilePath);
 
-	// Validate door settings
 	MaxOpenAngle = FMath::Clamp(MaxOpenAngle, 0.0f, 180.0f);
 	OpenDuration = FMath::Clamp(OpenDuration, 0.1f, 5.0f);
 	CloseDuration = FMath::Clamp(CloseDuration, 0.1f, 5.0f);
