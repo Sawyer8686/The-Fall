@@ -16,7 +16,8 @@ enum class EItemType : uint8
 	Weapon      UMETA(DisplayName = "Weapon"),
 	Ammo        UMETA(DisplayName = "Ammunition"),
 	Document    UMETA(DisplayName = "Document"),
-	Quest       UMETA(DisplayName = "Quest Item")
+	Quest       UMETA(DisplayName = "Quest Item"),
+	Backpack    UMETA(DisplayName = "Backpack")
 };
 
 USTRUCT()
@@ -63,6 +64,12 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item|Key")
 	FName KeyID = NAME_None;
 
+	UPROPERTY(EditAnywhere, Category = "Item|Backpack")
+	int32 BackpackSlots = 5;
+
+	UPROPERTY(EditAnywhere, Category = "Item|Backpack")
+	float BackpackWeightLimit = 25.0f;
+
 	FItemData()
 		: ItemID(NAME_None)
 		, ItemType(EItemType::Generic)
@@ -77,6 +84,8 @@ struct FItemData
 		, Weight(1.0f)
 		, Value(10)
 		, KeyID(NAME_None)
+		, BackpackSlots(5)
+		, BackpackWeightLimit(25.0f)
 	{
 	}
 };

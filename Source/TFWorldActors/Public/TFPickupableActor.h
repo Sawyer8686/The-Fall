@@ -51,6 +51,8 @@ protected:
 	virtual void LoadConfigFromINI() override;
 	void PlayPickupSound();
 	bool HandleKeyPickup(APawn* Picker);
+	bool HandleBackpackPickup(APawn* Picker);
+	bool HandleInventoryPickup(APawn* Picker);
 
 public:
 

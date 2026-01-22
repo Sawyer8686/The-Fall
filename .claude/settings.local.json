@@ -15,7 +15,8 @@
       "Bash(git -C \"C:/UnrealProjects/TF\" status --porcelain)",
       "Bash(powershell:*)",
       "Bash(cmd.exe /c \"cd /d C:\\\\UnrealProjects\\\\TF && del /f /q nul 2>nul || echo Trying alternative method\")",
-      "Bash(cmd.exe /c \"dir C:\\\\UnrealProjects\\\\TF\\\\nul\")"
+      "Bash(cmd.exe /c \"dir C:\\\\UnrealProjects\\\\TF\\\\nul\")",
+      "Bash(ls:*)"
     ]
   }
 }

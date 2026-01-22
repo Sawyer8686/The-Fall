@@ -6,6 +6,7 @@
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TFKeyHolderInterface.h"
+#include "TFInventoryHolderInterface.h"
 #include "Misc/ConfigCacheIni.h"
 
 
@@ -73,7 +74,8 @@ void ATFPickupableActor::LoadConfigFromINI()
 			{TEXT("Weapon"), EItemType::Weapon},
 			{TEXT("Ammo"), EItemType::Ammo},
 			{TEXT("Document"), EItemType::Document},
-			{TEXT("Quest"), EItemType::Quest}
+			{TEXT("Quest"), EItemType::Quest},
+			{TEXT("Backpack"), EItemType::Backpack}
 		};
 
 		bool bMatched = false;
@@ -128,6 +130,19 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma endregion Key-Specific Data
 
+#pragma region Backpack-Specific Data
+
+	if (ItemData.ItemType == EItemType::Backpack)
+	{
+		GConfig->GetInt(*SectionName, TEXT("BackpackSlots"), ItemData.BackpackSlots, ConfigFilePath);
+		GConfig->GetFloat(*SectionName, TEXT("BackpackWeightLimit"), ItemData.BackpackWeightLimit, ConfigFilePath);
+
+		ItemData.BackpackSlots = FMath::Max(1, ItemData.BackpackSlots);
+		ItemData.BackpackWeightLimit = FMath::Max(1.0f, ItemData.BackpackWeightLimit);
+	}
+
+#pragma endregion Backpack-Specific Data
+
 #pragma region Asset Loading
 
 	ItemData.ItemMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("ItemMesh"), ConfigFilePath, LogTFItem, TEXT("ItemMesh"));
@@ -169,6 +184,85 @@ bool ATFPickupableActor::HandleKeyPickup(APawn* Picker)
 	OnKeyCollected(Picker);
 
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Key '%s' added to key holder"), *ItemData.KeyID.ToString());
+	return true;
+}
+
+bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
+{
+	if (!Picker)
+	{
+		return false;
+	}
+
+	ITFInventoryHolderInterface* InventoryHolder = Cast<ITFInventoryHolderInterface>(Picker);
+	if (!InventoryHolder)
+	{
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Picker does not implement ITFInventoryHolderInterface"));
+		return false;
+	}
+
+	if (InventoryHolder->HasBackpack())
+	{
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Picker already has a backpack"));
+		OnPickupFailed(Picker, FText::FromString("Already have a backpack"));
+		return false;
+	}
+
+	if (!InventoryHolder->ActivateBackpack(ItemData.BackpackSlots, ItemData.BackpackWeightLimit))
+	{
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to activate backpack"));
+		return false;
+	}
+
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack activated (Slots: %d, Weight: %.1f)"),
+		ItemData.BackpackSlots, ItemData.BackpackWeightLimit);
+
+	return true;
+}
+
+bool ATFPickupableActor::HandleInventoryPickup(APawn* Picker)
+{
+	if (!Picker)
+	{
+		return false;
+	}
+
+	ITFInventoryHolderInterface* InventoryHolder = Cast<ITFInventoryHolderInterface>(Picker);
+	if (!InventoryHolder)
+	{
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Picker does not implement ITFInventoryHolderInterface"));
+		return false;
+	}
+
+	if (!InventoryHolder->HasBackpack())
+	{
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Picker has no backpack"));
+		OnPickupFailed(Picker, FText::FromString("No backpack equipped"));
+		return false;
+	}
+
+	if (!InventoryHolder->HasSpaceForItem(ItemData))
+	{
+		FText Reason;
+		if (InventoryHolder->GetFreeSlots() <= 0)
+		{
+			Reason = FText::FromString("Inventory full");
+		}
+		else
+		{
+			Reason = FText::FromString("Item too heavy");
+		}
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: %s"), *Reason.ToString());
+		OnPickupFailed(Picker, Reason);
+		return false;
+	}
+
+	if (!InventoryHolder->AddItem(ItemData))
+	{
+		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Failed to add item to inventory"));
+		return false;
+	}
+
 	return true;
 }
 
@@ -228,9 +322,23 @@ bool ATFPickupableActor::OnPickup(APawn* Picker)
 		return false;
 	}
 
-	if (ItemData.ItemType == EItemType::Key)
+	if (ItemData.ItemType == EItemType::Backpack)
+	{
+		if (!HandleBackpackPickup(Picker))
+		{
+			return false;
+		}
+	}
+	else if (ItemData.ItemType == EItemType::Key)
 	{
 		if (!HandleKeyPickup(Picker))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (!HandleInventoryPickup(Picker))
 		{
 			return false;
 		}
@@ -252,6 +360,19 @@ FItemData ATFPickupableActor::GetItemData() const
 bool ATFPickupableActor::CanPickup(APawn* Picker) const
 {
 	if (!Picker)
+	{
+		return false;
+	}
+
+	// Keys and backpacks can always be picked up
+	if (ItemData.ItemType == EItemType::Key || ItemData.ItemType == EItemType::Backpack)
+	{
+		return true;
+	}
+
+	// All other items require a backpack
+	ITFInventoryHolderInterface* InventoryHolder = Cast<ITFInventoryHolderInterface>(Picker);
+	if (!InventoryHolder || !InventoryHolder->HasBackpack())
 	{
 		return false;
 	}

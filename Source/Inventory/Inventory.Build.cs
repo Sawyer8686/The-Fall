@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class TFCharacters : ModuleRules
+public class Inventory : ModuleRules
 {
-	public TFCharacters (ReadOnlyTargetRules Target) : base(Target)
+	public Inventory (ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -13,11 +13,7 @@ public class TFCharacters : ModuleRules
 			new string[]
 			{
 				"Core",
-				"EnhancedInput",
-				"InputCore",
-				"Interfaces",
-				"Components",
-				"Inventory"
+				"Interfaces"
 			}
 			);
 
@@ -27,7 +23,7 @@ public class TFCharacters : ModuleRules
 			{
 				"CoreUObject",
 				"Engine"
-            }
+			}
 			);
 
 	}

@@ -5,6 +5,7 @@
 #include "TFStaminaComponent.h"
 #include "TFStatsComponent.h"
 #include "TFInteractionComponent.h"
+#include "TFInventoryComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
@@ -20,6 +21,7 @@ ATFPlayerCharacter::ATFPlayerCharacter()
 	StaminaComponent = CreateDefaultSubobject<UTFStaminaComponent>(TEXT("StaminaComponent"));
 	StatsComponent = CreateDefaultSubobject<UTFStatsComponent>(TEXT("StatsComponent"));
 	InteractionComponent = CreateDefaultSubobject<UTFInteractionComponent>(TEXT("InteractionComponent"));
+	InventoryComponent = CreateDefaultSubobject<UTFInventoryComponent>(TEXT("InventoryComponent"));
 
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -109,6 +111,11 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		if (LockAction)
 		{
 			EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::LockPressed);
+		}
+
+		if (InventoryAction)
+		{
+			EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::InventoryPressed);
 		}
 	}
 }
@@ -375,4 +382,72 @@ void ATFPlayerCharacter::LockPressed()
 	{
 		Lockable->ToggleLock(this);
 	}
+}
+
+void ATFPlayerCharacter::InventoryPressed()
+{
+	if (!InventoryComponent || !InventoryComponent->HasBackpack())
+	{
+		return;
+	}
+
+	bInventoryOpen = !bInventoryOpen;
+	OnInventoryToggled.Broadcast(bInventoryOpen);
+}
+
+bool ATFPlayerCharacter::HasBackpack() const
+{
+	return InventoryComponent && InventoryComponent->HasBackpack();
+}
+
+bool ATFPlayerCharacter::ActivateBackpack(int32 Slots, float WeightLimit)
+{
+	if (!InventoryComponent)
+	{
+		return false;
+	}
+	return InventoryComponent->ActivateBackpack(Slots, WeightLimit);
+}
+
+bool ATFPlayerCharacter::AddItem(const FItemData& Item)
+{
+	if (!InventoryComponent)
+	{
+		return false;
+	}
+	return InventoryComponent->AddItem(Item);
+}
+
+bool ATFPlayerCharacter::RemoveItem(FName ItemID, int32 Quantity)
+{
+	if (!InventoryComponent)
+	{
+		return false;
+	}
+	return InventoryComponent->RemoveItem(ItemID, Quantity);
+}
+
+bool ATFPlayerCharacter::HasItem(FName ItemID) const
+{
+	return InventoryComponent && InventoryComponent->HasItem(ItemID);
+}
+
+bool ATFPlayerCharacter::HasSpaceForItem(const FItemData& Item) const
+{
+	return InventoryComponent && InventoryComponent->HasSpaceForItem(Item);
+}
+
+bool ATFPlayerCharacter::CanCarryWeight(float AdditionalWeight) const
+{
+	return InventoryComponent && InventoryComponent->CanCarryWeight(AdditionalWeight);
+}
+
+int32 ATFPlayerCharacter::GetFreeSlots() const
+{
+	return InventoryComponent ? InventoryComponent->GetFreeSlots() : 0;
+}
+
+float ATFPlayerCharacter::GetRemainingCapacity() const
+{
+	return InventoryComponent ? InventoryComponent->GetRemainingCapacity() : 0.0f;
 }

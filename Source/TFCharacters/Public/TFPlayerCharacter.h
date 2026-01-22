@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "TFCharacterBase.h"
 #include "TFKeyHolderInterface.h"
+#include "TFInventoryHolderInterface.h"
 #include "Blueprint/UserWidget.h"
 #include "TFPlayerCharacter.generated.h"
 
@@ -15,6 +16,7 @@ struct FInputActionValue;
 class UTFStaminaComponent;
 class UTFStatsComponent;
 class UTFInteractionComponent;
+class UTFInventoryComponent;
 
 UENUM()
 enum class ESprintBlockReason : uint8
@@ -23,8 +25,10 @@ enum class ESprintBlockReason : uint8
 	NoStamina
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool);
+
 UCLASS()
-class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface
+class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface, public ITFInventoryHolderInterface
 {
 	GENERATED_BODY()
 
@@ -40,6 +44,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTFInteractionComponent* InteractionComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UTFInventoryComponent* InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	UCameraComponent* FirstPersonCamera;
@@ -71,6 +78,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* LockAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* InventoryAction;
 
 #pragma endregion Input
 
@@ -110,6 +120,7 @@ protected:
 	void PlayerJump();
 	void InteractPressed();
 	void LockPressed();
+	void InventoryPressed();
 
 #pragma endregion Input Handlers
 
@@ -150,6 +161,7 @@ public:
 	UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
 	UTFStatsComponent* GetStatsComponent() const { return StatsComponent; }
 	UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+	UTFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
 	bool IsSprinting() const { return bIsSprinting; }
 
@@ -171,6 +183,30 @@ public:
 	virtual void OnKeyRemoved(FName KeyID) {}
 
 #pragma endregion Key Collection
+
+#pragma region Inventory
+
+public:
+
+	FOnInventoryToggled OnInventoryToggled;
+
+	virtual bool HasBackpack() const override;
+	virtual bool ActivateBackpack(int32 Slots, float WeightLimit) override;
+	virtual bool AddItem(const FItemData& Item) override;
+	virtual bool RemoveItem(FName ItemID, int32 Quantity = 1) override;
+	virtual bool HasItem(FName ItemID) const override;
+	virtual bool HasSpaceForItem(const FItemData& Item) const override;
+	virtual bool CanCarryWeight(float AdditionalWeight) const override;
+	virtual int32 GetFreeSlots() const override;
+	virtual float GetRemainingCapacity() const override;
+
+private:
+
+	bool bInventoryOpen = false;
+
+#pragma endregion Inventory
+
+public:
 
 	ATFPlayerCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
