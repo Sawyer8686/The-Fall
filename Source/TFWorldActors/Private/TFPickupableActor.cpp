@@ -215,6 +215,12 @@ bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
 	}
 
 	InventoryHolder->SetPendingBackpackActor(this);
+
+	// Disable physics before disabling collision to prevent the actor from falling
+	if (MeshComponent && MeshComponent->IsSimulatingPhysics())
+	{
+		MeshComponent->SetSimulatePhysics(false);
+	}
 	SetActorEnableCollision(false);
 
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack confirm requested (Slots: %d, Weight: %.1f)"),

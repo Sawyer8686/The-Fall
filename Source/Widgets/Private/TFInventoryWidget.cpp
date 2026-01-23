@@ -259,10 +259,10 @@ void UTFInventoryWidget::RebuildKeychainList()
 			KeyText->SetText(KeyPair.Value);
 			KeyText->SetColorAndOpacity(FSlateColor(FLinearColor(0.9f, 0.8f, 0.3f)));
 
-			UVerticalBoxSlot* Slot = Cast<UVerticalBoxSlot>(KeychainContainer->AddChild(KeyText));
-			if (Slot)
+			UVerticalBoxSlot* ASlot = Cast<UVerticalBoxSlot>(KeychainContainer->AddChild(KeyText));
+			if (ASlot)
 			{
-				Slot->SetPadding(FMargin(0.f, 2.f));
+				ASlot->SetPadding(FMargin(0.f, 2.f));
 			}
 		}
 	}

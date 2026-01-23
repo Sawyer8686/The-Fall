@@ -16,7 +16,9 @@
       "Bash(powershell:*)",
       "Bash(cmd.exe /c \"cd /d C:\\\\UnrealProjects\\\\TF && del /f /q nul 2>nul || echo Trying alternative method\")",
       "Bash(cmd.exe /c \"dir C:\\\\UnrealProjects\\\\TF\\\\nul\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(\"C:\\\\Program Files\\\\Epic Games\\\\UE_5.5\\\\Engine\\\\Build\\\\BatchFiles\\\\Build.bat\" TFEditor Win64 Development -project=\"C:\\\\UnrealProjects\\\\TF\\\\TF.uproject\" -waitmutex)",
+      "Bash(cmd.exe:*)"
     ]
   }
 }

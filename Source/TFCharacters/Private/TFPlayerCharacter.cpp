@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "TFLockableInterface.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -538,8 +539,7 @@ bool ATFPlayerCharacter::DropBackpack()
 		return true;
 	}
 
-	FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 150.0f;
-	DropLocation.Z -= 50.0f;
+	FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
@@ -561,9 +561,25 @@ bool ATFPlayerCharacter::DropBackpack()
 		BackpackData.BackpackSlots = Slots;
 		BackpackData.BackpackWeightLimit = WeightLimit;
 		BackpackData.Weight = 0.0f;
+		BackpackData.ItemMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
 
 		DroppedBackpack->SetItemData(BackpackData);
 		DroppedBackpack->SetStoredInventoryItems(StoredItems);
+
+		// Enable physics on the dropped backpack mesh
+		if (UStaticMeshComponent* BackpackMesh = DroppedBackpack->GetMeshComponent())
+		{
+			BackpackMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			DroppedBackpack->SetRootComponent(BackpackMesh);
+			BackpackMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			BackpackMesh->SetCollisionResponseToAllChannels(ECR_Block);
+			BackpackMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+			BackpackMesh->SetSimulatePhysics(true);
+
+			// Add forward impulse to toss the backpack slightly ahead
+			FVector Impulse = GetActorForwardVector() * 200.0f + FVector(0.0f, 0.0f, 100.0f);
+			BackpackMesh->AddImpulse(Impulse, NAME_None, true);
+		}
 	}
 
 	UE_LOG(LogTFCharacter, Log, TEXT("Backpack dropped with %d items"), StoredItems.Num());
@@ -659,6 +675,16 @@ void ATFPlayerCharacter::CancelBackpackEquip()
 	if (PendingBackpackActor.IsValid())
 	{
 		PendingBackpackActor->SetActorEnableCollision(true);
+
+		// Re-enable physics so the backpack rests naturally on the ground
+		if (ATFPickupableActor* BackpackActor = Cast<ATFPickupableActor>(PendingBackpackActor.Get()))
+		{
+			if (UStaticMeshComponent* BackpackMesh = BackpackActor->GetMeshComponent())
+			{
+				BackpackMesh->SetSimulatePhysics(true);
+			}
+		}
+
 		PendingBackpackActor = nullptr;
 	}
 
