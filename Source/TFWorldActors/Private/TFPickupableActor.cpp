@@ -215,7 +215,6 @@ bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
 	}
 
 	InventoryHolder->SetPendingBackpackActor(this);
-	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack confirm requested (Slots: %d, Weight: %.1f)"),

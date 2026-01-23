@@ -568,7 +568,6 @@ void ATFPlayerCharacter::CancelBackpackEquip()
 
 	if (PendingBackpackActor.IsValid())
 	{
-		PendingBackpackActor->SetActorHiddenInGame(false);
 		PendingBackpackActor->SetActorEnableCollision(true);
 		PendingBackpackActor = nullptr;
 	}
