@@ -19,7 +19,7 @@ public:
 
 	virtual bool HasKey(FName KeyID) const { return false; }
 
-	virtual void AddKey(FName KeyID) {}
+	virtual void AddKey(FName KeyID, const FText& KeyName = FText::GetEmpty()) {}
 
 	virtual bool RemoveKey(FName KeyID) { return false; }
 };

@@ -34,6 +34,46 @@ bool UTFInventoryComponent::ActivateBackpack(int32 Slots, float WeightLimit)
 	return true;
 }
 
+TArray<FItemData> UTFInventoryComponent::DeactivateBackpack()
+{
+	TArray<FItemData> RemovedItems = MoveTemp(Items);
+	Items.Empty();
+	CurrentWeight = 0.0f;
+
+	int32 OldSlots = BackpackSlots;
+	float OldWeightLimit = BackpackWeightLimit;
+
+	bHasBackpack = false;
+	BackpackSlots = 0;
+	BackpackWeightLimit = 0.0f;
+
+	UE_LOG(LogTFItem, Log, TEXT("UTFInventoryComponent: Backpack deactivated (had %d items)"), RemovedItems.Num());
+
+	OnBackpackDeactivated.Broadcast();
+	OnInventoryChanged.Broadcast(0.0f, 0.0f);
+
+	return RemovedItems;
+}
+
+void UTFInventoryComponent::RestoreItems(const TArray<FItemData>& ItemsToRestore)
+{
+	if (!bHasBackpack)
+	{
+		return;
+	}
+
+	for (const FItemData& Item : ItemsToRestore)
+	{
+		Items.Add(Item);
+		CurrentWeight += Item.Weight;
+		OnItemAdded.Broadcast(Item);
+	}
+
+	OnInventoryChanged.Broadcast(CurrentWeight, BackpackWeightLimit);
+
+	UE_LOG(LogTFItem, Log, TEXT("UTFInventoryComponent: Restored %d items (Weight: %.1f)"), ItemsToRestore.Num(), CurrentWeight);
+}
+
 bool UTFInventoryComponent::AddItem(const FItemData& Item)
 {
 	if (!bHasBackpack)

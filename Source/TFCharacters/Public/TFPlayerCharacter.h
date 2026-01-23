@@ -27,6 +27,7 @@ enum class ESprintBlockReason : uint8
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnBackpackEquipRequested, int32, float);
+DECLARE_MULTICAST_DELEGATE(FOnKeyCollectionChanged);
 
 UCLASS()
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface, public ITFInventoryHolderInterface
@@ -83,6 +84,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* InventoryAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* DropBackpackAction;
+
 #pragma endregion Input
 
 #pragma region Movement & Sprint
@@ -122,6 +126,7 @@ protected:
 	void InteractPressed();
 	void LockPressed();
 	void InventoryPressed();
+	void DropBackpackPressed();
 
 #pragma endregion Input Handlers
 
@@ -173,15 +178,19 @@ public:
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Keys")
-	TSet<FName> CollectedKeys;
+	TMap<FName, FText> CollectedKeys;
 
 public:
 
+	FOnKeyCollectionChanged OnKeyCollectionChanged;
+
 	virtual bool HasKey(FName KeyID) const override;
-	virtual void AddKey(FName KeyID) override;
+	virtual void AddKey(FName KeyID, const FText& KeyName = FText::GetEmpty()) override;
 	virtual bool RemoveKey(FName KeyID) override;
 	virtual void OnKeyAdded(FName KeyID) {}
 	virtual void OnKeyRemoved(FName KeyID) {}
+
+	const TMap<FName, FText>& GetCollectedKeys() const { return CollectedKeys; }
 
 #pragma endregion Key Collection
 
@@ -204,6 +213,7 @@ public:
 	virtual float GetRemainingCapacity() const override;
 
 	bool DropItem(FName ItemID);
+	bool DropBackpack();
 	void ConfirmBackpackEquip();
 	void CancelBackpackEquip();
 

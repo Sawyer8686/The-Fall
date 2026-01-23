@@ -73,6 +73,11 @@ void UTFBackpackIndicatorWidget::UpdateVisibility()
 	{
 		StatusText->SetText(InventoryClosedText);
 	}
+
+	if (DropHintText)
+	{
+		DropHintText->SetText(bHasBackpack ? DropBackpackText : FText::GetEmpty());
+	}
 }
 
 void UTFBackpackIndicatorWidget::OnBackpackActivated()

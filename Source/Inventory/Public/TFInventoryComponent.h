@@ -66,6 +66,8 @@ public:
 #pragma region Backpack Management
 
 	bool ActivateBackpack(int32 Slots, float WeightLimit);
+	TArray<FItemData> DeactivateBackpack();
+	void RestoreItems(const TArray<FItemData>& ItemsToRestore);
 	bool HasBackpack() const { return bHasBackpack; }
 	int32 GetBackpackSlots() const { return BackpackSlots; }
 	float GetBackpackWeightLimit() const { return BackpackWeightLimit; }

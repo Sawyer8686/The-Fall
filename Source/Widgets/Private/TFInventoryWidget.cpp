@@ -43,6 +43,7 @@ void UTFInventoryWidget::NativeDestruct()
 		if (ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn))
 		{
 			Character->OnInventoryToggled.RemoveAll(this);
+			Character->OnKeyCollectionChanged.RemoveAll(this);
 		}
 	}
 
@@ -76,6 +77,9 @@ void UTFInventoryWidget::InitializeInventoryComponent()
 
 	// Bind to toggle event
 	Character->OnInventoryToggled.AddUObject(this, &UTFInventoryWidget::OnInventoryToggled);
+
+	// Bind to key collection changes
+	Character->OnKeyCollectionChanged.AddUObject(this, &UTFInventoryWidget::OnKeyCollectionChanged);
 }
 
 void UTFInventoryWidget::RebuildItemList()
@@ -216,6 +220,59 @@ void UTFInventoryWidget::RebuildItemList()
 	}
 }
 
+void UTFInventoryWidget::RebuildKeychainList()
+{
+	if (!KeychainContainer)
+	{
+		return;
+	}
+
+	KeychainContainer->ClearChildren();
+
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (!PlayerPawn)
+	{
+		return;
+	}
+
+	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
+	if (!Character)
+	{
+		return;
+	}
+
+	const TMap<FName, FText>& Keys = Character->GetCollectedKeys();
+
+	if (Keys.Num() == 0)
+	{
+		KeychainContainer->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+
+	KeychainContainer->SetVisibility(ESlateVisibility::Visible);
+
+	for (const auto& KeyPair : Keys)
+	{
+		UTextBlock* KeyText = NewObject<UTextBlock>(this);
+		if (KeyText)
+		{
+			KeyText->SetText(KeyPair.Value);
+			KeyText->SetColorAndOpacity(FSlateColor(FLinearColor(0.9f, 0.8f, 0.3f)));
+
+			UVerticalBoxSlot* Slot = Cast<UVerticalBoxSlot>(KeychainContainer->AddChild(KeyText));
+			if (Slot)
+			{
+				Slot->SetPadding(FMargin(0.f, 2.f));
+			}
+		}
+	}
+}
+
+void UTFInventoryWidget::OnKeyCollectionChanged()
+{
+	RebuildKeychainList();
+}
+
 void UTFInventoryWidget::UpdateWeightDisplay(float CurrentWeight, float MaxWeight)
 {
 	if (WeightText)
@@ -337,6 +394,7 @@ void UTFInventoryWidget::RefreshDisplay()
 	}
 
 	RebuildItemList();
+	RebuildKeychainList();
 	UpdateWeightDisplay(CachedInventoryComponent->GetCurrentWeight(), CachedInventoryComponent->GetBackpackWeightLimit());
 	UpdateSlotDisplay();
 }

@@ -118,6 +118,11 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		{
 			EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::InventoryPressed);
 		}
+
+		if (DropBackpackAction)
+		{
+			EnhancedInputComponent->BindAction(DropBackpackAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::DropBackpackPressed);
+		}
 	}
 }
 
@@ -346,21 +351,24 @@ bool ATFPlayerCharacter::HasKey(FName KeyID) const
 	return CollectedKeys.Contains(KeyID);
 }
 
-void ATFPlayerCharacter::AddKey(FName KeyID)
+void ATFPlayerCharacter::AddKey(FName KeyID, const FText& KeyName)
 {
 	if (KeyID.IsNone())
 	{
 		return;
 	}
 
-	bool bWasAlreadyInSet = false;
-	CollectedKeys.Add(KeyID, &bWasAlreadyInSet);
-
-	if (!bWasAlreadyInSet)
+	if (CollectedKeys.Contains(KeyID))
 	{
-		OnKeyAdded(KeyID);
-		UE_LOG(LogTFCharacter, Log, TEXT("Key added: %s"), *KeyID.ToString());
+		return;
 	}
+
+	FText DisplayName = KeyName.IsEmpty() ? FText::FromName(KeyID) : KeyName;
+	CollectedKeys.Add(KeyID, DisplayName);
+
+	OnKeyAdded(KeyID);
+	OnKeyCollectionChanged.Broadcast();
+	UE_LOG(LogTFCharacter, Log, TEXT("Key added: %s (%s)"), *KeyID.ToString(), *DisplayName.ToString());
 }
 
 bool ATFPlayerCharacter::RemoveKey(FName KeyID)
@@ -375,6 +383,7 @@ bool ATFPlayerCharacter::RemoveKey(FName KeyID)
 	if (NumRemoved > 0)
 	{
 		OnKeyRemoved(KeyID);
+		OnKeyCollectionChanged.Broadcast();
 		UE_LOG(LogTFCharacter, Log, TEXT("Key removed: %s"), *KeyID.ToString());
 		return true;
 	}
@@ -495,6 +504,72 @@ bool ATFPlayerCharacter::DropItem(FName ItemID)
 	return true;
 }
 
+void ATFPlayerCharacter::DropBackpackPressed()
+{
+	if (bConfirmDialogOpen) return;
+
+	DropBackpack();
+}
+
+bool ATFPlayerCharacter::DropBackpack()
+{
+	if (!InventoryComponent || !InventoryComponent->HasBackpack())
+	{
+		return false;
+	}
+
+	// Close inventory if open
+	if (bInventoryOpen)
+	{
+		InventoryPressed();
+	}
+
+	// Get backpack info before deactivating
+	int32 Slots = InventoryComponent->GetBackpackSlots();
+	float WeightLimit = InventoryComponent->GetBackpackWeightLimit();
+
+	// Deactivate backpack and get all items
+	TArray<FItemData> StoredItems = InventoryComponent->DeactivateBackpack();
+
+	// Spawn backpack actor in front of player
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return true;
+	}
+
+	FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 150.0f;
+	DropLocation.Z -= 50.0f;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ATFPickupableActor* DroppedBackpack = World->SpawnActor<ATFPickupableActor>(
+		ATFPickupableActor::StaticClass(),
+		DropLocation,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (DroppedBackpack)
+	{
+		FItemData BackpackData;
+		BackpackData.ItemID = FName("DroppedBackpack");
+		BackpackData.ItemType = EItemType::Backpack;
+		BackpackData.ItemName = FText::FromString("Zaino");
+		BackpackData.BackpackSlots = Slots;
+		BackpackData.BackpackWeightLimit = WeightLimit;
+		BackpackData.Weight = 0.0f;
+
+		DroppedBackpack->SetItemData(BackpackData);
+		DroppedBackpack->SetStoredInventoryItems(StoredItems);
+	}
+
+	UE_LOG(LogTFCharacter, Log, TEXT("Backpack dropped with %d items"), StoredItems.Num());
+	return true;
+}
+
 bool ATFPlayerCharacter::HasBackpack() const
 {
 	return InventoryComponent && InventoryComponent->HasBackpack();
@@ -540,9 +615,24 @@ void ATFPlayerCharacter::ConfirmBackpackEquip()
 {
 	bConfirmDialogOpen = false;
 
+	TArray<FItemData> ItemsToRestore;
+
+	if (PendingBackpackActor.IsValid())
+	{
+		if (ATFPickupableActor* BackpackActor = Cast<ATFPickupableActor>(PendingBackpackActor.Get()))
+		{
+			ItemsToRestore = BackpackActor->GetStoredInventoryItems();
+		}
+	}
+
 	if (InventoryComponent)
 	{
 		InventoryComponent->ActivateBackpack(PendingBackpackSlots, PendingBackpackWeightLimit);
+
+		if (ItemsToRestore.Num() > 0)
+		{
+			InventoryComponent->RestoreItems(ItemsToRestore);
+		}
 	}
 
 	if (PendingBackpackActor.IsValid())

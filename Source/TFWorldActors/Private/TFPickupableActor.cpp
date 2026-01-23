@@ -180,7 +180,7 @@ bool ATFPickupableActor::HandleKeyPickup(APawn* Picker)
 		return false;
 	}
 
-	KeyHolder->AddKey(ItemData.KeyID);
+	KeyHolder->AddKey(ItemData.KeyID, ItemData.ItemName);
 	OnKeyCollected(Picker);
 
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Key '%s' added to key holder"), *ItemData.KeyID.ToString());

@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* StatusText;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	UTextBlock* DropHintText;
+
 #pragma endregion Widget Bindings
 
 #pragma region Settings
@@ -34,6 +37,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Backpack")
 	FText InventoryClosedText = FText::FromString("premi I per aprire lo zaino");
+
+	UPROPERTY(EditAnywhere, Category = "Backpack")
+	FText DropBackpackText = FText::FromString("premi Z per lasciare lo zaino");
 
 #pragma endregion Settings
 

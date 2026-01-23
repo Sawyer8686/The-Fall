@@ -30,6 +30,9 @@ protected:
 	UVerticalBox* ItemListContainer;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	UVerticalBox* KeychainContainer;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* WeightText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -64,7 +67,7 @@ protected:
 
 #pragma region Layout Settings
 
-	/** Larghezza massima che può occupare il testo item prima dei pulsanti */
+	/** Larghezza massima che puï¿½ occupare il testo item prima dei pulsanti */
 	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "50.0"))
 	float MaxItemTextWidth = 180.0f;
 
@@ -95,6 +98,7 @@ protected:
 
 	void InitializeInventoryComponent();
 	void RebuildItemList();
+	void RebuildKeychainList();
 	void UpdateWeightDisplay(float CurrentWeight, float MaxWeight);
 	void UpdateSlotDisplay();
 	void UpdateWeightColor(float WeightPercent);
@@ -103,6 +107,7 @@ protected:
 	void OnItemRemoved(FName ItemID, int32 Quantity);
 	void OnInventoryChanged(float CurrentWeight, float MaxWeight);
 	void OnInventoryToggled(bool bIsOpen);
+	void OnKeyCollectionChanged();
 
 public:
 

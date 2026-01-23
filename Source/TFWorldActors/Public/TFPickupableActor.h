@@ -47,6 +47,13 @@ protected:
 
 #pragma endregion Pickup Settings
 
+#pragma region Backpack Storage
+
+	UPROPERTY(VisibleAnywhere, Category = "Item|Backpack")
+	TArray<FItemData> StoredInventoryItems;
+
+#pragma endregion Backpack Storage
+
 	virtual void BeginPlay() override;
 	virtual void LoadConfigFromINI() override;
 	void PlayPickupSound();
@@ -88,6 +95,8 @@ public:
 	FItemData GetItemInfo() const { return ItemData; }
 	void SetItemData(const FItemData& NewItemData);
 	void SetQuantity(int32 NewQuantity);
+	void SetStoredInventoryItems(const TArray<FItemData>& Items) { StoredInventoryItems = Items; }
+	const TArray<FItemData>& GetStoredInventoryItems() const { return StoredInventoryItems; }
 
 	FORCEINLINE bool IsKey() const { return ItemData.ItemType == EItemType::Key; }
 	FORCEINLINE FName GetKeyID() const { return ItemData.KeyID; }
