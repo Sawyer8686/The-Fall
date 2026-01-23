@@ -214,10 +214,14 @@ bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
 		return false;
 	}
 
-	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack activated (Slots: %d, Weight: %.1f)"),
+	InventoryHolder->SetPendingBackpackActor(this);
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack confirm requested (Slots: %d, Weight: %.1f)"),
 		ItemData.BackpackSlots, ItemData.BackpackWeightLimit);
 
-	return true;
+	return false;
 }
 
 bool ATFPickupableActor::HandleInventoryPickup(APawn* Picker)

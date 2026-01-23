@@ -30,7 +30,10 @@ protected:
 #pragma region Settings
 
 	UPROPERTY(EditAnywhere, Category = "Backpack")
-	FText EquippedText = FText::FromString("Backpack Equipped");
+	FText InventoryOpenText = FText::FromString("premi I per chiudere lo zaino");
+
+	UPROPERTY(EditAnywhere, Category = "Backpack")
+	FText InventoryClosedText = FText::FromString("premi I per aprire lo zaino");
 
 #pragma endregion Settings
 
@@ -48,6 +51,7 @@ protected:
 	void UpdateVisibility();
 	void OnBackpackActivated();
 	void OnBackpackDeactivated();
+	void OnInventoryToggled(bool bIsOpen);
 
 public:
 

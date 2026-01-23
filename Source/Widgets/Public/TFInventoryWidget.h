@@ -8,9 +8,14 @@
 #include "TFInventoryWidget.generated.h"
 
 class UTFInventoryComponent;
+class UTFItemActionHandler;
+
 class UTextBlock;
 class UProgressBar;
 class UVerticalBox;
+class UHorizontalBox;
+class USizeBox;
+class UButton;
 
 UCLASS()
 class WIDGETS_API UTFInventoryWidget : public UUserWidget
@@ -33,6 +38,9 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* SlotsText;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	UTextBlock* DescriptionText;
+
 #pragma endregion Widget Bindings
 
 #pragma region Visual Settings
@@ -54,10 +62,31 @@ protected:
 
 #pragma endregion Visual Settings
 
+#pragma region Layout Settings
+
+	/** Larghezza massima che può occupare il testo item prima dei pulsanti */
+	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "50.0"))
+	float MaxItemTextWidth = 180.0f;
+
+	/** Spazio tra testo e bottoni */
+	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "0.0"))
+	float TextToButtonsPadding = 12.0f;
+
+	/** Padding dei bottoni */
+	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "0.0"))
+	float ButtonPadding = 4.0f;
+
+#pragma endregion Layout Settings
+
 private:
 
 	UPROPERTY()
 	UTFInventoryComponent* CachedInventoryComponent;
+
+	UPROPERTY()
+	TArray<UTFItemActionHandler*> ActionHandlers;
+
+	FName CurrentExaminedItemID = NAME_None;
 
 protected:
 
@@ -79,4 +108,6 @@ public:
 
 	void SetInventoryComponent(UTFInventoryComponent* NewInventoryComponent);
 	void RefreshDisplay();
+	void ExamineItem(FName ItemID);
+	void DiscardItem(FName ItemID);
 };

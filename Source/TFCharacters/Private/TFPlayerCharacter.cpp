@@ -6,6 +6,7 @@
 #include "TFStatsComponent.h"
 #include "TFInteractionComponent.h"
 #include "TFInventoryComponent.h"
+#include "TFPickupableActor.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
@@ -122,6 +123,11 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void ATFPlayerCharacter::Move(const FInputActionValue& Value)
 {
+	if (bInventoryOpen || bConfirmDialogOpen)
+	{
+		return;
+	}
+
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -137,6 +143,11 @@ void ATFPlayerCharacter::Move(const FInputActionValue& Value)
 
 void ATFPlayerCharacter::Look(const FInputActionValue& Value)
 {
+	if (bInventoryOpen || bConfirmDialogOpen)
+	{
+		return;
+	}
+
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -148,26 +159,31 @@ void ATFPlayerCharacter::Look(const FInputActionValue& Value)
 
 void ATFPlayerCharacter::SprintOn()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
 	SetSprinting(true);
 }
 
 void ATFPlayerCharacter::SprintOff()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
 	SetSprinting(false);
 }
 
 void ATFPlayerCharacter::SneakOn()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
 	ATFCharacterBase::SetSneaking(true);
 }
 
 void ATFPlayerCharacter::SneakOff()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
 	ATFCharacterBase::SetSneaking(false);
 }
 
 void ATFPlayerCharacter::PlayerJump()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
 	UCharacterMovementComponent* MovementComp = GetCharacterMovement();
 	if (CanCharacterJump() && MovementComp && !MovementComp->IsFalling())
 	{
@@ -177,6 +193,7 @@ void ATFPlayerCharacter::PlayerJump()
 
 void ATFPlayerCharacter::InteractPressed()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
 	if (InteractionComponent)
 	{
 		InteractionComponent->Interact();
@@ -367,6 +384,8 @@ bool ATFPlayerCharacter::RemoveKey(FName KeyID)
 
 void ATFPlayerCharacter::LockPressed()
 {
+	if (bInventoryOpen || bConfirmDialogOpen) return;
+
 	if (!InteractionComponent)
 	{
 		return;
@@ -386,13 +405,94 @@ void ATFPlayerCharacter::LockPressed()
 
 void ATFPlayerCharacter::InventoryPressed()
 {
+	if (bConfirmDialogOpen)
+	{
+		return;
+	}
+
 	if (!InventoryComponent || !InventoryComponent->HasBackpack())
 	{
 		return;
 	}
 
 	bInventoryOpen = !bInventoryOpen;
+
+	if (bInventoryOpen && bIsSprinting)
+	{
+		SetSprinting(false);
+	}
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		if (bInventoryOpen)
+		{
+			PC->bShowMouseCursor = true;
+			FInputModeGameAndUI InputMode;
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			PC->SetInputMode(InputMode);
+			PC->SetIgnoreMoveInput(true);
+			PC->SetIgnoreLookInput(true);
+		}
+		else
+		{
+			PC->bShowMouseCursor = false;
+			FInputModeGameOnly InputMode;
+			PC->SetInputMode(InputMode);
+			PC->ResetIgnoreMoveInput();
+			PC->ResetIgnoreLookInput();
+		}
+	}
+
 	OnInventoryToggled.Broadcast(bInventoryOpen);
+}
+
+bool ATFPlayerCharacter::DropItem(FName ItemID)
+{
+	if (!InventoryComponent || ItemID.IsNone())
+	{
+		return false;
+	}
+
+	const FItemData* ItemPtr = InventoryComponent->GetItem(ItemID);
+	if (!ItemPtr)
+	{
+		return false;
+	}
+
+	FItemData DroppedItemData = *ItemPtr;
+
+	if (!InventoryComponent->RemoveItem(ItemID, 1))
+	{
+		return false;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return true;
+	}
+
+	FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 150.0f;
+	DropLocation.Z -= 50.0f;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ATFPickupableActor* DroppedActor = World->SpawnActor<ATFPickupableActor>(
+		ATFPickupableActor::StaticClass(),
+		DropLocation,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (DroppedActor)
+	{
+		DroppedActor->SetItemData(DroppedItemData);
+	}
+
+	return true;
 }
 
 bool ATFPlayerCharacter::HasBackpack() const
@@ -402,11 +502,86 @@ bool ATFPlayerCharacter::HasBackpack() const
 
 bool ATFPlayerCharacter::ActivateBackpack(int32 Slots, float WeightLimit)
 {
-	if (!InventoryComponent)
+	if (!InventoryComponent || InventoryComponent->HasBackpack())
 	{
 		return false;
 	}
-	return InventoryComponent->ActivateBackpack(Slots, WeightLimit);
+
+	PendingBackpackSlots = Slots;
+	PendingBackpackWeightLimit = WeightLimit;
+	bConfirmDialogOpen = true;
+
+	if (bIsSprinting)
+	{
+		SetSprinting(false);
+	}
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->bShowMouseCursor = true;
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		PC->SetInputMode(InputMode);
+		PC->SetIgnoreMoveInput(true);
+		PC->SetIgnoreLookInput(true);
+	}
+
+	OnBackpackEquipRequested.Broadcast(Slots, WeightLimit);
+	return true;
+}
+
+void ATFPlayerCharacter::SetPendingBackpackActor(AActor* Actor)
+{
+	PendingBackpackActor = Actor;
+}
+
+void ATFPlayerCharacter::ConfirmBackpackEquip()
+{
+	bConfirmDialogOpen = false;
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->ActivateBackpack(PendingBackpackSlots, PendingBackpackWeightLimit);
+	}
+
+	if (PendingBackpackActor.IsValid())
+	{
+		PendingBackpackActor->Destroy();
+		PendingBackpackActor = nullptr;
+	}
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->bShowMouseCursor = false;
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->ResetIgnoreMoveInput();
+		PC->ResetIgnoreLookInput();
+	}
+}
+
+void ATFPlayerCharacter::CancelBackpackEquip()
+{
+	bConfirmDialogOpen = false;
+
+	if (PendingBackpackActor.IsValid())
+	{
+		PendingBackpackActor->SetActorHiddenInGame(false);
+		PendingBackpackActor->SetActorEnableCollision(true);
+		PendingBackpackActor = nullptr;
+	}
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->bShowMouseCursor = false;
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->ResetIgnoreMoveInput();
+		PC->ResetIgnoreLookInput();
+	}
 }
 
 bool ATFPlayerCharacter::AddItem(const FItemData& Item)

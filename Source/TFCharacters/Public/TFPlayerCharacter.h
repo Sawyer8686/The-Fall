@@ -26,6 +26,7 @@ enum class ESprintBlockReason : uint8
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnBackpackEquipRequested, int32, float);
 
 UCLASS()
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface, public ITFInventoryHolderInterface
@@ -189,9 +190,11 @@ public:
 public:
 
 	FOnInventoryToggled OnInventoryToggled;
+	FOnBackpackEquipRequested OnBackpackEquipRequested;
 
 	virtual bool HasBackpack() const override;
 	virtual bool ActivateBackpack(int32 Slots, float WeightLimit) override;
+	virtual void SetPendingBackpackActor(AActor* Actor) override;
 	virtual bool AddItem(const FItemData& Item) override;
 	virtual bool RemoveItem(FName ItemID, int32 Quantity = 1) override;
 	virtual bool HasItem(FName ItemID) const override;
@@ -200,9 +203,17 @@ public:
 	virtual int32 GetFreeSlots() const override;
 	virtual float GetRemainingCapacity() const override;
 
+	bool DropItem(FName ItemID);
+	void ConfirmBackpackEquip();
+	void CancelBackpackEquip();
+
 private:
 
 	bool bInventoryOpen = false;
+	bool bConfirmDialogOpen = false;
+	int32 PendingBackpackSlots = 0;
+	float PendingBackpackWeightLimit = 0.0f;
+	TWeakObjectPtr<AActor> PendingBackpackActor;
 
 #pragma endregion Inventory
 

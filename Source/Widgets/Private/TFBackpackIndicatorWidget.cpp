@@ -24,6 +24,16 @@ void UTFBackpackIndicatorWidget::NativeDestruct()
 		CachedInventoryComponent = nullptr;
 	}
 
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (PlayerPawn)
+	{
+		ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
+		if (Character)
+		{
+			Character->OnInventoryToggled.RemoveAll(this);
+		}
+	}
+
 	Super::NativeDestruct();
 }
 
@@ -49,6 +59,8 @@ void UTFBackpackIndicatorWidget::InitializeInventoryComponent()
 
 	CachedInventoryComponent->OnBackpackActivated.AddUObject(this, &UTFBackpackIndicatorWidget::OnBackpackActivated);
 	CachedInventoryComponent->OnBackpackDeactivated.AddUObject(this, &UTFBackpackIndicatorWidget::OnBackpackDeactivated);
+
+	Character->OnInventoryToggled.AddUObject(this, &UTFBackpackIndicatorWidget::OnInventoryToggled);
 }
 
 void UTFBackpackIndicatorWidget::UpdateVisibility()
@@ -59,7 +71,7 @@ void UTFBackpackIndicatorWidget::UpdateVisibility()
 
 	if (StatusText && bHasBackpack)
 	{
-		StatusText->SetText(EquippedText);
+		StatusText->SetText(InventoryClosedText);
 	}
 }
 
@@ -71,6 +83,14 @@ void UTFBackpackIndicatorWidget::OnBackpackActivated()
 void UTFBackpackIndicatorWidget::OnBackpackDeactivated()
 {
 	UpdateVisibility();
+}
+
+void UTFBackpackIndicatorWidget::OnInventoryToggled(bool bIsOpen)
+{
+	if (StatusText)
+	{
+		StatusText->SetText(bIsOpen ? InventoryOpenText : InventoryClosedText);
+	}
 }
 
 void UTFBackpackIndicatorWidget::SetInventoryComponent(UTFInventoryComponent* NewInventoryComponent)

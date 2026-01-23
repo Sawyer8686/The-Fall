@@ -1,11 +1,20 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFInventoryWidget.h"
+
 #include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.h"
+#include "TFItemActionHandler.h"
+
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/SizeBox.h"
+#include "Components/Button.h"
+
 #include "Kismet/GameplayStatics.h"
 
 void UTFInventoryWidget::NativeConstruct()
@@ -31,8 +40,7 @@ void UTFInventoryWidget::NativeDestruct()
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (PlayerPawn)
 	{
-		ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
-		if (Character)
+		if (ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn))
 		{
 			Character->OnInventoryToggled.RemoveAll(this);
 		}
@@ -78,6 +86,7 @@ void UTFInventoryWidget::RebuildItemList()
 	}
 
 	ItemListContainer->ClearChildren();
+	ActionHandlers.Empty();
 
 	if (!CachedInventoryComponent)
 	{
@@ -85,16 +94,125 @@ void UTFInventoryWidget::RebuildItemList()
 	}
 
 	const TArray<FItemData>& Items = CachedInventoryComponent->GetItems();
+
 	for (const FItemData& Item : Items)
 	{
-		UTextBlock* ItemEntry = NewObject<UTextBlock>(this);
-		if (ItemEntry)
+		// Riga
+		UHorizontalBox* Row = NewObject<UHorizontalBox>(this);
+		if (!Row)
 		{
-			FString ItemText = FString::Printf(TEXT("%s  (%.1f kg)"), *Item.ItemName.ToString(), Item.Weight);
-			ItemEntry->SetText(FText::FromString(ItemText));
-			ItemEntry->SetColorAndOpacity(FSlateColor(FLinearColor::White));
-			ItemListContainer->AddChild(ItemEntry);
+			continue;
 		}
+
+		// Importante: clipping per impedire draw oltre bounds
+		Row->SetClipping(EWidgetClipping::ClipToBounds);
+
+		// ------------------------------------
+		// 1) TESTO: dentro una SizeBox con MaxDesiredWidth
+		// ------------------------------------
+		USizeBox* TextSizeBox = NewObject<USizeBox>(this);
+		if (TextSizeBox)
+		{
+			TextSizeBox->SetMaxDesiredWidth(MaxItemTextWidth);
+			TextSizeBox->SetClipping(EWidgetClipping::ClipToBounds);
+
+			UTextBlock* ItemText = NewObject<UTextBlock>(this);
+			if (ItemText)
+			{
+				const FString DisplayText = FString::Printf(TEXT("%s  (%.1f kg)"), *Item.ItemName.ToString(), Item.Weight);
+				ItemText->SetText(FText::FromString(DisplayText));
+				ItemText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+
+				// niente wrap, una riga
+				ItemText->SetAutoWrapText(false);
+
+				// clipping sul testo
+				ItemText->SetClipping(EWidgetClipping::ClipToBounds);
+
+				TextSizeBox->AddChild(ItemText);
+			}
+
+			UHorizontalBoxSlot* TextSlot = Cast<UHorizontalBoxSlot>(Row->AddChild(TextSizeBox));
+			if (TextSlot)
+			{
+				TextSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Left);
+				TextSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
+
+				// Non Fill totale: la SizeBox governa la larghezza del testo.
+				FSlateChildSize AutoSize;
+				AutoSize.SizeRule = ESlateSizeRule::Automatic;
+				TextSlot->SetSize(AutoSize);
+
+				TextSlot->SetPadding(FMargin(0.f, 0.f, TextToButtonsPadding, 0.f));
+			}
+		}
+
+		// ------------------------------------
+		// Action handler
+		// ------------------------------------
+		UTFItemActionHandler* Handler = NewObject<UTFItemActionHandler>(this);
+		if (!Handler)
+		{
+			ItemListContainer->AddChild(Row);
+			continue;
+		}
+
+		Handler->ItemID = Item.ItemID;
+		Handler->OwnerWidget = this;
+		ActionHandlers.Add(Handler);
+
+		// ------------------------------------
+		// 2) Pulsanti (Auto)
+		// ------------------------------------
+		UButton* ExamineButton = NewObject<UButton>(this);
+		if (ExamineButton)
+		{
+			UTextBlock* ExamineLabel = NewObject<UTextBlock>(this);
+			if (ExamineLabel)
+			{
+				ExamineLabel->SetText(FText::FromString(TEXT("Esamina")));
+				ExamineLabel->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+				ExamineButton->AddChild(ExamineLabel);
+			}
+
+			ExamineButton->OnClicked.AddDynamic(Handler, &UTFItemActionHandler::OnExamineClicked);
+
+			if (UHorizontalBoxSlot* BtnSlot = Cast<UHorizontalBoxSlot>(Row->AddChild(ExamineButton)))
+			{
+				BtnSlot->SetPadding(FMargin(ButtonPadding, 0.f));
+				BtnSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
+
+				FSlateChildSize AutoSize;
+				AutoSize.SizeRule = ESlateSizeRule::Automatic;
+				BtnSlot->SetSize(AutoSize);
+			}
+		}
+
+		UButton* DiscardButton = NewObject<UButton>(this);
+		if (DiscardButton)
+		{
+			UTextBlock* DiscardLabel = NewObject<UTextBlock>(this);
+			if (DiscardLabel)
+			{
+				DiscardLabel->SetText(FText::FromString(TEXT("Scarta")));
+				DiscardLabel->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+				DiscardButton->AddChild(DiscardLabel);
+			}
+
+			DiscardButton->OnClicked.AddDynamic(Handler, &UTFItemActionHandler::OnDiscardClicked);
+
+			if (UHorizontalBoxSlot* BtnSlot = Cast<UHorizontalBoxSlot>(Row->AddChild(DiscardButton)))
+			{
+				BtnSlot->SetPadding(FMargin(ButtonPadding, 0.f));
+				BtnSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
+
+				FSlateChildSize AutoSize;
+				AutoSize.SizeRule = ESlateSizeRule::Automatic;
+				BtnSlot->SetSize(AutoSize);
+			}
+		}
+
+		ItemListContainer->AddChild(Row);
 	}
 }
 
@@ -102,13 +220,14 @@ void UTFInventoryWidget::UpdateWeightDisplay(float CurrentWeight, float MaxWeigh
 {
 	if (WeightText)
 	{
-		FText WeightDisplayText = FText::FromString(FString::Printf(TEXT("%.1f / %.1f kg"), CurrentWeight, MaxWeight));
-		WeightText->SetText(WeightDisplayText);
+		WeightText->SetText(
+			FText::FromString(FString::Printf(TEXT("%.1f / %.1f kg"), CurrentWeight, MaxWeight))
+		);
 	}
 
 	if (WeightBar && MaxWeight > 0.0f)
 	{
-		float Percent = CurrentWeight / MaxWeight;
+		const float Percent = CurrentWeight / MaxWeight;
 		WeightBar->SetPercent(Percent);
 		UpdateWeightColor(Percent);
 	}
@@ -121,11 +240,12 @@ void UTFInventoryWidget::UpdateSlotDisplay()
 		return;
 	}
 
-	int32 UsedSlots = CachedInventoryComponent->GetUsedSlots();
-	int32 TotalSlots = CachedInventoryComponent->GetBackpackSlots();
+	const int32 UsedSlots = CachedInventoryComponent->GetUsedSlots();
+	const int32 TotalSlots = CachedInventoryComponent->GetBackpackSlots();
 
-	FText SlotsDisplayText = FText::FromString(FString::Printf(TEXT("%d / %d slots"), UsedSlots, TotalSlots));
-	SlotsText->SetText(SlotsDisplayText);
+	SlotsText->SetText(
+		FText::FromString(FString::Printf(TEXT("%d / %d slots"), UsedSlots, TotalSlots))
+	);
 }
 
 void UTFInventoryWidget::UpdateWeightColor(float WeightPercent)
@@ -143,7 +263,7 @@ void UTFInventoryWidget::UpdateWeightColor(float WeightPercent)
 	}
 	else if (WeightPercent < HighWeightThreshold)
 	{
-		float Alpha = (WeightPercent - MediumWeightThreshold) / (HighWeightThreshold - MediumWeightThreshold);
+		const float Alpha = (WeightPercent - MediumWeightThreshold) / (HighWeightThreshold - MediumWeightThreshold);
 		TargetColor = FMath::Lerp(MediumWeightColor, HighWeightColor, Alpha);
 	}
 	else
@@ -177,6 +297,13 @@ void UTFInventoryWidget::OnInventoryToggled(bool bIsOpen)
 
 	if (bIsOpen)
 	{
+		CurrentExaminedItemID = NAME_None;
+
+		if (DescriptionText)
+		{
+			DescriptionText->SetText(FText::GetEmpty());
+		}
+
 		RefreshDisplay();
 	}
 }
@@ -212,4 +339,52 @@ void UTFInventoryWidget::RefreshDisplay()
 	RebuildItemList();
 	UpdateWeightDisplay(CachedInventoryComponent->GetCurrentWeight(), CachedInventoryComponent->GetBackpackWeightLimit());
 	UpdateSlotDisplay();
+}
+
+void UTFInventoryWidget::ExamineItem(FName ItemID)
+{
+	if (!DescriptionText || !CachedInventoryComponent)
+	{
+		return;
+	}
+
+	if (CurrentExaminedItemID == ItemID)
+	{
+		DescriptionText->SetText(FText::GetEmpty());
+		CurrentExaminedItemID = NAME_None;
+		return;
+	}
+
+	if (const FItemData* Item = CachedInventoryComponent->GetItem(ItemID))
+	{
+		DescriptionText->SetText(Item->ItemDescription);
+		CurrentExaminedItemID = ItemID;
+	}
+}
+
+void UTFInventoryWidget::DiscardItem(FName ItemID)
+{
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (!PlayerPawn)
+	{
+		return;
+	}
+
+	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
+	if (!Character)
+	{
+		return;
+	}
+
+	Character->DropItem(ItemID);
+
+	if (CurrentExaminedItemID == ItemID)
+	{
+		CurrentExaminedItemID = NAME_None;
+
+		if (DescriptionText)
+		{
+			DescriptionText->SetText(FText::GetEmpty());
+		}
+	}
 }
