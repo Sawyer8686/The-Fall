@@ -68,9 +68,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 	if (GConfig->GetString(*SectionName, TEXT("ItemType"), StringValue, ConfigFilePath))
 	{
 		static const TMap<FString, EItemType> ItemTypeMap = {
-			{TEXT("Generic"), EItemType::Generic},
 			{TEXT("Key"), EItemType::Key},
-			{TEXT("Consumable"), EItemType::Consumable},
 			{TEXT("Food"), EItemType::Food},
 			{TEXT("Beverage"), EItemType::Beverage},
 			{TEXT("Weapon"), EItemType::Weapon},
@@ -81,10 +79,10 @@ void ATFPickupableActor::LoadConfigFromINI()
 		};
 
 		bool bMatched = false;
-		ItemData.ItemType = TFConfigUtils::StringToEnum(StringValue, ItemTypeMap, EItemType::Generic, &bMatched);
+		ItemData.ItemType = TFConfigUtils::StringToEnum(StringValue, ItemTypeMap, EItemType::Key, &bMatched);
 		if (!bMatched)
 		{
-			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Unknown ItemType '%s', defaulting to Generic"), *StringValue);
+			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Unknown ItemType '%s', defaulting to Key"), *StringValue);
 		}
 	}
 

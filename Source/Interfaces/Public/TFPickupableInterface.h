@@ -10,9 +10,7 @@
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-	Generic     UMETA(DisplayName = "Generic Item"),
 	Key         UMETA(DisplayName = "Key"),
-	Consumable  UMETA(DisplayName = "Consumable"),
 	Food        UMETA(DisplayName = "Food"),
 	Beverage    UMETA(DisplayName = "Beverage"),
 	Weapon      UMETA(DisplayName = "Weapon"),
@@ -31,7 +29,7 @@ struct FItemData
 	FName ItemID = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
-	EItemType ItemType = EItemType::Generic;
+	EItemType ItemType = EItemType::Key;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
 	FText ItemName = FText::FromString("Item");
@@ -71,7 +69,7 @@ struct FItemData
 
 	FItemData()
 		: ItemID(NAME_None)
-		, ItemType(EItemType::Generic)
+		, ItemType(EItemType::Key)
 		, ItemName(FText::FromString("Item"))
 		, ItemDescription(FText::GetEmpty())
 		, ItemIcon(nullptr)
