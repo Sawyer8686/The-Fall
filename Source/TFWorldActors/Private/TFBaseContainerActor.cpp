@@ -96,11 +96,9 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 	ActiveWidget->AddToViewport(10);
 
 	PC->bShowMouseCursor = true;
-	FInputModeGameAndUI InputMode;
+	FInputModeUIOnly InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	PC->SetInputMode(InputMode);
-	PC->SetIgnoreMoveInput(true);
-	PC->SetIgnoreLookInput(true);
 
 	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Container widget opened for '%s'"), *ContainerDisplayName.ToString());
 }
@@ -186,8 +184,6 @@ void ATFBaseContainerActor::CloseContainer()
 		PC->bShowMouseCursor = false;
 		FInputModeGameOnly InputMode;
 		PC->SetInputMode(InputMode);
-		PC->SetIgnoreMoveInput(false);
-		PC->SetIgnoreLookInput(false);
 	}
 
 	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Container widget closed for '%s'"), *ContainerDisplayName.ToString());
