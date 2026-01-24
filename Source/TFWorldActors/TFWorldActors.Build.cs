@@ -22,7 +22,8 @@ public class TFWorldActors : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine"
+				"Engine",
+				"UMG"
 			}
 			);
 
