@@ -5,6 +5,7 @@
 
 #include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.h"
+#include "TFStatsComponent.h"
 
 #include "Components/ListView.h"
 #include "Components/TextBlock.h"
@@ -336,6 +337,66 @@ void UTFInventoryWidget::DiscardItem(FName ItemID)
 	}
 
 	Character->DropItem(ItemID);
+
+	if (CurrentExaminedItemID == ItemID)
+	{
+		CurrentExaminedItemID = NAME_None;
+
+		if (DescriptionText)
+		{
+			DescriptionText->SetText(FText::GetEmpty());
+		}
+	}
+}
+
+void UTFInventoryWidget::ConsumeItem(FName ItemID)
+{
+	if (!CachedInventoryComponent)
+	{
+		return;
+	}
+
+	const FItemData* Item = CachedInventoryComponent->GetItem(ItemID);
+	if (!Item)
+	{
+		return;
+	}
+
+	if (Item->ItemType != EItemType::Food && Item->ItemType != EItemType::Beverage)
+	{
+		return;
+	}
+
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (!PlayerPawn)
+	{
+		return;
+	}
+
+	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
+	if (!Character)
+	{
+		return;
+	}
+
+	UTFStatsComponent* Stats = Character->GetStatsComponent();
+	if (!Stats)
+	{
+		return;
+	}
+
+	if (Item->ItemType == EItemType::Food && Item->HungerRestore > 0.0f)
+	{
+		Stats->RestoreHunger(Item->HungerRestore);
+	}
+
+	if (Item->ItemType == EItemType::Beverage && Item->ThirstRestore > 0.0f)
+	{
+		Stats->RestoreThirst(Item->ThirstRestore);
+	}
+
+	// Remove item from inventory after consumption
+	CachedInventoryComponent->RemoveItem(ItemID);
 
 	if (CurrentExaminedItemID == ItemID)
 	{

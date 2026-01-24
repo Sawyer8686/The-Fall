@@ -32,6 +32,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* DiscardButton;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	UButton* ConsumeButton;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	UTextBlock* ConsumeButtonText;
+
 	virtual void NativeConstruct() override;
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
@@ -45,4 +51,9 @@ private:
 
 	UFUNCTION()
 	void OnDiscardClicked();
+
+	UFUNCTION()
+	void OnConsumeClicked();
+
+	void UpdateConsumeButton();
 };

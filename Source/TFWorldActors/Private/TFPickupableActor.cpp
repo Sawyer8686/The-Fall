@@ -71,6 +71,8 @@ void ATFPickupableActor::LoadConfigFromINI()
 			{TEXT("Generic"), EItemType::Generic},
 			{TEXT("Key"), EItemType::Key},
 			{TEXT("Consumable"), EItemType::Consumable},
+			{TEXT("Food"), EItemType::Food},
+			{TEXT("Beverage"), EItemType::Beverage},
 			{TEXT("Weapon"), EItemType::Weapon},
 			{TEXT("Ammo"), EItemType::Ammo},
 			{TEXT("Document"), EItemType::Document},
@@ -123,6 +125,19 @@ void ATFPickupableActor::LoadConfigFromINI()
 	}
 
 #pragma endregion Key-Specific Data
+
+#pragma region Food/Beverage Data
+
+	if (ItemData.ItemType == EItemType::Food || ItemData.ItemType == EItemType::Beverage)
+	{
+		GConfig->GetFloat(*SectionName, TEXT("HungerRestore"), ItemData.HungerRestore, ConfigFilePath);
+		GConfig->GetFloat(*SectionName, TEXT("ThirstRestore"), ItemData.ThirstRestore, ConfigFilePath);
+
+		ItemData.HungerRestore = FMath::Max(0.0f, ItemData.HungerRestore);
+		ItemData.ThirstRestore = FMath::Max(0.0f, ItemData.ThirstRestore);
+	}
+
+#pragma endregion Food/Beverage Data
 
 #pragma region Backpack-Specific Data
 

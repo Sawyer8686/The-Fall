@@ -20,6 +20,11 @@ void UTFInventoryItemEntryWidget::NativeConstruct()
 	{
 		DiscardButton->OnClicked.AddDynamic(this, &UTFInventoryItemEntryWidget::OnDiscardClicked);
 	}
+
+	if (ConsumeButton)
+	{
+		ConsumeButton->OnClicked.AddDynamic(this, &UTFInventoryItemEntryWidget::OnConsumeClicked);
+	}
 }
 
 void UTFInventoryItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -38,6 +43,8 @@ void UTFInventoryItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObj
 		const FString DisplayText = FString::Printf(TEXT("%s  (%.1f kg)"), *Data.ItemName.ToString(), Data.Weight);
 		ItemNameText->SetText(FText::FromString(DisplayText));
 	}
+
+	UpdateConsumeButton();
 }
 
 void UTFInventoryItemEntryWidget::OnExamineClicked()
@@ -53,5 +60,50 @@ void UTFInventoryItemEntryWidget::OnDiscardClicked()
 	if (CachedViewData && CachedViewData->OwnerWidget.IsValid())
 	{
 		CachedViewData->OwnerWidget->DiscardItem(CachedViewData->ItemData.ItemID);
+	}
+}
+
+void UTFInventoryItemEntryWidget::OnConsumeClicked()
+{
+	if (CachedViewData && CachedViewData->OwnerWidget.IsValid())
+	{
+		CachedViewData->OwnerWidget->ConsumeItem(CachedViewData->ItemData.ItemID);
+	}
+}
+
+void UTFInventoryItemEntryWidget::UpdateConsumeButton()
+{
+	if (!ConsumeButton)
+	{
+		return;
+	}
+
+	if (!CachedViewData)
+	{
+		ConsumeButton->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+
+	const EItemType Type = CachedViewData->ItemData.ItemType;
+
+	if (Type == EItemType::Food)
+	{
+		ConsumeButton->SetVisibility(ESlateVisibility::Visible);
+		if (ConsumeButtonText)
+		{
+			ConsumeButtonText->SetText(FText::FromString(TEXT("Mangia")));
+		}
+	}
+	else if (Type == EItemType::Beverage)
+	{
+		ConsumeButton->SetVisibility(ESlateVisibility::Visible);
+		if (ConsumeButtonText)
+		{
+			ConsumeButtonText->SetText(FText::FromString(TEXT("Bevi")));
+		}
+	}
+	else
+	{
+		ConsumeButton->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

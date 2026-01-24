@@ -96,4 +96,5 @@ public:
 	void RefreshDisplay();
 	void ExamineItem(FName ItemID);
 	void DiscardItem(FName ItemID);
+	void ConsumeItem(FName ItemID);
 };

@@ -13,6 +13,8 @@ enum class EItemType : uint8
 	Generic     UMETA(DisplayName = "Generic Item"),
 	Key         UMETA(DisplayName = "Key"),
 	Consumable  UMETA(DisplayName = "Consumable"),
+	Food        UMETA(DisplayName = "Food"),
+	Beverage    UMETA(DisplayName = "Beverage"),
 	Weapon      UMETA(DisplayName = "Weapon"),
 	Ammo        UMETA(DisplayName = "Ammunition"),
 	Document    UMETA(DisplayName = "Document"),
@@ -55,6 +57,12 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item|Key")
 	FName KeyID = NAME_None;
 
+	UPROPERTY(EditAnywhere, Category = "Item|Consumable")
+	float HungerRestore = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Item|Consumable")
+	float ThirstRestore = 0.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Item|Backpack")
 	int32 BackpackSlots = 5;
 
@@ -72,6 +80,8 @@ struct FItemData
 		, Weight(1.0f)
 		, Value(10)
 		, KeyID(NAME_None)
+		, HungerRestore(0.0f)
+		, ThirstRestore(0.0f)
 		, BackpackSlots(5)
 		, BackpackWeightLimit(25.0f)
 	{
