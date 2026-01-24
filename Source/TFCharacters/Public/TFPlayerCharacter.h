@@ -125,6 +125,8 @@ protected:
 	void PlayerJump();
 	void InteractPressed();
 	void LockPressed();
+	void LockReleased();
+	void CompleteLockAction();
 	void InventoryPressed();
 	void DropBackpackPressed();
 
@@ -225,6 +227,9 @@ private:
 
 	bool bInventoryOpen = false;
 	bool bConfirmDialogOpen = false;
+
+	FTimerHandle LockHoldTimerHandle;
+	TWeakObjectPtr<AActor> LockTarget;
 	int32 PendingBackpackSlots = 0;
 	float PendingBackpackWeightLimit = 0.0f;
 	TWeakObjectPtr<AActor> PendingBackpackActor;

@@ -113,6 +113,7 @@ void ATFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		if (LockAction)
 		{
 			EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Started, this, &ATFPlayerCharacter::LockPressed);
+			EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Completed, this, &ATFPlayerCharacter::LockReleased);
 		}
 
 		if (InventoryAction)
@@ -407,10 +408,55 @@ void ATFPlayerCharacter::LockPressed()
 		return;
 	}
 
-	if (ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(Target))
+	ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(Target);
+	if (!Lockable)
+	{
+		return;
+	}
+
+	float Duration = Lockable->GetLockDuration();
+	LockTarget = Target;
+
+	if (Duration <= 0.0f)
+	{
+		CompleteLockAction();
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			LockHoldTimerHandle,
+			this,
+			&ATFPlayerCharacter::CompleteLockAction,
+			Duration,
+			false
+		);
+	}
+}
+
+void ATFPlayerCharacter::LockReleased()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(LockHoldTimerHandle);
+	}
+	LockTarget = nullptr;
+}
+
+void ATFPlayerCharacter::CompleteLockAction()
+{
+	if (!LockTarget.IsValid())
+	{
+		return;
+	}
+
+	if (ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(LockTarget.Get()))
 	{
 		Lockable->ToggleLock(this);
 	}
+
+	LockTarget = nullptr;
 }
 
 void ATFPlayerCharacter::SetUIInputMode(bool bShowCursor)

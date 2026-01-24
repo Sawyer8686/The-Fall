@@ -115,6 +115,8 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 
 	GConfig->GetBool(*SectionName, TEXT("bIsLocked"), bIsLocked, ConfigFilePath);
 	GConfig->GetBool(*SectionName, TEXT("bCanRelock"), bCanRelock, ConfigFilePath);
+	GConfig->GetFloat(*SectionName, TEXT("LockDuration"), LockDuration, ConfigFilePath);
+	LockDuration = FMath::Clamp(LockDuration, 0.0f, 10.0f);
 
 #pragma endregion Key Settings
 
@@ -578,6 +580,11 @@ bool ATFBaseDoorActor::CharacterHasKey(const APawn* Character) const
 	}
 
 	return false;
+}
+
+float ATFBaseDoorActor::GetLockDuration() const
+{
+	return LockDuration;
 }
 
 bool ATFBaseDoorActor::ToggleLock(APawn* Character)

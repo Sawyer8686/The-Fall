@@ -103,6 +103,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
 	bool bCanRelock = true;
 
+	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey", ClampMin = "0.0", ClampMax = "10.0"))
+	float LockDuration = 1.5f;
+
 #pragma endregion Key Settings
 
 #pragma region Animation
@@ -176,6 +179,7 @@ public:
 	virtual bool OpenDoor(APawn* OpeningCharacter);
 	virtual bool CloseDoor();
 	virtual bool ToggleLock(APawn* Character) override;
+	virtual float GetLockDuration() const override;
 	virtual bool ToggleDoor(APawn* TogglingCharacter);
 	virtual bool IsDoorLocked() const;
 	virtual bool UnlockDoor(APawn* UnlockingCharacter);
