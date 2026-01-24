@@ -19,7 +19,8 @@ public class Widgets : ModuleRules
 				"TFCharacters",
 				"Components",
 				"WorldEnvironment",
-				"Inventory"
+				"Inventory",
+				"Interfaces"
 			}
 			);
 
