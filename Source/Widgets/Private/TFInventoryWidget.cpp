@@ -215,13 +215,32 @@ void UTFInventoryWidget::UpdateWeightColor(float WeightPercent)
 
 void UTFInventoryWidget::OnItemAdded(const FItemData& Item)
 {
-	PopulateListView();
+	if (ItemListView)
+	{
+		UTFInventoryItemViewData* ViewData = NewObject<UTFInventoryItemViewData>(this);
+		ViewData->ItemData = Item;
+		ViewData->OwnerWidget = this;
+
+		ListItems.Add(ViewData);
+		ItemListView->AddItem(ViewData);
+	}
 	UpdateSlotDisplay();
 }
 
-void UTFInventoryWidget::OnItemRemoved(FName ItemID, int32 Quantity)
+void UTFInventoryWidget::OnItemRemoved(FName ItemID)
 {
-	PopulateListView();
+	if (ItemListView)
+	{
+		for (int32 i = ListItems.Num() - 1; i >= 0; --i)
+		{
+			if (ListItems[i] && ListItems[i]->ItemData.ItemID == ItemID)
+			{
+				ItemListView->RemoveItem(ListItems[i]);
+				ListItems.RemoveAt(i);
+				break;
+			}
+		}
+	}
 	UpdateSlotDisplay();
 }
 

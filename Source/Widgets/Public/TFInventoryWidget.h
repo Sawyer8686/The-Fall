@@ -85,7 +85,7 @@ protected:
 	void UpdateWeightColor(float WeightPercent);
 
 	void OnItemAdded(const FItemData& Item);
-	void OnItemRemoved(FName ItemID, int32 Quantity);
+	void OnItemRemoved(FName ItemID);
 	void OnInventoryChanged(float CurrentWeight, float MaxWeight);
 	void OnInventoryToggled(bool bIsOpen);
 	void OnKeyCollectionChanged();

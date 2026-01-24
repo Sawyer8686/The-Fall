@@ -43,7 +43,10 @@ protected:
 	UStaticMeshComponent* DoorMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UAudioComponent* AudioComponent;
+	UAudioComponent* OneShotAudioComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UAudioComponent* LoopAudioComponent;
 
 #pragma endregion Components
 

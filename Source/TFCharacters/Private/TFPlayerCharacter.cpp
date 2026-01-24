@@ -413,6 +413,33 @@ void ATFPlayerCharacter::LockPressed()
 	}
 }
 
+void ATFPlayerCharacter::SetUIInputMode(bool bShowCursor)
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC)
+	{
+		return;
+	}
+
+	if (bShowCursor)
+	{
+		PC->bShowMouseCursor = true;
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		PC->SetInputMode(InputMode);
+		PC->SetIgnoreMoveInput(true);
+		PC->SetIgnoreLookInput(true);
+	}
+	else
+	{
+		PC->bShowMouseCursor = false;
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->ResetIgnoreMoveInput();
+		PC->ResetIgnoreLookInput();
+	}
+}
+
 void ATFPlayerCharacter::InventoryPressed()
 {
 	if (bConfirmDialogOpen)
@@ -432,27 +459,7 @@ void ATFPlayerCharacter::InventoryPressed()
 		SetSprinting(false);
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
-	{
-		if (bInventoryOpen)
-		{
-			PC->bShowMouseCursor = true;
-			FInputModeGameAndUI InputMode;
-			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			PC->SetInputMode(InputMode);
-			PC->SetIgnoreMoveInput(true);
-			PC->SetIgnoreLookInput(true);
-		}
-		else
-		{
-			PC->bShowMouseCursor = false;
-			FInputModeGameOnly InputMode;
-			PC->SetInputMode(InputMode);
-			PC->ResetIgnoreMoveInput();
-			PC->ResetIgnoreLookInput();
-		}
-	}
+	SetUIInputMode(bInventoryOpen);
 
 	OnInventoryToggled.Broadcast(bInventoryOpen);
 }
@@ -472,7 +479,7 @@ bool ATFPlayerCharacter::DropItem(FName ItemID)
 
 	FItemData DroppedItemData = *ItemPtr;
 
-	if (!InventoryComponent->RemoveItem(ItemID, 1))
+	if (!InventoryComponent->RemoveItem(ItemID))
 	{
 		return false;
 	}
@@ -499,6 +506,10 @@ bool ATFPlayerCharacter::DropItem(FName ItemID)
 
 	if (DroppedActor)
 	{
+		if (!DroppedItemData.ItemMesh)
+		{
+			DroppedItemData.ItemMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+		}
 		DroppedActor->SetItemData(DroppedItemData);
 	}
 
@@ -554,14 +565,14 @@ bool ATFPlayerCharacter::DropBackpack()
 
 	if (DroppedBackpack)
 	{
-		FItemData BackpackData;
-		BackpackData.ItemID = FName("DroppedBackpack");
-		BackpackData.ItemType = EItemType::Backpack;
-		BackpackData.ItemName = FText::FromString("Zaino");
+		FItemData BackpackData = EquippedBackpackData;
 		BackpackData.BackpackSlots = Slots;
 		BackpackData.BackpackWeightLimit = WeightLimit;
-		BackpackData.Weight = 0.0f;
-		BackpackData.ItemMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+
+		if (!BackpackData.ItemMesh)
+		{
+			BackpackData.ItemMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+		}
 
 		DroppedBackpack->SetItemData(BackpackData);
 		DroppedBackpack->SetStoredInventoryItems(StoredItems);
@@ -607,16 +618,7 @@ bool ATFPlayerCharacter::ActivateBackpack(int32 Slots, float WeightLimit)
 		SetSprinting(false);
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
-	{
-		PC->bShowMouseCursor = true;
-		FInputModeGameAndUI InputMode;
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		PC->SetInputMode(InputMode);
-		PC->SetIgnoreMoveInput(true);
-		PC->SetIgnoreLookInput(true);
-	}
+	SetUIInputMode(true);
 
 	OnBackpackEquipRequested.Broadcast(Slots, WeightLimit);
 	return true;
@@ -637,6 +639,7 @@ void ATFPlayerCharacter::ConfirmBackpackEquip()
 	{
 		if (ATFPickupableActor* BackpackActor = Cast<ATFPickupableActor>(PendingBackpackActor.Get()))
 		{
+			EquippedBackpackData = BackpackActor->GetItemData();
 			ItemsToRestore = BackpackActor->GetStoredInventoryItems();
 		}
 	}
@@ -657,15 +660,7 @@ void ATFPlayerCharacter::ConfirmBackpackEquip()
 		PendingBackpackActor = nullptr;
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
-	{
-		PC->bShowMouseCursor = false;
-		FInputModeGameOnly InputMode;
-		PC->SetInputMode(InputMode);
-		PC->ResetIgnoreMoveInput();
-		PC->ResetIgnoreLookInput();
-	}
+	SetUIInputMode(false);
 }
 
 void ATFPlayerCharacter::CancelBackpackEquip()
@@ -676,7 +671,6 @@ void ATFPlayerCharacter::CancelBackpackEquip()
 	{
 		PendingBackpackActor->SetActorEnableCollision(true);
 
-		// Re-enable physics so the backpack rests naturally on the ground
 		if (ATFPickupableActor* BackpackActor = Cast<ATFPickupableActor>(PendingBackpackActor.Get()))
 		{
 			if (UStaticMeshComponent* BackpackMesh = BackpackActor->GetMeshComponent())
@@ -688,15 +682,7 @@ void ATFPlayerCharacter::CancelBackpackEquip()
 		PendingBackpackActor = nullptr;
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
-	{
-		PC->bShowMouseCursor = false;
-		FInputModeGameOnly InputMode;
-		PC->SetInputMode(InputMode);
-		PC->ResetIgnoreMoveInput();
-		PC->ResetIgnoreLookInput();
-	}
+	SetUIInputMode(false);
 }
 
 bool ATFPlayerCharacter::AddItem(const FItemData& Item)
@@ -708,13 +694,13 @@ bool ATFPlayerCharacter::AddItem(const FItemData& Item)
 	return InventoryComponent->AddItem(Item);
 }
 
-bool ATFPlayerCharacter::RemoveItem(FName ItemID, int32 Quantity)
+bool ATFPlayerCharacter::RemoveItem(FName ItemID)
 {
 	if (!InventoryComponent)
 	{
 		return false;
 	}
-	return InventoryComponent->RemoveItem(ItemID, Quantity);
+	return InventoryComponent->RemoveItem(ItemID);
 }
 
 bool ATFPlayerCharacter::HasItem(FName ItemID) const

@@ -100,15 +100,9 @@ void ATFPickupableActor::LoadConfigFromINI()
 		ItemData.ItemDescription = FText::FromString(StringValue);
 	}
 
-	GConfig->GetInt(*SectionName, TEXT("Quantity"), ItemData.Quantity, ConfigFilePath);
-	GConfig->GetBool(*SectionName, TEXT("bIsStackable"), ItemData.bIsStackable, ConfigFilePath);
-	GConfig->GetInt(*SectionName, TEXT("MaxStackSize"), ItemData.MaxStackSize, ConfigFilePath);
 	GConfig->GetFloat(*SectionName, TEXT("Weight"), ItemData.Weight, ConfigFilePath);
 	GConfig->GetInt(*SectionName, TEXT("Value"), ItemData.Value, ConfigFilePath);
 
-	// Validate item data
-	ItemData.Quantity = FMath::Max(1, ItemData.Quantity);
-	ItemData.MaxStackSize = FMath::Max(1, ItemData.MaxStackSize);
 	ItemData.Weight = FMath::Max(0.0f, ItemData.Weight);
 	ItemData.Value = FMath::Max(0, ItemData.Value);
 
@@ -222,6 +216,8 @@ bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
 		MeshComponent->SetSimulatePhysics(false);
 	}
 	SetActorEnableCollision(false);
+
+	PlayPickupSound();
 
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack confirm requested (Slots: %d, Weight: %.1f)"),
 		ItemData.BackpackSlots, ItemData.BackpackWeightLimit);
@@ -355,8 +351,8 @@ bool ATFPickupableActor::OnPickup(APawn* Picker)
 
 	PlayPickupSound();
 
-	UE_LOG(LogTFItem, Log, TEXT("Picked up item: %s (x%d) [Type: %d]"),
-		*ItemData.ItemName.ToString(), ItemData.Quantity, static_cast<int32>(ItemData.ItemType));
+	UE_LOG(LogTFItem, Log, TEXT("Picked up item: %s [Type: %d]"),
+		*ItemData.ItemName.ToString(), static_cast<int32>(ItemData.ItemType));
 
 	return true;
 }
@@ -411,7 +407,3 @@ void ATFPickupableActor::SetItemData(const FItemData& NewItemData)
 	}
 }
 
-void ATFPickupableActor::SetQuantity(int32 NewQuantity)
-{
-	ItemData.Quantity = FMath::Max(1, NewQuantity);
-}

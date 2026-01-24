@@ -10,7 +10,7 @@
 DECLARE_MULTICAST_DELEGATE(FOnBackpackActivated);
 DECLARE_MULTICAST_DELEGATE(FOnBackpackDeactivated);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAdded, const FItemData&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemRemoved, FName, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemoved, FName);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryChanged, float, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventoryFull, const FText&);
 
@@ -77,7 +77,7 @@ public:
 #pragma region Item Management
 
 	bool AddItem(const FItemData& Item);
-	bool RemoveItem(FName ItemID, int32 Quantity = 1);
+	bool RemoveItem(FName ItemID);
 	bool HasItem(FName ItemID) const;
 	const FItemData* GetItem(FName ItemID) const;
 	const TArray<FItemData>& GetItems() const { return Items; }

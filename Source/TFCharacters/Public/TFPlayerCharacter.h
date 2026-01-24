@@ -205,7 +205,7 @@ public:
 	virtual bool ActivateBackpack(int32 Slots, float WeightLimit) override;
 	virtual void SetPendingBackpackActor(AActor* Actor) override;
 	virtual bool AddItem(const FItemData& Item) override;
-	virtual bool RemoveItem(FName ItemID, int32 Quantity = 1) override;
+	virtual bool RemoveItem(FName ItemID) override;
 	virtual bool HasItem(FName ItemID) const override;
 	virtual bool HasSpaceForItem(const FItemData& Item) const override;
 	virtual bool CanCarryWeight(float AdditionalWeight) const override;
@@ -219,11 +219,16 @@ public:
 
 private:
 
+	void SetUIInputMode(bool bShowCursor);
+
+private:
+
 	bool bInventoryOpen = false;
 	bool bConfirmDialogOpen = false;
 	int32 PendingBackpackSlots = 0;
 	float PendingBackpackWeightLimit = 0.0f;
 	TWeakObjectPtr<AActor> PendingBackpackActor;
+	FItemData EquippedBackpackData;
 
 #pragma endregion Inventory
 

@@ -23,7 +23,7 @@ public:
 	virtual bool ActivateBackpack(int32 Slots, float WeightLimit) { return false; }
 	virtual void SetPendingBackpackActor(AActor* Actor) {}
 	virtual bool AddItem(const FItemData& Item) { return false; }
-	virtual bool RemoveItem(FName ItemID, int32 Quantity = 1) { return false; }
+	virtual bool RemoveItem(FName ItemID) { return false; }
 	virtual bool HasItem(FName ItemID) const { return false; }
 	virtual bool HasSpaceForItem(const FItemData& Item) const { return false; }
 	virtual bool CanCarryWeight(float AdditionalWeight) const { return false; }

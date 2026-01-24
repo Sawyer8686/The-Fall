@@ -155,6 +155,13 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 		return;
 	}
 
+	float ActorMaxDistance = Interactable->GetInteractionDistance();
+	if (HitResult.Distance > ActorMaxDistance)
+	{
+		ClearFocus();
+		return;
+	}
+
 	if (!Interactable->CanInteract(OwnerCharacter))
 	{
 		ClearFocus();

@@ -21,9 +21,13 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 	DoorMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DoorMesh->SetCollisionResponseToAllChannels(ECR_Block);
 
-	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
-	AudioComponent->SetupAttachment(DoorMesh);
-	AudioComponent->bAutoActivate = false;
+	OneShotAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("OneShotAudio"));
+	OneShotAudioComponent->SetupAttachment(DoorMesh);
+	OneShotAudioComponent->bAutoActivate = false;
+
+	LoopAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LoopAudio"));
+	LoopAudioComponent->SetupAttachment(DoorMesh);
+	LoopAudioComponent->bAutoActivate = false;
 
 	MaxInteractionDistance = 200.0f;
 
@@ -214,9 +218,7 @@ void ATFBaseDoorActor::ApplyDoorRotation(float Angle)
 float ATFBaseDoorActor::CalculateTargetAngle(const FVector& PlayerLocation)
 {
 	FVector DoorForward = GetActorForwardVector();
-
 	FVector ToPlayer = (PlayerLocation - GetActorLocation()).GetSafeNormal();
-
 	float DotProduct = FVector::DotProduct(DoorForward, ToPlayer);
 
 	if (!bCanOpenFromBothSides && DotProduct < 0.0f)
@@ -224,7 +226,8 @@ float ATFBaseDoorActor::CalculateTargetAngle(const FVector& PlayerLocation)
 		return 0.0f;
 	}
 
-	return MaxOpenAngle;
+	// Open away from the player: positive angle if player is in front, negative if behind
+	return (DotProduct >= 0.0f) ? MaxOpenAngle : -MaxOpenAngle;
 }
 
 void ATFBaseDoorActor::StartOpening(APawn* OpeningCharacter)
@@ -280,9 +283,13 @@ void ATFBaseDoorActor::CompleteOpening()
 	SetActorTickEnabled(false);
 	StopDoorMovementSound();
 
-	if (bAutoClose && AutoCloseDelay > 0.0f)
+	if (bAutoClose)
 	{
-		if (UWorld* World = GetWorld())
+		if (AutoCloseDelay <= 0.0f)
+		{
+			AutoCloseDoor();
+		}
+		else if (UWorld* World = GetWorld())
 		{
 			World->GetTimerManager().SetTimer(
 				AutoCloseTimerHandle,
@@ -310,34 +317,34 @@ void ATFBaseDoorActor::CompleteClosing()
 
 void ATFBaseDoorActor::PlayDoorSound(USoundBase* Sound)
 {
-	if (!Sound || !AudioComponent)
+	if (!Sound || !OneShotAudioComponent)
 	{
 		return;
 	}
 
-	AudioComponent->SetSound(Sound);
-	AudioComponent->Play();
+	OneShotAudioComponent->SetSound(Sound);
+	OneShotAudioComponent->Play();
 }
 
 void ATFBaseDoorActor::PlayDoorMovementSound()
 {
-	if (!DoorMovementSound || !AudioComponent)
+	if (!DoorMovementSound || !LoopAudioComponent)
 	{
 		return;
 	}
 
-	if (AudioComponent->Sound != DoorMovementSound || !AudioComponent->IsPlaying())
+	if (!LoopAudioComponent->IsPlaying())
 	{
-		AudioComponent->SetSound(DoorMovementSound);
-		AudioComponent->Play();
+		LoopAudioComponent->SetSound(DoorMovementSound);
+		LoopAudioComponent->Play();
 	}
 }
 
 void ATFBaseDoorActor::StopDoorMovementSound()
 {
-	if (AudioComponent && AudioComponent->Sound == DoorMovementSound && AudioComponent->IsPlaying())
+	if (LoopAudioComponent && LoopAudioComponent->IsPlaying())
 	{
-		AudioComponent->Stop();
+		LoopAudioComponent->Stop();
 	}
 }
 
@@ -400,45 +407,19 @@ FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) con
 {
 	FInteractionData Data = Super::GetInteractionData(InstigatorPawn);
 
-	if (bRequiresKey)
+	if (IsMoving())
 	{
-		bool bHasKey = CharacterHasKey(InstigatorPawn);
-
-		if (bIsLocked)
-		{
-			if (bHasKey)
-			{
-				Data.bCanInteract = true;
-			}
-			else
-			{
-				Data.bCanInteract = false;
-			}
-		}
-		else
-		{
-			if (IsClosed())
-			{
-				Data.bCanInteract = true;
-			}
-			else if (IsOpen())
-			{
-				Data.bCanInteract = true;
-			}
-			else
-			{
-				Data.bCanInteract = false;
-			}
-		}
-
+		Data.bCanInteract = false;
 		return Data;
 	}
 
-	else
+	if (bRequiresKey && bIsLocked)
 	{
-		Data.bCanInteract = false;
+		Data.bCanInteract = CharacterHasKey(InstigatorPawn);
+		return Data;
 	}
 
+	Data.bCanInteract = IsClosed() || IsOpen();
 	return Data;
 }
 

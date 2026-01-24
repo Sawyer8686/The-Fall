@@ -22,7 +22,8 @@
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Public\\\\TFInventoryListWidget.h\")",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Private\\\\TFInventoryListWidget.cpp\")",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Public\\\\TFItemActionHandler.h\")",
-      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Private\\\\TFItemActionHandler.cpp\")"
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Private\\\\TFItemActionHandler.cpp\")",
+      "Bash(\"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat\" TFEditor Win64 Development \"C:/UnrealProjects/TF/TF.uproject\" -waitmutex)"
     ]
   }
 }

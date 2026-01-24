@@ -47,15 +47,6 @@ struct FItemData
 	USoundBase* PickupSound = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
-	int32 Quantity = 1;
-
-	UPROPERTY(EditAnywhere, Category = "Item")
-	bool bIsStackable = false;
-
-	UPROPERTY(EditAnywhere, Category = "Item")
-	int32 MaxStackSize = 99;
-
-	UPROPERTY(EditAnywhere, Category = "Item")
 	float Weight = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
@@ -78,9 +69,6 @@ struct FItemData
 		, ItemIcon(nullptr)
 		, ItemMesh(nullptr)
 		, PickupSound(nullptr)
-		, Quantity(1)
-		, bIsStackable(false)
-		, MaxStackSize(99)
 		, Weight(1.0f)
 		, Value(10)
 		, KeyID(NAME_None)

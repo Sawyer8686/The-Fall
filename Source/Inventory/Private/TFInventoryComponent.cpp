@@ -37,7 +37,6 @@ bool UTFInventoryComponent::ActivateBackpack(int32 Slots, float WeightLimit)
 TArray<FItemData> UTFInventoryComponent::DeactivateBackpack()
 {
 	TArray<FItemData> RemovedItems = MoveTemp(Items);
-	Items.Empty();
 	CurrentWeight = 0.0f;
 
 	int32 OldSlots = BackpackSlots;
@@ -62,16 +61,31 @@ void UTFInventoryComponent::RestoreItems(const TArray<FItemData>& ItemsToRestore
 		return;
 	}
 
+	int32 RestoredCount = 0;
+
 	for (const FItemData& Item : ItemsToRestore)
 	{
+		if (Items.Num() >= BackpackSlots)
+		{
+			UE_LOG(LogTFItem, Warning, TEXT("UTFInventoryComponent: Cannot restore item '%s' - no slots available"), *Item.ItemName.ToString());
+			break;
+		}
+
+		if ((CurrentWeight + Item.Weight) > BackpackWeightLimit)
+		{
+			UE_LOG(LogTFItem, Warning, TEXT("UTFInventoryComponent: Cannot restore item '%s' - weight limit exceeded"), *Item.ItemName.ToString());
+			continue;
+		}
+
 		Items.Add(Item);
 		CurrentWeight += Item.Weight;
 		OnItemAdded.Broadcast(Item);
+		++RestoredCount;
 	}
 
 	OnInventoryChanged.Broadcast(CurrentWeight, BackpackWeightLimit);
 
-	UE_LOG(LogTFItem, Log, TEXT("UTFInventoryComponent: Restored %d items (Weight: %.1f)"), ItemsToRestore.Num(), CurrentWeight);
+	UE_LOG(LogTFItem, Log, TEXT("UTFInventoryComponent: Restored %d/%d items (Weight: %.1f)"), RestoredCount, ItemsToRestore.Num(), CurrentWeight);
 }
 
 bool UTFInventoryComponent::AddItem(const FItemData& Item)
@@ -112,9 +126,9 @@ bool UTFInventoryComponent::AddItem(const FItemData& Item)
 	return true;
 }
 
-bool UTFInventoryComponent::RemoveItem(FName ItemID, int32 Quantity)
+bool UTFInventoryComponent::RemoveItem(FName ItemID)
 {
-	if (ItemID.IsNone() || Quantity <= 0)
+	if (ItemID.IsNone())
 	{
 		return false;
 	}
@@ -125,11 +139,11 @@ bool UTFInventoryComponent::RemoveItem(FName ItemID, int32 Quantity)
 		{
 			float WeightRemoved = Items[i].Weight;
 			Items.RemoveAt(i);
-			CurrentWeight -= WeightRemoved;
+			CurrentWeight = FMath::Max(0.0f, CurrentWeight - WeightRemoved);
 
 			UE_LOG(LogTFItem, Log, TEXT("UTFInventoryComponent: Removed item '%s'"), *ItemID.ToString());
 
-			OnItemRemoved.Broadcast(ItemID, 1);
+			OnItemRemoved.Broadcast(ItemID);
 			OnInventoryChanged.Broadcast(CurrentWeight, BackpackWeightLimit);
 			return true;
 		}

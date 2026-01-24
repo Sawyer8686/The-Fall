@@ -94,7 +94,6 @@ public:
 
 	FItemData GetItemInfo() const { return ItemData; }
 	void SetItemData(const FItemData& NewItemData);
-	void SetQuantity(int32 NewQuantity);
 	void SetStoredInventoryItems(const TArray<FItemData>& Items) { StoredInventoryItems = Items; }
 	const TArray<FItemData>& GetStoredInventoryItems() const { return StoredInventoryItems; }
 
