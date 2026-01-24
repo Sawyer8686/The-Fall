@@ -104,6 +104,9 @@ protected:
 	bool bCanRelock = true;
 
 	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey", ClampMin = "0.0", ClampMax = "10.0"))
+	float UnlockDuration = 1.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bCanRelock", ClampMin = "0.0", ClampMax = "10.0"))
 	float LockDuration = 1.5f;
 
 #pragma endregion Key Settings
