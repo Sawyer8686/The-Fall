@@ -1,19 +1,16 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFInventoryWidget.h"
+#include "TFInventoryItemViewData.h"
 
 #include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.h"
-#include "TFItemActionHandler.h"
 
+#include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
-#include "Components/HorizontalBox.h"
-#include "Components/HorizontalBoxSlot.h"
-#include "Components/SizeBox.h"
-#include "Components/Button.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -23,7 +20,6 @@ void UTFInventoryWidget::NativeConstruct()
 
 	InitializeInventoryComponent();
 
-	// Start hidden
 	SetVisibility(ESlateVisibility::Hidden);
 }
 
@@ -70,27 +66,23 @@ void UTFInventoryWidget::InitializeInventoryComponent()
 		return;
 	}
 
-	// Bind to inventory events
 	CachedInventoryComponent->OnItemAdded.AddUObject(this, &UTFInventoryWidget::OnItemAdded);
 	CachedInventoryComponent->OnItemRemoved.AddUObject(this, &UTFInventoryWidget::OnItemRemoved);
 	CachedInventoryComponent->OnInventoryChanged.AddUObject(this, &UTFInventoryWidget::OnInventoryChanged);
 
-	// Bind to toggle event
 	Character->OnInventoryToggled.AddUObject(this, &UTFInventoryWidget::OnInventoryToggled);
-
-	// Bind to key collection changes
 	Character->OnKeyCollectionChanged.AddUObject(this, &UTFInventoryWidget::OnKeyCollectionChanged);
 }
 
-void UTFInventoryWidget::RebuildItemList()
+void UTFInventoryWidget::PopulateListView()
 {
-	if (!ItemListContainer)
+	if (!ItemListView)
 	{
 		return;
 	}
 
-	ItemListContainer->ClearChildren();
-	ActionHandlers.Empty();
+	ItemListView->ClearListItems();
+	ListItems.Empty();
 
 	if (!CachedInventoryComponent)
 	{
@@ -101,122 +93,12 @@ void UTFInventoryWidget::RebuildItemList()
 
 	for (const FItemData& Item : Items)
 	{
-		// Riga
-		UHorizontalBox* Row = NewObject<UHorizontalBox>(this);
-		if (!Row)
-		{
-			continue;
-		}
+		UTFInventoryItemViewData* ViewData = NewObject<UTFInventoryItemViewData>(this);
+		ViewData->ItemData = Item;
+		ViewData->OwnerWidget = this;
 
-		// Importante: clipping per impedire draw oltre bounds
-		Row->SetClipping(EWidgetClipping::ClipToBounds);
-
-		// ------------------------------------
-		// 1) TESTO: dentro una SizeBox con MaxDesiredWidth
-		// ------------------------------------
-		USizeBox* TextSizeBox = NewObject<USizeBox>(this);
-		if (TextSizeBox)
-		{
-			TextSizeBox->SetMaxDesiredWidth(MaxItemTextWidth);
-			TextSizeBox->SetClipping(EWidgetClipping::ClipToBounds);
-
-			UTextBlock* ItemText = NewObject<UTextBlock>(this);
-			if (ItemText)
-			{
-				const FString DisplayText = FString::Printf(TEXT("%s  (%.1f kg)"), *Item.ItemName.ToString(), Item.Weight);
-				ItemText->SetText(FText::FromString(DisplayText));
-				ItemText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
-
-				// niente wrap, una riga
-				ItemText->SetAutoWrapText(false);
-
-				// clipping sul testo
-				ItemText->SetClipping(EWidgetClipping::ClipToBounds);
-
-				TextSizeBox->AddChild(ItemText);
-			}
-
-			UHorizontalBoxSlot* TextSlot = Cast<UHorizontalBoxSlot>(Row->AddChild(TextSizeBox));
-			if (TextSlot)
-			{
-				TextSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Left);
-				TextSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
-
-				// Non Fill totale: la SizeBox governa la larghezza del testo.
-				FSlateChildSize AutoSize;
-				AutoSize.SizeRule = ESlateSizeRule::Automatic;
-				TextSlot->SetSize(AutoSize);
-
-				TextSlot->SetPadding(FMargin(0.f, 0.f, TextToButtonsPadding, 0.f));
-			}
-		}
-
-		// ------------------------------------
-		// Action handler
-		// ------------------------------------
-		UTFItemActionHandler* Handler = NewObject<UTFItemActionHandler>(this);
-		if (!Handler)
-		{
-			ItemListContainer->AddChild(Row);
-			continue;
-		}
-
-		Handler->ItemID = Item.ItemID;
-		Handler->OwnerWidget = this;
-		ActionHandlers.Add(Handler);
-
-		// ------------------------------------
-		// 2) Pulsanti (Auto)
-		// ------------------------------------
-		UButton* ExamineButton = NewObject<UButton>(this);
-		if (ExamineButton)
-		{
-			UTextBlock* ExamineLabel = NewObject<UTextBlock>(this);
-			if (ExamineLabel)
-			{
-				ExamineLabel->SetText(FText::FromString(TEXT("Esamina")));
-				ExamineLabel->SetColorAndOpacity(FSlateColor(FLinearColor::White));
-				ExamineButton->AddChild(ExamineLabel);
-			}
-
-			ExamineButton->OnClicked.AddDynamic(Handler, &UTFItemActionHandler::OnExamineClicked);
-
-			if (UHorizontalBoxSlot* BtnSlot = Cast<UHorizontalBoxSlot>(Row->AddChild(ExamineButton)))
-			{
-				BtnSlot->SetPadding(FMargin(ButtonPadding, 0.f));
-				BtnSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
-
-				FSlateChildSize AutoSize;
-				AutoSize.SizeRule = ESlateSizeRule::Automatic;
-				BtnSlot->SetSize(AutoSize);
-			}
-		}
-
-		UButton* DiscardButton = NewObject<UButton>(this);
-		if (DiscardButton)
-		{
-			UTextBlock* DiscardLabel = NewObject<UTextBlock>(this);
-			if (DiscardLabel)
-			{
-				DiscardLabel->SetText(FText::FromString(TEXT("Scarta")));
-				DiscardLabel->SetColorAndOpacity(FSlateColor(FLinearColor::White));
-				DiscardButton->AddChild(DiscardLabel);
-			}
-
-			DiscardButton->OnClicked.AddDynamic(Handler, &UTFItemActionHandler::OnDiscardClicked);
-
-			if (UHorizontalBoxSlot* BtnSlot = Cast<UHorizontalBoxSlot>(Row->AddChild(DiscardButton)))
-			{
-				BtnSlot->SetPadding(FMargin(ButtonPadding, 0.f));
-				BtnSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
-
-				FSlateChildSize AutoSize;
-				AutoSize.SizeRule = ESlateSizeRule::Automatic;
-				BtnSlot->SetSize(AutoSize);
-			}
-		}
-
-		ItemListContainer->AddChild(Row);
+		ListItems.Add(ViewData);
+		ItemListView->AddItem(ViewData);
 	}
 }
 
@@ -333,13 +215,13 @@ void UTFInventoryWidget::UpdateWeightColor(float WeightPercent)
 
 void UTFInventoryWidget::OnItemAdded(const FItemData& Item)
 {
-	RebuildItemList();
+	PopulateListView();
 	UpdateSlotDisplay();
 }
 
 void UTFInventoryWidget::OnItemRemoved(FName ItemID, int32 Quantity)
 {
-	RebuildItemList();
+	PopulateListView();
 	UpdateSlotDisplay();
 }
 
@@ -393,7 +275,7 @@ void UTFInventoryWidget::RefreshDisplay()
 		return;
 	}
 
-	RebuildItemList();
+	PopulateListView();
 	RebuildKeychainList();
 	UpdateWeightDisplay(CachedInventoryComponent->GetCurrentWeight(), CachedInventoryComponent->GetBackpackWeightLimit());
 	UpdateSlotDisplay();

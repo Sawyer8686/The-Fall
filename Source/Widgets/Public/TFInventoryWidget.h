@@ -8,14 +8,11 @@
 #include "TFInventoryWidget.generated.h"
 
 class UTFInventoryComponent;
-class UTFItemActionHandler;
-
+class UTFInventoryItemViewData;
+class UListView;
 class UTextBlock;
 class UProgressBar;
 class UVerticalBox;
-class UHorizontalBox;
-class USizeBox;
-class UButton;
 
 UCLASS()
 class WIDGETS_API UTFInventoryWidget : public UUserWidget
@@ -27,7 +24,7 @@ protected:
 #pragma region Widget Bindings
 
 	UPROPERTY(meta = (BindWidget))
-	UVerticalBox* ItemListContainer;
+	UListView* ItemListView;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	UVerticalBox* KeychainContainer;
@@ -65,29 +62,13 @@ protected:
 
 #pragma endregion Visual Settings
 
-#pragma region Layout Settings
-
-	/** Larghezza massima che pu� occupare il testo item prima dei pulsanti */
-	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "50.0"))
-	float MaxItemTextWidth = 180.0f;
-
-	/** Spazio tra testo e bottoni */
-	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "0.0"))
-	float TextToButtonsPadding = 12.0f;
-
-	/** Padding dei bottoni */
-	UPROPERTY(EditAnywhere, Category = "Inventory|Layout", meta = (ClampMin = "0.0"))
-	float ButtonPadding = 4.0f;
-
-#pragma endregion Layout Settings
-
 private:
 
 	UPROPERTY()
 	UTFInventoryComponent* CachedInventoryComponent;
 
 	UPROPERTY()
-	TArray<UTFItemActionHandler*> ActionHandlers;
+	TArray<UTFInventoryItemViewData*> ListItems;
 
 	FName CurrentExaminedItemID = NAME_None;
 
@@ -97,7 +78,7 @@ protected:
 	virtual void NativeDestruct() override;
 
 	void InitializeInventoryComponent();
-	void RebuildItemList();
+	void PopulateListView();
 	void RebuildKeychainList();
 	void UpdateWeightDisplay(float CurrentWeight, float MaxWeight);
 	void UpdateSlotDisplay();
