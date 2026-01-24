@@ -3,6 +3,7 @@
 #include "TFBaseContainerActor.h"
 #include "TFTypes.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/ConfigCacheIni.h"
 
@@ -18,8 +19,6 @@ void ATFBaseContainerActor::BeginPlay()
 
 void ATFBaseContainerActor::LoadConfigFromINI()
 {
-	Super::LoadConfigFromINI();
-
 	const FString SectionName = InteractableID.ToString();
 	FString ConfigFilePath;
 
@@ -29,6 +28,26 @@ void ATFBaseContainerActor::LoadConfigFromINI()
 	}
 
 	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Loading container config for '%s'"), *SectionName);
+
+#pragma region Interaction Settings
+
+	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bCanInteract"), bCanInteract, ConfigFilePath);
+	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
+
+#pragma endregion Interaction Settings
+
+#pragma region Mesh Loading
+
+	if (UStaticMesh* LoadedMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("Mesh"), ConfigFilePath, LogTFContainer, TEXT("Mesh")))
+	{
+		if (MeshComponent)
+		{
+			MeshComponent->SetStaticMesh(LoadedMesh);
+		}
+	}
+
+#pragma endregion Mesh Loading
 
 #pragma region Container Settings
 
