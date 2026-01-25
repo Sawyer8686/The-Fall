@@ -13,11 +13,20 @@
 ATFPickupableActor::ATFPickupableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-		
+
 
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	AudioComponent->SetupAttachment(Root);
 	AudioComponent->bAutoActivate = false;
+
+	// Enable physics for pickable actors
+	if (MeshComponent)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		MeshComponent->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		MeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+		MeshComponent->SetSimulatePhysics(true);
+	}
 }
 
 void ATFPickupableActor::BeginPlay()
