@@ -45,7 +45,7 @@ protected:
 
 private:
 
-	ITFContainerInterface* CachedContainer;
+	ITFContainerInterface* CachedContainer = nullptr;
 
 	UPROPERTY()
 	UTFInventoryComponent* CachedInventoryComponent;

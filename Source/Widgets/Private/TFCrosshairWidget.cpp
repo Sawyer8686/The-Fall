@@ -65,7 +65,8 @@ void UTFCrosshairWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	// Update visibility
 	UpdateVisibility();
 
-	if (GetVisibility() == ESlateVisibility::Hidden)
+	// Skip processing if crosshair is hidden
+	if (CrosshairImage && CrosshairImage->GetVisibility() == ESlateVisibility::Hidden)
 	{
 		return;
 	}
@@ -209,18 +210,32 @@ void UTFCrosshairWidget::UpdateCrosshairVisuals(const FHitResult& HitResult, flo
 
 	if (IsInteractable(HitActor))
 	{
-		bIsAimingAtInteractable = true;
+		// Check if within interaction distance of this specific object
+		ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
+		float ObjectInteractionDistance = Interactable ? Interactable->GetInteractionDistance() : 200.0f;
 
-		if (CanInteract(HitActor))
+		if (HitResult.Distance <= ObjectInteractionDistance)
 		{
-			TargetColor = InteractableColor;
+			bIsAimingAtInteractable = true;
+
+			if (CanInteract(HitActor))
+			{
+				TargetColor = InteractableColor;
+			}
+			else
+			{
+				TargetColor = CannotInteractColor;
+			}
+
+			TargetSize = InteractableSize;
 		}
 		else
 		{
-			TargetColor = CannotInteractColor;
+			// Too far from this interactable
+			bIsAimingAtInteractable = false;
+			TargetColor = DefaultColor;
+			TargetSize = DefaultSize;
 		}
-
-		TargetSize = InteractableSize;
 	}
 	else
 	{
@@ -310,40 +325,35 @@ bool UTFCrosshairWidget::CanInteract(AActor* Actor) const
 
 void UTFCrosshairWidget::UpdateVisibility()
 {
-	if (!bHideWhenUIOpen)
-	{
-		// Always ensure visible if we're not managing visibility
-		if (GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
-		{
-			SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		}
-		return;
-	}
-
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	ATFPlayerController* TFPC = Cast<ATFPlayerController>(PC);
 
 	// Default to showing crosshair unless UI is explicitly blocking
 	bool bShouldHide = false;
 
-	if (TFPC)
+	if (bHideWhenUIOpen && TFPC)
 	{
-		bShouldHide = TFPC->IsUIBlockingInput();
+		// Only hide for inventory and container, NOT for confirm dialogs
+		bShouldHide = TFPC->IsInventoryOpen() || TFPC->IsContainerOpen();
 	}
 
-	if (bShouldHide)
+	// Control visibility through the CrosshairImage directly instead of the widget
+	// This keeps NativeTick running so we can detect when to show again
+	if (CrosshairImage)
 	{
-		if (GetVisibility() != ESlateVisibility::Hidden)
+		if (bShouldHide)
 		{
-			SetVisibility(ESlateVisibility::Hidden);
+			if (CrosshairImage->GetVisibility() != ESlateVisibility::Hidden)
+			{
+				CrosshairImage->SetVisibility(ESlateVisibility::Hidden);
+			}
 		}
-	}
-	else
-	{
-		// Use SelfHitTestInvisible so crosshair doesn't block mouse input
-		if (GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
+		else
 		{
-			SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			if (CrosshairImage->GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
+			{
+				CrosshairImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			}
 		}
 	}
 }
