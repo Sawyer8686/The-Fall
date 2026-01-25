@@ -3,6 +3,7 @@
 #include "TFBackpackIndicatorWidget.h"
 #include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.h"
+#include "TFPlayerController.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
@@ -24,14 +25,9 @@ void UTFBackpackIndicatorWidget::NativeDestruct()
 		CachedInventoryComponent = nullptr;
 	}
 
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (PlayerPawn)
+	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
 	{
-		ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
-		if (Character)
-		{
-			Character->OnInventoryToggled.RemoveAll(this);
-		}
+		PC->OnInventoryToggled.RemoveDynamic(this, &UTFBackpackIndicatorWidget::OnInventoryToggled);
 	}
 
 	Super::NativeDestruct();
@@ -60,7 +56,10 @@ void UTFBackpackIndicatorWidget::InitializeInventoryComponent()
 	CachedInventoryComponent->OnBackpackActivated.AddUObject(this, &UTFBackpackIndicatorWidget::OnBackpackActivated);
 	CachedInventoryComponent->OnBackpackDeactivated.AddUObject(this, &UTFBackpackIndicatorWidget::OnBackpackDeactivated);
 
-	Character->OnInventoryToggled.AddUObject(this, &UTFBackpackIndicatorWidget::OnInventoryToggled);
+	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+	{
+		PC->OnInventoryToggled.AddDynamic(this, &UTFBackpackIndicatorWidget::OnInventoryToggled);
+	}
 }
 
 void UTFBackpackIndicatorWidget::UpdateVisibility()

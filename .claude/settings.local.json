@@ -29,7 +29,11 @@
       "Bash(\"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat\" TFEditor Win64 Development -Project=\"C:/UnrealProjects/TF/TF.uproject\" -WaitMutex)",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\nul\")",
       "Bash(Get-Content \"C:\\\\UnrealProjects\\\\TF\\\\Saved\\\\Logs\\\\TF.log\" -Tail 100)",
-      "Bash(Select-String -Pattern \"error\" -CaseSensitive:$false)"
+      "Bash(Select-String -Pattern \"error\" -CaseSensitive:$false)",
+      "Bash(\"C:\\\\Program Files\\\\Epic Games\\\\UE_5.6\\\\Engine\\\\Build\\\\BatchFiles\\\\Build.bat\" TFEditor Win64 Development -Project=\"C:\\\\UnrealProjects\\\\TF\\\\TF.uproject\" -WaitMutex -FromMsBuild)",
+      "Bash(\"/c/Program Files/Epic Games/UE_5.6/Engine/Build/BatchFiles/Build.bat\" TFEditor Win64 Development -Project=\"C:/UnrealProjects/TF/TF.uproject\" -WaitMutex -FromMsBuild)",
+      "Bash(powershell.exe -Command \"& ''C:\\\\Program Files\\\\Epic Games\\\\UE_5.6\\\\Engine\\\\Build\\\\BatchFiles\\\\Build.bat'' TFEditor Win64 Development -Project=''C:\\\\UnrealProjects\\\\TF\\\\TF.uproject'' 2>&1\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem ''C:\\\\Program Files\\\\Epic Games\\\\'' | Select-Object Name\")"
     ]
   }
 }

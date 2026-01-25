@@ -29,9 +29,15 @@ public class Widgets : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine"
+				"Engine",
+				"TF"
             }
 			);
+
+		CircularlyReferencedDependentModules.Add("TF");
+
+		// Add TF include path for circular dependency
+		PrivateIncludePaths.Add(System.IO.Path.Combine(ModuleDirectory, "../TF"));
 
 	}
 }

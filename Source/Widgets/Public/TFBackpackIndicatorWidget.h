@@ -57,6 +57,8 @@ protected:
 	void UpdateVisibility();
 	void OnBackpackActivated();
 	void OnBackpackDeactivated();
+
+	UFUNCTION()
 	void OnInventoryToggled(bool bIsOpen);
 
 public:

@@ -7,14 +7,14 @@
 #include "TFLockProgressManager.generated.h"
 
 class UTFLockProgressWidget;
-class ATFPlayerCharacter;
+class ATFPlayerController;
 
 /**
  * Manager component that handles lock progress widget creation and binding
- * Add this component to the PlayerController or use it in a HUD class
+ * Attached to the PlayerController
  */
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class WIDGETS_API UTFLockProgressManager : public UActorComponent
+class TF_API UTFLockProgressManager : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -34,9 +34,9 @@ private:
 	UPROPERTY()
 	UTFLockProgressWidget* LockProgressWidget;
 
-	/** Cached player character reference */
+	/** Cached player controller reference */
 	UPROPERTY()
-	ATFPlayerCharacter* CachedPlayerCharacter;
+	ATFPlayerController* CachedPlayerController;
 
 protected:
 
@@ -46,16 +46,23 @@ protected:
 	/** Create the widget and add to viewport */
 	void CreateWidget();
 
-	/** Bind to player character delegates */
-	void BindToPlayerCharacter();
+	/** Bind to player controller delegates */
+	void BindToPlayerController();
 
-	/** Unbind from player character delegates */
-	void UnbindFromPlayerCharacter();
+	/** Unbind from player controller delegates */
+	void UnbindFromPlayerController();
 
 	/** Delegate handlers */
+	UFUNCTION()
 	void HandleLockActionStarted(float Duration, bool bIsUnlocking);
+
+	UFUNCTION()
 	void HandleLockActionProgress(float ElapsedTime);
+
+	UFUNCTION()
 	void HandleLockActionCompleted();
+
+	UFUNCTION()
 	void HandleLockActionCancelled();
 
 public:

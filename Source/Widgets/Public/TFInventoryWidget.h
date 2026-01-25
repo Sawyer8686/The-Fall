@@ -87,7 +87,10 @@ protected:
 	void OnItemAdded(const FItemData& Item);
 	void OnItemRemoved(FName ItemID);
 	void OnInventoryChanged(float CurrentWeight, float MaxWeight);
+
+	UFUNCTION()
 	void OnInventoryToggled(bool bIsOpen);
+
 	void OnKeyCollectionChanged();
 
 public:

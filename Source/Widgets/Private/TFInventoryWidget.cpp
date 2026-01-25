@@ -5,6 +5,7 @@
 
 #include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.h"
+#include "TFPlayerController.h"
 #include "TFStatsComponent.h"
 
 #include "Components/ListView.h"
@@ -34,12 +35,16 @@ void UTFInventoryWidget::NativeDestruct()
 		CachedInventoryComponent = nullptr;
 	}
 
+	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+	{
+		PC->OnInventoryToggled.RemoveDynamic(this, &UTFInventoryWidget::OnInventoryToggled);
+	}
+
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (PlayerPawn)
 	{
 		if (ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn))
 		{
-			Character->OnInventoryToggled.RemoveAll(this);
 			Character->OnKeyCollectionChanged.RemoveAll(this);
 		}
 	}
@@ -71,7 +76,11 @@ void UTFInventoryWidget::InitializeInventoryComponent()
 	CachedInventoryComponent->OnItemRemoved.AddUObject(this, &UTFInventoryWidget::OnItemRemoved);
 	CachedInventoryComponent->OnInventoryChanged.AddUObject(this, &UTFInventoryWidget::OnInventoryChanged);
 
-	Character->OnInventoryToggled.AddUObject(this, &UTFInventoryWidget::OnInventoryToggled);
+	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+	{
+		PC->OnInventoryToggled.AddDynamic(this, &UTFInventoryWidget::OnInventoryToggled);
+	}
+
 	Character->OnKeyCollectionChanged.AddUObject(this, &UTFInventoryWidget::OnKeyCollectionChanged);
 }
 

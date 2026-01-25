@@ -6,13 +6,9 @@
 #include "TFCharacterBase.h"
 #include "TFKeyHolderInterface.h"
 #include "TFInventoryHolderInterface.h"
-#include "Blueprint/UserWidget.h"
 #include "TFPlayerCharacter.generated.h"
 
 class UCameraComponent;
-class UInputMappingContext;
-class UInputAction;
-struct FInputActionValue;
 class UTFStaminaComponent;
 class UTFStatsComponent;
 class UTFInteractionComponent;
@@ -25,13 +21,8 @@ enum class ESprintBlockReason : uint8
 	NoStamina
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnBackpackEquipRequested, int32, float);
 DECLARE_MULTICAST_DELEGATE(FOnKeyCollectionChanged);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLockActionStarted, float, bool);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnLockActionProgress, float);
-DECLARE_MULTICAST_DELEGATE(FOnLockActionCompleted);
-DECLARE_MULTICAST_DELEGATE(FOnLockActionCancelled);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterBackpackEquipRequested, int32, float);
 
 UCLASS()
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface, public ITFInventoryHolderInterface
@@ -59,40 +50,6 @@ private:
 
 #pragma endregion Components
 
-#pragma region Input
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputMappingContext* DefaultMappingContext;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* MoveAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* JumpAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* SprintAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* SneakAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* InteractAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* LockAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* InventoryAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* DropBackpackAction;
-
-#pragma endregion Input
-
 #pragma region Movement & Sprint
 
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
@@ -117,24 +74,6 @@ private:
 #pragma endregion Camera Settings
 
 protected:
-
-#pragma region Input Handlers
-
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void SprintOn();
-	void SprintOff();
-	void SneakOn();
-	void SneakOff();
-	void PlayerJump();
-	void InteractPressed();
-	void LockPressed();
-	void LockReleased();
-	void CompleteLockAction();
-	void InventoryPressed();
-	void DropBackpackPressed();
-
-#pragma endregion Input Handlers
 
 #pragma region Sprint & Stamina
 
@@ -168,16 +107,53 @@ protected:
 
 public:
 
+	ATFPlayerCharacter();
+
 #pragma region Accessors
 
+	UFUNCTION(BlueprintCallable, Category = "Components")
 	UTFStaminaComponent* GetStaminaComponent() const { return StaminaComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Components")
 	UTFStatsComponent* GetStatsComponent() const { return StatsComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Components")
 	UTFInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Components")
 	UTFInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Camera")
 	UCameraComponent* GetFirstPersonCamera() const { return FirstPersonCamera; }
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsSprinting() const { return bIsSprinting; }
 
 #pragma endregion Accessors
+
+#pragma region Movement API (Called by PlayerController)
+
+	/** Start sprinting - called by PlayerController */
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StartSprinting();
+
+	/** Stop sprinting - called by PlayerController */
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StopSprinting();
+
+	/** Start sneaking - called by PlayerController */
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StartSneaking();
+
+	/** Stop sneaking - called by PlayerController */
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void StopSneaking();
+
+	/** Try to jump - called by PlayerController */
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void TryJump();
+
+#pragma endregion Movement API
 
 #pragma region Key Collection
 
@@ -189,6 +165,9 @@ protected:
 public:
 
 	FOnKeyCollectionChanged OnKeyCollectionChanged;
+
+	/** Called when backpack equip confirmation is requested */
+	FOnCharacterBackpackEquipRequested OnBackpackEquipRequested;
 
 	virtual bool HasKey(FName KeyID) const override;
 	virtual void AddKey(FName KeyID, const FText& KeyName = FText::GetEmpty()) override;
@@ -204,21 +183,6 @@ public:
 
 public:
 
-	FOnInventoryToggled OnInventoryToggled;
-	FOnBackpackEquipRequested OnBackpackEquipRequested;
-
-	/** Called when lock/unlock action starts. Params: Duration, bIsUnlocking */
-	FOnLockActionStarted OnLockActionStarted;
-
-	/** Called every tick during lock/unlock action. Param: ElapsedTime */
-	FOnLockActionProgress OnLockActionProgress;
-
-	/** Called when lock/unlock action completes successfully */
-	FOnLockActionCompleted OnLockActionCompleted;
-
-	/** Called when lock/unlock action is cancelled (key released early) */
-	FOnLockActionCancelled OnLockActionCancelled;
-
 	virtual bool HasBackpack() const override;
 	virtual bool ActivateBackpack(int32 Slots, float WeightLimit) override;
 	virtual void SetPendingBackpackActor(AActor* Actor) override;
@@ -230,37 +194,24 @@ public:
 	virtual int32 GetFreeSlots() const override;
 	virtual float GetRemainingCapacity() const override;
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool DropItem(FName ItemID);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool DropBackpack();
+
+	/** Confirm backpack equip - called by PlayerController */
 	void ConfirmBackpackEquip();
+
+	/** Cancel backpack equip - called by PlayerController */
 	void CancelBackpackEquip();
 
 private:
 
-	void SetUIInputMode(bool bShowCursor);
-
-private:
-
-	bool bInventoryOpen = false;
-	bool bConfirmDialogOpen = false;
-
-	FTimerHandle LockHoldTimerHandle;
-	FTimerHandle LockProgressTimerHandle;
-	TWeakObjectPtr<AActor> LockTarget;
-	float LockActionDuration = 0.0f;
-	float LockActionElapsedTime = 0.0f;
-	bool bIsUnlockingAction = true;
-
-	void UpdateLockProgress();
 	int32 PendingBackpackSlots = 0;
 	float PendingBackpackWeightLimit = 0.0f;
 	TWeakObjectPtr<AActor> PendingBackpackActor;
 	FItemData EquippedBackpackData;
 
 #pragma endregion Inventory
-
-public:
-
-	ATFPlayerCharacter();
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };
