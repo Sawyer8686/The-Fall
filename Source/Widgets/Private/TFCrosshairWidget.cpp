@@ -46,6 +46,9 @@ void UTFCrosshairWidget::NativeConstruct()
 		CurrentScreenPosition = ViewportSize * 0.5f;
 		TargetScreenPosition = CurrentScreenPosition;
 	}
+
+	// Ensure initial visibility (SelfHitTestInvisible so it doesn't block input)
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UTFCrosshairWidget::NativeDestruct()
@@ -309,13 +312,26 @@ void UTFCrosshairWidget::UpdateVisibility()
 {
 	if (!bHideWhenUIOpen)
 	{
+		// Always ensure visible if we're not managing visibility
+		if (GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
+		{
+			SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
 		return;
 	}
 
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	ATFPlayerController* TFPC = Cast<ATFPlayerController>(PC);
 
-	if (TFPC && TFPC->IsUIBlockingInput())
+	// Default to showing crosshair unless UI is explicitly blocking
+	bool bShouldHide = false;
+
+	if (TFPC)
+	{
+		bShouldHide = TFPC->IsUIBlockingInput();
+	}
+
+	if (bShouldHide)
 	{
 		if (GetVisibility() != ESlateVisibility::Hidden)
 		{
@@ -324,9 +340,10 @@ void UTFCrosshairWidget::UpdateVisibility()
 	}
 	else
 	{
-		if (GetVisibility() != ESlateVisibility::Visible)
+		// Use SelfHitTestInvisible so crosshair doesn't block mouse input
+		if (GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
 		{
-			SetVisibility(ESlateVisibility::Visible);
+			SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
 }
