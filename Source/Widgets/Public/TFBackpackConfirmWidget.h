@@ -38,4 +38,9 @@ private:
 
 	UFUNCTION()
 	void OnNoClicked();
+
+public:
+
+	/** Set the backpack info to display */
+	void SetBackpackInfo(int32 Slots, float WeightLimit);
 };

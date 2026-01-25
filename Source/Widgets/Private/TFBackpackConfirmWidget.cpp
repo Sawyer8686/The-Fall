@@ -1,7 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFBackpackConfirmWidget.h"
-#include "TFPlayerCharacter.h"
+#include "TFPlayerController.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
@@ -9,10 +9,6 @@
 void UTFBackpackConfirmWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	InitializeCharacter();
-
-	SetVisibility(ESlateVisibility::Hidden);
 
 	if (YesButton)
 	{
@@ -27,79 +23,41 @@ void UTFBackpackConfirmWidget::NativeConstruct()
 
 void UTFBackpackConfirmWidget::NativeDestruct()
 {
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (PlayerPawn)
-	{
-		if (ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn))
-		{
-			Character->OnBackpackEquipRequested.RemoveAll(this);
-		}
-	}
-
 	Super::NativeDestruct();
 }
 
 void UTFBackpackConfirmWidget::InitializeCharacter()
 {
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!PlayerPawn)
-	{
-		return;
-	}
-
-	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
-	if (!Character)
-	{
-		return;
-	}
-
-	Character->OnBackpackEquipRequested.AddUObject(this, &UTFBackpackConfirmWidget::OnBackpackEquipRequested);
+	// No longer needed - widget is managed by PlayerController
 }
 
 void UTFBackpackConfirmWidget::OnBackpackEquipRequested(int32 Slots, float WeightLimit)
 {
-	SetVisibility(ESlateVisibility::Visible);
+	SetBackpackInfo(Slots, WeightLimit);
+}
 
+void UTFBackpackConfirmWidget::SetBackpackInfo(int32 Slots, float WeightLimit)
+{
 	if (QuestionText)
 	{
-		QuestionText->SetText(FText::FromString(TEXT("Vuoi equipaggiare lo zaino?")));
+		QuestionText->SetText(FText::FromString(
+			FString::Printf(TEXT("Vuoi equipaggiare lo zaino?\n(%d slot, %.1f kg)"), Slots, WeightLimit)
+		));
 	}
 }
 
 void UTFBackpackConfirmWidget::OnYesClicked()
 {
-	SetVisibility(ESlateVisibility::Hidden);
-
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!PlayerPawn)
+	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
 	{
-		return;
+		PC->CloseBackpackConfirmDialog(true);
 	}
-
-	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
-	if (!Character)
-	{
-		return;
-	}
-
-	Character->ConfirmBackpackEquip();
 }
 
 void UTFBackpackConfirmWidget::OnNoClicked()
 {
-	SetVisibility(ESlateVisibility::Hidden);
-
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!PlayerPawn)
+	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
 	{
-		return;
+		PC->CloseBackpackConfirmDialog(false);
 	}
-
-	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
-	if (!Character)
-	{
-		return;
-	}
-
-	Character->CancelBackpackEquip();
 }

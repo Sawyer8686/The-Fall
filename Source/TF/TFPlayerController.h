@@ -11,6 +11,14 @@ class UTFLockProgressManager;
 class UInputMappingContext;
 class UInputAction;
 class ATFPlayerCharacter;
+class UTFStatsWidget;
+class UTFStaminaWidget;
+class UTFDayNightWidget;
+class UTFInventoryWidget;
+class UTFBackpackIndicatorWidget;
+class UTFBackpackConfirmWidget;
+class UTFContainerWidget;
+class ATFBaseContainerActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool, bIsOpen);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBackpackEquipRequested, int32, Slots, float, WeightLimit);
@@ -74,6 +82,60 @@ protected:
 
 #pragma endregion Input
 
+#pragma region Widget Classes
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFStatsWidget> StatsWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFStaminaWidget> StaminaWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFDayNightWidget> DayNightWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFInventoryWidget> InventoryWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFBackpackIndicatorWidget> BackpackIndicatorWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFBackpackConfirmWidget> BackpackConfirmWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFContainerWidget> ContainerWidgetClass;
+
+#pragma endregion Widget Classes
+
+#pragma region Widget Instances
+
+private:
+
+	UPROPERTY()
+	UTFStatsWidget* StatsWidget;
+
+	UPROPERTY()
+	UTFStaminaWidget* StaminaWidget;
+
+	UPROPERTY()
+	UTFDayNightWidget* DayNightWidget;
+
+	UPROPERTY()
+	UTFInventoryWidget* InventoryWidget;
+
+	UPROPERTY()
+	UTFBackpackIndicatorWidget* BackpackIndicatorWidget;
+
+	UPROPERTY()
+	UTFBackpackConfirmWidget* BackpackConfirmWidget;
+
+	UPROPERTY()
+	UTFContainerWidget* ContainerWidget;
+
+#pragma endregion Widget Instances
+
 #pragma region UI State
 
 protected:
@@ -83,6 +145,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	bool bConfirmDialogOpen = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	bool bContainerOpen = false;
 
 #pragma endregion UI State
 
@@ -106,11 +171,15 @@ private:
 	UPROPERTY()
 	TWeakObjectPtr<ATFPlayerCharacter> CachedPlayerCharacter;
 
+	UPROPERTY()
+	TWeakObjectPtr<ATFBaseContainerActor> CurrentContainer;
+
 #pragma endregion Cached References
 
 protected:
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	virtual void SetupInputComponent() override;
@@ -123,6 +192,19 @@ protected:
 
 	/** Handle backpack equip request from character */
 	void HandleBackpackEquipRequested(int32 Slots, float WeightLimit);
+
+#pragma region Widget Management
+
+	/** Create all HUD widgets */
+	void CreateHUDWidgets();
+
+	/** Destroy all HUD widgets */
+	void DestroyHUDWidgets();
+
+	/** Initialize widget bindings to character components */
+	void InitializeWidgetBindings();
+
+#pragma endregion Widget Management
 
 #pragma region Input Handlers
 
@@ -167,13 +249,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	bool IsConfirmDialogOpen() const { return bConfirmDialogOpen; }
 
+	/** Check if container is open */
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	bool IsContainerOpen() const { return bContainerOpen; }
+
 	/** Check if any UI is blocking gameplay input */
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	bool IsUIBlockingInput() const { return bInventoryOpen || bConfirmDialogOpen; }
+	bool IsUIBlockingInput() const { return bInventoryOpen || bConfirmDialogOpen || bContainerOpen; }
 
 	/** Get cached player character */
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	ATFPlayerCharacter* GetTFPlayerCharacter() const;
+
+	/** Get widget instances */
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFStatsWidget* GetStatsWidget() const { return StatsWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFStaminaWidget* GetStaminaWidget() const { return StaminaWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFDayNightWidget* GetDayNightWidget() const { return DayNightWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFInventoryWidget* GetInventoryWidget() const { return InventoryWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFBackpackIndicatorWidget* GetBackpackIndicatorWidget() const { return BackpackIndicatorWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFContainerWidget* GetContainerWidget() const { return ContainerWidget; }
 
 #pragma endregion Accessors
 
@@ -192,6 +297,14 @@ public:
 
 	/** Close backpack equip confirmation dialog */
 	void CloseBackpackConfirmDialog(bool bConfirmed);
+
+	/** Open container UI */
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void OpenContainer(ATFBaseContainerActor* Container);
+
+	/** Close container UI */
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void CloseContainer();
 
 #pragma endregion UI Control
 

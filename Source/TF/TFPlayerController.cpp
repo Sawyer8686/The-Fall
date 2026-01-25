@@ -5,9 +5,22 @@
 #include "TFPlayerCharacter.h"
 #include "TFInteractionComponent.h"
 #include "TFInventoryComponent.h"
+#include "TFStaminaComponent.h"
+#include "TFStatsComponent.h"
 #include "TFLockableInterface.h"
+#include "TFBaseContainerActor.h"
+#include "TFStatsWidget.h"
+#include "TFStaminaWidget.h"
+#include "TFDayNightWidget.h"
+#include "TFInventoryWidget.h"
+#include "TFBackpackIndicatorWidget.h"
+#include "TFBackpackConfirmWidget.h"
+#include "TFContainerWidget.h"
+#include "TFGameMode.h"
+#include "TFDayNightCycle.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
 
 ATFPlayerController::ATFPlayerController()
 {
@@ -26,6 +39,16 @@ void ATFPlayerController::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// Create HUD widgets
+	CreateHUDWidgets();
+}
+
+void ATFPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	DestroyHUDWidgets();
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATFPlayerController::OnPossess(APawn* InPawn)
@@ -38,6 +61,7 @@ void ATFPlayerController::OnPossess(APawn* InPawn)
 	if (NewCharacter)
 	{
 		BindToCharacter(NewCharacter);
+		InitializeWidgetBindings();
 	}
 }
 
@@ -77,6 +101,167 @@ void ATFPlayerController::HandleBackpackEquipRequested(int32 Slots, float Weight
 {
 	OpenBackpackConfirmDialog(Slots, WeightLimit);
 }
+
+#pragma region Widget Management
+
+void ATFPlayerController::CreateHUDWidgets()
+{
+	// Stats Widget (hunger/thirst)
+	if (StatsWidgetClass)
+	{
+		StatsWidget = CreateWidget<UTFStatsWidget>(this, StatsWidgetClass);
+		if (StatsWidget)
+		{
+			StatsWidget->AddToViewport(0);
+		}
+	}
+
+	// Stamina Widget
+	if (StaminaWidgetClass)
+	{
+		StaminaWidget = CreateWidget<UTFStaminaWidget>(this, StaminaWidgetClass);
+		if (StaminaWidget)
+		{
+			StaminaWidget->AddToViewport(0);
+		}
+	}
+
+	// Day/Night Widget
+	if (DayNightWidgetClass)
+	{
+		DayNightWidget = CreateWidget<UTFDayNightWidget>(this, DayNightWidgetClass);
+		if (DayNightWidget)
+		{
+			DayNightWidget->AddToViewport(0);
+
+			// Bind to DayNightCycle from GameMode
+			if (ATFGameMode* GM = Cast<ATFGameMode>(GetWorld()->GetAuthGameMode()))
+			{
+				if (ATFDayNightCycle* DayNightCycle = GM->GetDayNightCycle())
+				{
+					DayNightWidget->SetDayNightCycle(DayNightCycle);
+				}
+			}
+		}
+	}
+
+	// Inventory Widget (hidden by default)
+	if (InventoryWidgetClass)
+	{
+		InventoryWidget = CreateWidget<UTFInventoryWidget>(this, InventoryWidgetClass);
+		if (InventoryWidget)
+		{
+			InventoryWidget->AddToViewport(10);
+			InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	// Backpack Indicator Widget
+	if (BackpackIndicatorWidgetClass)
+	{
+		BackpackIndicatorWidget = CreateWidget<UTFBackpackIndicatorWidget>(this, BackpackIndicatorWidgetClass);
+		if (BackpackIndicatorWidget)
+		{
+			BackpackIndicatorWidget->AddToViewport(0);
+		}
+	}
+
+	// Backpack Confirm Widget (hidden by default)
+	if (BackpackConfirmWidgetClass)
+	{
+		BackpackConfirmWidget = CreateWidget<UTFBackpackConfirmWidget>(this, BackpackConfirmWidgetClass);
+		if (BackpackConfirmWidget)
+		{
+			BackpackConfirmWidget->AddToViewport(20);
+			BackpackConfirmWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	// Container Widget (hidden by default)
+	if (ContainerWidgetClass)
+	{
+		ContainerWidget = CreateWidget<UTFContainerWidget>(this, ContainerWidgetClass);
+		if (ContainerWidget)
+		{
+			ContainerWidget->AddToViewport(10);
+			ContainerWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void ATFPlayerController::DestroyHUDWidgets()
+{
+	auto RemoveWidget = [](UUserWidget* Widget)
+	{
+		if (Widget)
+		{
+			Widget->RemoveFromParent();
+		}
+	};
+
+	RemoveWidget(StatsWidget);
+	RemoveWidget(StaminaWidget);
+	RemoveWidget(DayNightWidget);
+	RemoveWidget(InventoryWidget);
+	RemoveWidget(BackpackIndicatorWidget);
+	RemoveWidget(BackpackConfirmWidget);
+	RemoveWidget(ContainerWidget);
+
+	StatsWidget = nullptr;
+	StaminaWidget = nullptr;
+	DayNightWidget = nullptr;
+	InventoryWidget = nullptr;
+	BackpackIndicatorWidget = nullptr;
+	BackpackConfirmWidget = nullptr;
+	ContainerWidget = nullptr;
+}
+
+void ATFPlayerController::InitializeWidgetBindings()
+{
+	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
+	if (!PlayerChar)
+	{
+		return;
+	}
+
+	// Bind Stats Widget to StatsComponent
+	if (StatsWidget)
+	{
+		if (UTFStatsComponent* StatsComp = PlayerChar->GetStatsComponent())
+		{
+			StatsWidget->SetStatsComponent(StatsComp);
+		}
+	}
+
+	// Bind Stamina Widget to StaminaComponent
+	if (StaminaWidget)
+	{
+		if (UTFStaminaComponent* StaminaComp = PlayerChar->GetStaminaComponent())
+		{
+			StaminaWidget->SetStaminaComponent(StaminaComp);
+		}
+	}
+
+	// Bind Inventory Widget to InventoryComponent
+	if (InventoryWidget)
+	{
+		if (UTFInventoryComponent* InventoryComp = PlayerChar->GetInventoryComponent())
+		{
+			InventoryWidget->SetInventoryComponent(InventoryComp);
+		}
+	}
+
+	// Bind Backpack Indicator to InventoryComponent
+	if (BackpackIndicatorWidget)
+	{
+		if (UTFInventoryComponent* InventoryComp = PlayerChar->GetInventoryComponent())
+		{
+			BackpackIndicatorWidget->SetInventoryComponent(InventoryComp);
+		}
+	}
+}
+
+#pragma endregion Widget Management
 
 void ATFPlayerController::SetupInputComponent()
 {
@@ -179,7 +364,7 @@ void ATFPlayerController::ToggleInventory()
 		return;
 	}
 
-	if (bConfirmDialogOpen)
+	if (bConfirmDialogOpen || bContainerOpen)
 	{
 		return;
 	}
@@ -189,6 +374,16 @@ void ATFPlayerController::ToggleInventory()
 	if (bInventoryOpen && PlayerChar->IsSprinting())
 	{
 		PlayerChar->StopSprinting();
+	}
+
+	// Show/hide inventory widget
+	if (InventoryWidget)
+	{
+		InventoryWidget->SetVisibility(bInventoryOpen ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		if (bInventoryOpen)
+		{
+			InventoryWidget->RefreshDisplay();
+		}
 	}
 
 	SetUIInputMode(bInventoryOpen);
@@ -210,6 +405,13 @@ void ATFPlayerController::OpenBackpackConfirmDialog(int32 Slots, float WeightLim
 		PlayerChar->StopSprinting();
 	}
 
+	// Show backpack confirm widget
+	if (BackpackConfirmWidget)
+	{
+		BackpackConfirmWidget->SetBackpackInfo(Slots, WeightLimit);
+		BackpackConfirmWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
 	SetUIInputMode(true);
 	OnBackpackEquipRequested.Broadcast(Slots, WeightLimit);
 }
@@ -217,6 +419,12 @@ void ATFPlayerController::OpenBackpackConfirmDialog(int32 Slots, float WeightLim
 void ATFPlayerController::CloseBackpackConfirmDialog(bool bConfirmed)
 {
 	bConfirmDialogOpen = false;
+
+	// Hide backpack confirm widget
+	if (BackpackConfirmWidget)
+	{
+		BackpackConfirmWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
 	if (PlayerChar)
@@ -229,6 +437,57 @@ void ATFPlayerController::CloseBackpackConfirmDialog(bool bConfirmed)
 		{
 			PlayerChar->CancelBackpackEquip();
 		}
+	}
+
+	SetUIInputMode(false);
+}
+
+void ATFPlayerController::OpenContainer(ATFBaseContainerActor* Container)
+{
+	if (!Container || bContainerOpen || bInventoryOpen || bConfirmDialogOpen)
+	{
+		return;
+	}
+
+	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
+	if (!PlayerChar)
+	{
+		return;
+	}
+
+	CurrentContainer = Container;
+	bContainerOpen = true;
+
+	if (PlayerChar->IsSprinting())
+	{
+		PlayerChar->StopSprinting();
+	}
+
+	// Show container widget
+	if (ContainerWidget)
+	{
+		ContainerWidget->SetContainerSource(Container);
+		ContainerWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	SetUIInputMode(true);
+}
+
+void ATFPlayerController::CloseContainer()
+{
+	if (!bContainerOpen)
+	{
+		return;
+	}
+
+	bContainerOpen = false;
+	CurrentContainer = nullptr;
+
+	// Hide container widget
+	if (ContainerWidget)
+	{
+		ContainerWidget->SetVisibility(ESlateVisibility::Hidden);
+		ContainerWidget->SetContainerSource(nullptr);
 	}
 
 	SetUIInputMode(false);
@@ -464,7 +723,7 @@ void ATFPlayerController::HandleInventory()
 
 void ATFPlayerController::HandleDropBackpack()
 {
-	if (bConfirmDialogOpen)
+	if (bConfirmDialogOpen || bContainerOpen)
 	{
 		return;
 	}
