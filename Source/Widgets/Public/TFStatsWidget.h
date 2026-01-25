@@ -126,6 +126,9 @@ private:
 	/** Timer for thirst pulse animation */
 	float ThirstPulseTimer = 0.0f;
 
+	/** Accumulator for retrying stats component lookup when the pawn is not yet possessed */
+	float StatsComponentRetryTimer = 0.0f;
+
 protected:
 
 	virtual void NativeConstruct() override;

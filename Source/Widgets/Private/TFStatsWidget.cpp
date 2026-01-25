@@ -13,7 +13,28 @@ void UTFStatsWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	// Initialize stats component
+	// Set bars to 100% immediately so they appear full from the first frame.
+	// StatsComponent initializes to Max; until we bind, this avoids showing empty bars.
+	if (HungerBar)
+	{
+		HungerBar->SetPercent(1.0f);
+		HungerBar->SetFillColorAndOpacity(HighHungerColor);
+	}
+	if (ThirstBar)
+	{
+		ThirstBar->SetPercent(1.0f);
+		ThirstBar->SetFillColorAndOpacity(HighThirstColor);
+	}
+	if (HungerText)
+	{
+		HungerText->SetText(FText::FromString(TEXT("100 / 100")));
+	}
+	if (ThirstText)
+	{
+		ThirstText->SetText(FText::FromString(TEXT("100 / 100")));
+	}
+
+	// Initialize stats component (may fail if pawn not yet possessed; retry runs in NativeTick)
 	InitializeStatsComponent();
 
 	// Hide warning icons initially
@@ -48,6 +69,13 @@ void UTFStatsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	if (!CachedStatsComponent)
 	{
+		// Pawn may not be possessed yet at NativeConstruct; retry with throttle until we can bind.
+		StatsComponentRetryTimer += InDeltaTime;
+		if (StatsComponentRetryTimer >= 0.2f)
+		{
+			StatsComponentRetryTimer = 0.0f;
+			InitializeStatsComponent();
+		}
 		return;
 	}
 
@@ -78,34 +106,55 @@ void UTFStatsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 void UTFStatsWidget::InitializeStatsComponent()
 {
-	// Get player character
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(World, 0);
 	if (!PlayerPawn)
 	{
 		return;
 	}
 
-	// Try to cast to TFPlayerCharacter
 	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
 	if (!Character)
 	{
 		return;
 	}
 
-	// Get stats component
-	CachedStatsComponent = Character->GetStatsComponent();
-	if (!CachedStatsComponent)
+	UTFStatsComponent* StatsComp = Character->GetStatsComponent();
+	if (!StatsComp)
 	{
 		return;
 	}
 
-	// Bind to events
+	// Already bound to this component; only refresh display (avoids double-bind if SetStatsComponent runs after).
+	if (CachedStatsComponent == StatsComp)
+	{
+		UpdateHungerBar(StatsComp->GetCurrentHunger(), StatsComp->GetMaxHunger());
+		UpdateThirstBar(StatsComp->GetCurrentThirst(), StatsComp->GetMaxThirst());
+		return;
+	}
+
+	// Unbind from previous component before binding to the new one
+	if (CachedStatsComponent)
+	{
+		CachedStatsComponent->OnHungerChanged.RemoveAll(this);
+		CachedStatsComponent->OnThirstChanged.RemoveAll(this);
+		CachedStatsComponent->OnStatDepleted.RemoveAll(this);
+		CachedStatsComponent->OnStatCritical.RemoveAll(this);
+		CachedStatsComponent = nullptr;
+	}
+
+	CachedStatsComponent = StatsComp;
+
 	CachedStatsComponent->OnHungerChanged.AddUObject(this, &UTFStatsWidget::OnHungerChanged);
 	CachedStatsComponent->OnThirstChanged.AddUObject(this, &UTFStatsWidget::OnThirstChanged);
 	CachedStatsComponent->OnStatDepleted.AddUObject(this, &UTFStatsWidget::OnStatDepleted);
 	CachedStatsComponent->OnStatCritical.AddUObject(this, &UTFStatsWidget::OnStatCritical);
 
-	// Initialize display
 	UpdateHungerBar(CachedStatsComponent->GetCurrentHunger(), CachedStatsComponent->GetMaxHunger());
 	UpdateThirstBar(CachedStatsComponent->GetCurrentThirst(), CachedStatsComponent->GetMaxThirst());
 }

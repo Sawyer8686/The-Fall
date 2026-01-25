@@ -187,6 +187,10 @@ void ATFPlayerController::CreateHUDWidgets()
 			ContainerWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+
+	// Bind widgets to character if the pawn is already possessed (e.g. before BeginPlay).
+	// If not yet possessed, InitializeWidgetBindings will no-op; OnPossess will call it again.
+	InitializeWidgetBindings();
 }
 
 void ATFPlayerController::DestroyHUDWidgets()
