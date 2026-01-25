@@ -17,6 +17,7 @@ class UTFStaminaComponent;
 class UTFStatsComponent;
 class UTFInteractionComponent;
 class UTFInventoryComponent;
+class UTFLockProgressWidget;
 
 UENUM()
 enum class ESprintBlockReason : uint8
@@ -28,6 +29,10 @@ enum class ESprintBlockReason : uint8
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnBackpackEquipRequested, int32, float);
 DECLARE_MULTICAST_DELEGATE(FOnKeyCollectionChanged);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLockActionStarted, float, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLockActionProgress, float);
+DECLARE_MULTICAST_DELEGATE(FOnLockActionCompleted);
+DECLARE_MULTICAST_DELEGATE(FOnLockActionCancelled);
 
 UCLASS()
 class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface, public ITFInventoryHolderInterface
@@ -203,6 +208,18 @@ public:
 	FOnInventoryToggled OnInventoryToggled;
 	FOnBackpackEquipRequested OnBackpackEquipRequested;
 
+	/** Called when lock/unlock action starts. Params: Duration, bIsUnlocking */
+	FOnLockActionStarted OnLockActionStarted;
+
+	/** Called every tick during lock/unlock action. Param: ElapsedTime */
+	FOnLockActionProgress OnLockActionProgress;
+
+	/** Called when lock/unlock action completes successfully */
+	FOnLockActionCompleted OnLockActionCompleted;
+
+	/** Called when lock/unlock action is cancelled (key released early) */
+	FOnLockActionCancelled OnLockActionCancelled;
+
 	virtual bool HasBackpack() const override;
 	virtual bool ActivateBackpack(int32 Slots, float WeightLimit) override;
 	virtual void SetPendingBackpackActor(AActor* Actor) override;
@@ -229,7 +246,31 @@ private:
 	bool bConfirmDialogOpen = false;
 
 	FTimerHandle LockHoldTimerHandle;
+	FTimerHandle LockProgressTimerHandle;
 	TWeakObjectPtr<AActor> LockTarget;
+	float LockActionDuration = 0.0f;
+	float LockActionElapsedTime = 0.0f;
+	bool bIsUnlockingAction = true;
+
+	void UpdateLockProgress();
+
+#pragma region Lock Progress Widget
+
+	/** Widget class for lock progress display */
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Lock")
+	TSubclassOf<UTFLockProgressWidget> LockProgressWidgetClass;
+
+	/** Active lock progress widget instance */
+	UPROPERTY()
+	UTFLockProgressWidget* LockProgressWidget;
+
+	void CreateLockProgressWidget();
+	void HandleLockActionStarted(float Duration, bool bIsUnlocking);
+	void HandleLockActionProgress(float ElapsedTime);
+	void HandleLockActionCompleted();
+	void HandleLockActionCancelled();
+
+#pragma endregion Lock Progress Widget
 	int32 PendingBackpackSlots = 0;
 	float PendingBackpackWeightLimit = 0.0f;
 	TWeakObjectPtr<AActor> PendingBackpackActor;
