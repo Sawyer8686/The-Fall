@@ -18,6 +18,7 @@ class UTFInventoryWidget;
 class UTFBackpackIndicatorWidget;
 class UTFBackpackConfirmWidget;
 class UTFContainerWidget;
+class UTFCrosshairWidget;
 class ATFBaseContainerActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool, bIsOpen);
@@ -107,6 +108,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
 	TSubclassOf<UTFContainerWidget> ContainerWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Widgets")
+	TSubclassOf<UTFCrosshairWidget> CrosshairWidgetClass;
+
 #pragma endregion Widget Classes
 
 #pragma region Widget Instances
@@ -133,6 +137,9 @@ private:
 
 	UPROPERTY()
 	UTFContainerWidget* ContainerWidget;
+
+	UPROPERTY()
+	UTFCrosshairWidget* CrosshairWidget;
 
 #pragma endregion Widget Instances
 
@@ -279,6 +286,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	UTFContainerWidget* GetContainerWidget() const { return ContainerWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	UTFCrosshairWidget* GetCrosshairWidget() const { return CrosshairWidget; }
 
 #pragma endregion Accessors
 

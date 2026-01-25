@@ -16,6 +16,7 @@
 #include "TFBackpackIndicatorWidget.h"
 #include "TFBackpackConfirmWidget.h"
 #include "TFContainerWidget.h"
+#include "TFCrosshairWidget.h"
 #include "TFGameMode.h"
 #include "TFDayNightCycle.h"
 #include "EnhancedInputComponent.h"
@@ -188,6 +189,16 @@ void ATFPlayerController::CreateHUDWidgets()
 		}
 	}
 
+	// Crosshair Widget
+	if (CrosshairWidgetClass)
+	{
+		CrosshairWidget = CreateWidget<UTFCrosshairWidget>(this, CrosshairWidgetClass);
+		if (CrosshairWidget)
+		{
+			CrosshairWidget->AddToViewport(5);
+		}
+	}
+
 	// Bind widgets to character if the pawn is already possessed (e.g. before BeginPlay).
 	// If not yet possessed, InitializeWidgetBindings will no-op; OnPossess will call it again.
 	InitializeWidgetBindings();
@@ -210,6 +221,7 @@ void ATFPlayerController::DestroyHUDWidgets()
 	RemoveWidget(BackpackIndicatorWidget);
 	RemoveWidget(BackpackConfirmWidget);
 	RemoveWidget(ContainerWidget);
+	RemoveWidget(CrosshairWidget);
 
 	StatsWidget = nullptr;
 	StaminaWidget = nullptr;
@@ -218,6 +230,7 @@ void ATFPlayerController::DestroyHUDWidgets()
 	BackpackIndicatorWidget = nullptr;
 	BackpackConfirmWidget = nullptr;
 	ContainerWidget = nullptr;
+	CrosshairWidget = nullptr;
 }
 
 void ATFPlayerController::InitializeWidgetBindings()
