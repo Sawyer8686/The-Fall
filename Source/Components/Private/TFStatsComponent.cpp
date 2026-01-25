@@ -7,6 +7,9 @@
 UTFStatsComponent::UTFStatsComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	CurrentHunger = MaxHunger;
+	CurrentThirst = MaxThirst;
 }
 
 void UTFStatsComponent::BeginPlay()
@@ -16,6 +19,12 @@ void UTFStatsComponent::BeginPlay()
 	// Initialize stats to max
 	CurrentHunger = MaxHunger;
 	CurrentThirst = MaxThirst;
+
+	OnHungerChanged.Broadcast(CurrentHunger, MaxHunger);
+	OnThirstChanged.Broadcast(CurrentThirst, MaxThirst);
+
+	UpdateHungerCriticalState();
+	UpdateThirstCriticalState();
 
 	// Start decay timers
 	StartDecayTimers();

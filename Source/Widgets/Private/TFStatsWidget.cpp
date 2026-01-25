@@ -13,27 +13,6 @@ void UTFStatsWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	// Set bars to 100% immediately so they appear full from the first frame.
-	// StatsComponent initializes to Max; until we bind, this avoids showing empty bars.
-	if (HungerBar)
-	{
-		HungerBar->SetPercent(1.0f);
-		HungerBar->SetFillColorAndOpacity(HighHungerColor);
-	}
-	if (ThirstBar)
-	{
-		ThirstBar->SetPercent(1.0f);
-		ThirstBar->SetFillColorAndOpacity(HighThirstColor);
-	}
-	if (HungerText)
-	{
-		HungerText->SetText(FText::FromString(TEXT("100 / 100")));
-	}
-	if (ThirstText)
-	{
-		ThirstText->SetText(FText::FromString(TEXT("100 / 100")));
-	}
-
 	// Initialize stats component (may fail if pawn not yet possessed; retry runs in NativeTick)
 	InitializeStatsComponent();
 
