@@ -19,4 +19,5 @@ public:
 
 	virtual bool ToggleLock(APawn* Character) { return false; }
 	virtual float GetLockDuration() const { return 0.0f; }
+	virtual bool IsCurrentlyLocked() const { return false; }
 };

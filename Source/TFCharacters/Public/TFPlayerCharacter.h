@@ -17,7 +17,6 @@ class UTFStaminaComponent;
 class UTFStatsComponent;
 class UTFInteractionComponent;
 class UTFInventoryComponent;
-class UTFLockProgressWidget;
 
 UENUM()
 enum class ESprintBlockReason : uint8
@@ -253,24 +252,6 @@ private:
 	bool bIsUnlockingAction = true;
 
 	void UpdateLockProgress();
-
-#pragma region Lock Progress Widget
-
-	/** Widget class for lock progress display */
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Lock")
-	TSubclassOf<UTFLockProgressWidget> LockProgressWidgetClass;
-
-	/** Active lock progress widget instance */
-	UPROPERTY()
-	UTFLockProgressWidget* LockProgressWidget;
-
-	void CreateLockProgressWidget();
-	void HandleLockActionStarted(float Duration, bool bIsUnlocking);
-	void HandleLockActionProgress(float ElapsedTime);
-	void HandleLockActionCompleted();
-	void HandleLockActionCancelled();
-
-#pragma endregion Lock Progress Widget
 	int32 PendingBackpackSlots = 0;
 	float PendingBackpackWeightLimit = 0.0f;
 	TWeakObjectPtr<AActor> PendingBackpackActor;

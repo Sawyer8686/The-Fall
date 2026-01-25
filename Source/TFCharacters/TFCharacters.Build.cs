@@ -28,7 +28,6 @@ public class TFCharacters : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"TFWorldActors",
-				"Widgets",
 				"UMG",
 				"Slate",
 				"SlateCore"

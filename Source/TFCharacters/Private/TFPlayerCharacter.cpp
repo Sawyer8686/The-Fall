@@ -13,8 +13,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "TFLockableInterface.h"
-#include "TFBaseDoorActor.h"
-#include "TFLockProgressWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -53,32 +51,11 @@ void ATFPlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	BindStaminaEvents();
-
-	// Bind lock action events and create widget
-	OnLockActionStarted.AddUObject(this, &ATFPlayerCharacter::HandleLockActionStarted);
-	OnLockActionProgress.AddUObject(this, &ATFPlayerCharacter::HandleLockActionProgress);
-	OnLockActionCompleted.AddUObject(this, &ATFPlayerCharacter::HandleLockActionCompleted);
-	OnLockActionCancelled.AddUObject(this, &ATFPlayerCharacter::HandleLockActionCancelled);
-
-	CreateLockProgressWidget();
 }
 
 void ATFPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	UnbindStaminaEvents();
-
-	// Unbind lock action events
-	OnLockActionStarted.RemoveAll(this);
-	OnLockActionProgress.RemoveAll(this);
-	OnLockActionCompleted.RemoveAll(this);
-	OnLockActionCancelled.RemoveAll(this);
-
-	// Clean up lock progress widget
-	if (LockProgressWidget)
-	{
-		LockProgressWidget->RemoveFromParent();
-		LockProgressWidget = nullptr;
-	}
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -447,14 +424,7 @@ void ATFPlayerCharacter::LockPressed()
 	}
 
 	// Determine if we're unlocking or locking
-	if (ATFBaseDoorActor* Door = Cast<ATFBaseDoorActor>(Target))
-	{
-		bIsUnlockingAction = Door->IsLocked();
-	}
-	else
-	{
-		bIsUnlockingAction = true;
-	}
+	bIsUnlockingAction = Lockable->IsCurrentlyLocked();
 
 	// Initialize progress tracking
 	LockActionDuration = Duration;
@@ -857,54 +827,3 @@ float ATFPlayerCharacter::GetRemainingCapacity() const
 	return InventoryComponent ? InventoryComponent->GetRemainingCapacity() : 0.0f;
 }
 
-void ATFPlayerCharacter::CreateLockProgressWidget()
-{
-	if (!LockProgressWidgetClass)
-	{
-		return;
-	}
-
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC)
-	{
-		return;
-	}
-
-	LockProgressWidget = CreateWidget<UTFLockProgressWidget>(PC, LockProgressWidgetClass);
-	if (LockProgressWidget)
-	{
-		LockProgressWidget->AddToViewport(5);
-	}
-}
-
-void ATFPlayerCharacter::HandleLockActionStarted(float Duration, bool bIsUnlocking)
-{
-	if (LockProgressWidget)
-	{
-		LockProgressWidget->StartProgress(Duration, bIsUnlocking);
-	}
-}
-
-void ATFPlayerCharacter::HandleLockActionProgress(float ElapsedTime)
-{
-	if (LockProgressWidget)
-	{
-		LockProgressWidget->UpdateProgress(ElapsedTime);
-	}
-}
-
-void ATFPlayerCharacter::HandleLockActionCompleted()
-{
-	if (LockProgressWidget)
-	{
-		LockProgressWidget->CompleteProgress();
-	}
-}
-
-void ATFPlayerCharacter::HandleLockActionCancelled()
-{
-	if (LockProgressWidget)
-	{
-		LockProgressWidget->CancelProgress();
-	}
-}

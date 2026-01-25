@@ -183,6 +183,7 @@ public:
 	virtual bool CloseDoor();
 	virtual bool ToggleLock(APawn* Character) override;
 	virtual float GetLockDuration() const override;
+	virtual bool IsCurrentlyLocked() const override { return bRequiresKey && bIsLocked; }
 	virtual bool ToggleDoor(APawn* TogglingCharacter);
 	virtual bool IsDoorLocked() const;
 	virtual bool UnlockDoor(APawn* UnlockingCharacter);
