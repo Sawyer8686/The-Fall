@@ -21,10 +21,8 @@ void UTFContainerWidget::NativeConstruct()
 
 	InitializeInventoryComponent();
 
-	if (FTFContainerContext::ActiveContainer)
-	{
-		SetContainerSource(FTFContainerContext::ActiveContainer);
-	}
+	// Container source is set via SetContainerSource() when OpenContainer() is called
+	// Do not use FTFContainerContext::ActiveContainer here as it may be invalid
 }
 
 void UTFContainerWidget::NativeDestruct()

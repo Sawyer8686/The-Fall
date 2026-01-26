@@ -7,7 +7,7 @@
 #include "TFContainerInterface.h"
 #include "TFBaseContainerActor.generated.h"
 
-class UUserWidget;
+class UTFContainerWidget;
 
 UCLASS()
 class TFWORLDACTORS_API ATFBaseContainerActor : public ATFInteractableActor, public ITFContainerInterface
@@ -36,10 +36,10 @@ protected:
 #pragma region Widget
 
 	UPROPERTY(EditAnywhere, Category = "Container|Widget")
-	TSubclassOf<UUserWidget> ContainerWidgetClass;
+	TSubclassOf<UTFContainerWidget> ContainerWidgetClass;
 
 	UPROPERTY()
-	UUserWidget* ActiveWidget;
+	UTFContainerWidget* ActiveWidget;
 
 #pragma endregion Widget
 

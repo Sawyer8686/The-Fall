@@ -2,7 +2,7 @@
 
 #include "TFBaseContainerActor.h"
 #include "TFTypes.h"
-#include "Blueprint/UserWidget.h"
+#include "TFContainerWidget.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/ConfigCacheIni.h"
@@ -84,15 +84,22 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 		return;
 	}
 
+	// Stop sprinting when opening container (using reflection to avoid circular dependency)
+	if (UFunction* StopSprintingFunc = InstigatorPawn->FindFunction(FName("StopSprinting")))
+	{
+		InstigatorPawn->ProcessEvent(StopSprintingFunc, nullptr);
+	}
+
 	FTFContainerContext::ActiveContainer = this;
 
-	ActiveWidget = CreateWidget<UUserWidget>(PC, ContainerWidgetClass);
+	ActiveWidget = CreateWidget<UTFContainerWidget>(PC, ContainerWidgetClass);
 	if (!ActiveWidget)
 	{
 		FTFContainerContext::ActiveContainer = nullptr;
 		return;
 	}
 
+	ActiveWidget->SetContainerSource(this);
 	ActiveWidget->AddToViewport(10);
 
 	PC->bShowMouseCursor = true;
