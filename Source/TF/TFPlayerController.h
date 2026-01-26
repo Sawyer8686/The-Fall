@@ -27,6 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLockActionStarted, float, Durati
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockActionProgress, float, ElapsedTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockActionCompleted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockActionCancelled);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockActionKeyBroken);
 
 /**
  * TF Player Controller
@@ -164,6 +165,7 @@ private:
 
 	FTimerHandle LockHoldTimerHandle;
 	FTimerHandle LockProgressTimerHandle;
+	FTimerHandle KeyBreakTimerHandle;
 	TWeakObjectPtr<AActor> LockTarget;
 	float LockActionDuration = 0.0f;
 	float LockActionElapsedTime = 0.0f;
@@ -235,6 +237,8 @@ protected:
 
 	void UpdateLockProgress();
 	void CompleteLockAction();
+	void HandleKeyBreak();
+	void CancelLockAction();
 
 #pragma endregion Lock Action
 
@@ -345,6 +349,10 @@ public:
 	/** Called when lock/unlock action is cancelled */
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnLockActionCancelled OnLockActionCancelled;
+
+	/** Called when key breaks during unlock attempt */
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnLockActionKeyBroken OnLockActionKeyBroken;
 
 #pragma endregion Delegates
 };

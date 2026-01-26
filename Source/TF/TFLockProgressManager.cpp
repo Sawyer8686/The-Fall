@@ -64,6 +64,7 @@ void UTFLockProgressManager::BindToPlayerController()
 	CachedPlayerController->OnLockActionProgress.AddDynamic(this, &UTFLockProgressManager::HandleLockActionProgress);
 	CachedPlayerController->OnLockActionCompleted.AddDynamic(this, &UTFLockProgressManager::HandleLockActionCompleted);
 	CachedPlayerController->OnLockActionCancelled.AddDynamic(this, &UTFLockProgressManager::HandleLockActionCancelled);
+	CachedPlayerController->OnLockActionKeyBroken.AddDynamic(this, &UTFLockProgressManager::HandleLockActionKeyBroken);
 }
 
 void UTFLockProgressManager::UnbindFromPlayerController()
@@ -77,6 +78,7 @@ void UTFLockProgressManager::UnbindFromPlayerController()
 	CachedPlayerController->OnLockActionProgress.RemoveDynamic(this, &UTFLockProgressManager::HandleLockActionProgress);
 	CachedPlayerController->OnLockActionCompleted.RemoveDynamic(this, &UTFLockProgressManager::HandleLockActionCompleted);
 	CachedPlayerController->OnLockActionCancelled.RemoveDynamic(this, &UTFLockProgressManager::HandleLockActionCancelled);
+	CachedPlayerController->OnLockActionKeyBroken.RemoveDynamic(this, &UTFLockProgressManager::HandleLockActionKeyBroken);
 
 	CachedPlayerController = nullptr;
 }
@@ -110,5 +112,13 @@ void UTFLockProgressManager::HandleLockActionCancelled()
 	if (LockProgressWidget)
 	{
 		LockProgressWidget->CancelProgress();
+	}
+}
+
+void UTFLockProgressManager::HandleLockActionKeyBroken()
+{
+	if (LockProgressWidget)
+	{
+		LockProgressWidget->KeyBrokenProgress();
 	}
 }

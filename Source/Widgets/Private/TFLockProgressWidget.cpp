@@ -95,6 +95,32 @@ void UTFLockProgressWidget::CancelProgress()
 	OnLockProgressCancelled.Broadcast();
 }
 
+void UTFLockProgressWidget::KeyBrokenProgress()
+{
+	if (!bIsActive)
+	{
+		return;
+	}
+
+	// Change color to broken key color
+	if (LockProgressBar)
+	{
+		LockProgressBar->SetFillColorAndOpacity(KeyBrokenColor);
+	}
+
+	// Change text to key broken
+	if (ActionText)
+	{
+		ActionText->SetText(KeyBrokenText);
+	}
+
+	// Start fade out
+	TargetFadeAlpha = 0.0f;
+	bIsActive = false;
+
+	OnLockProgressKeyBroken.Broadcast();
+}
+
 float UTFLockProgressWidget::GetProgressPercent() const
 {
 	if (TotalDuration <= 0.0f)

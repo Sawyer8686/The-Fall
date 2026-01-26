@@ -517,6 +517,33 @@ bool ATFBaseDoorActor::TryBreakKey(APawn* Character)
 		return false;
 	}
 
+	ForceKeyBreak(Character);
+	return true;
+}
+
+float ATFBaseDoorActor::CalculateKeyBreakTime() const
+{
+	if (!bKeyCanBreak || KeyBreakChance <= 0.0f || !bIsLocked)
+	{
+		return -1.0f;
+	}
+
+	const float RandomValue = FMath::FRand();
+	if (RandomValue > KeyBreakChance)
+	{
+		return -1.0f;
+	}
+
+	// Key will break at a random point between 30% and 90% of unlock duration
+	const float MinBreakPercent = 0.3f;
+	const float MaxBreakPercent = 0.9f;
+	const float BreakPercent = FMath::FRandRange(MinBreakPercent, MaxBreakPercent);
+
+	return UnlockDuration * BreakPercent;
+}
+
+void ATFBaseDoorActor::ForceKeyBreak(APawn* Character)
+{
 	UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Key '%s' broke while attempting to unlock door!"), *RequiredKeyID.ToString());
 
 	PlayDoorSound(KeyBreakSound);
@@ -531,8 +558,6 @@ bool ATFBaseDoorActor::TryBreakKey(APawn* Character)
 	}
 
 	OnKeyBroken(Character);
-
-	return true;
 }
 
 bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
@@ -548,11 +573,6 @@ bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
 	}
 
 	if (!bIsLocked)
-	{
-		return false;
-	}
-
-	if (TryBreakKey(UnlockingCharacter))
 	{
 		return false;
 	}
@@ -631,19 +651,34 @@ float ATFBaseDoorActor::GetLockDuration() const
 	return bIsLocked ? UnlockDuration : LockDuration;
 }
 
-bool ATFBaseDoorActor::ToggleLock(APawn* Character)
+bool ATFBaseDoorActor::CanToggleLock(APawn* Character) const
 {
-	if (!bRequiresKey)
-	{
-		return false;
-	}
-
-	if (!Character)
+	if (!bRequiresKey || !Character)
 	{
 		return false;
 	}
 
 	if (!IsClosed() || IsMoving())
+	{
+		return false;
+	}
+
+	if (!CharacterHasKey(Character))
+	{
+		return false;
+	}
+
+	if (bIsLocked)
+	{
+		return true;
+	}
+
+	return bCanRelock;
+}
+
+bool ATFBaseDoorActor::ToggleLock(APawn* Character)
+{
+	if (!CanToggleLock(Character))
 	{
 		return false;
 	}
@@ -654,6 +689,4 @@ bool ATFBaseDoorActor::ToggleLock(APawn* Character)
 	}
 
 	return LockDoor(Character);
-
-	
 }

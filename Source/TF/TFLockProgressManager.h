@@ -65,6 +65,9 @@ protected:
 	UFUNCTION()
 	void HandleLockActionCancelled();
 
+	UFUNCTION()
+	void HandleLockActionKeyBroken();
+
 public:
 
 	UTFLockProgressManager();

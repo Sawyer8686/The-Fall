@@ -12,6 +12,7 @@ class UImage;
 
 DECLARE_MULTICAST_DELEGATE(FOnLockProgressComplete);
 DECLARE_MULTICAST_DELEGATE(FOnLockProgressCancelled);
+DECLARE_MULTICAST_DELEGATE(FOnLockProgressKeyBroken);
 
 /**
  * Lock/Unlock Progress Widget
@@ -62,6 +63,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Lock|Text")
 	FText LockingText = FText::FromString(TEXT("Locking..."));
 
+	/** Text to display when key breaks */
+	UPROPERTY(EditAnywhere, Category = "Lock|Text")
+	FText KeyBrokenText = FText::FromString(TEXT("Key Broken!"));
+
+	/** Color when key breaks */
+	UPROPERTY(EditAnywhere, Category = "Lock|Colors")
+	FLinearColor KeyBrokenColor = FLinearColor(1.0f, 0.3f, 0.0f, 1.0f);
+
 	/** Fade in/out duration */
 	UPROPERTY(EditAnywhere, Category = "Lock|Animation", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float FadeDuration = 0.15f;
@@ -106,6 +115,7 @@ public:
 
 	FOnLockProgressComplete OnLockProgressComplete;
 	FOnLockProgressCancelled OnLockProgressCancelled;
+	FOnLockProgressKeyBroken OnLockProgressKeyBroken;
 
 	/**
 	 * Start showing lock/unlock progress
@@ -133,6 +143,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Lock Progress")
 	void CancelProgress();
+
+	/**
+	 * Key broken during unlock attempt (shows broken key feedback)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Lock Progress")
+	void KeyBrokenProgress();
 
 	/**
 	 * Get current progress percentage (0.0 - 1.0)

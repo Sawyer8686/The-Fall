@@ -680,6 +680,11 @@ void ATFPlayerController::HandleLockStarted()
 		return;
 	}
 
+	if (!Lockable->CanToggleLock(PlayerChar))
+	{
+		return;
+	}
+
 	float Duration = Lockable->GetLockDuration();
 	LockTarget = Target;
 
@@ -712,20 +717,45 @@ void ATFPlayerController::HandleLockStarted()
 			0.016f,
 			true
 		);
+
+		// Check if key will break during unlock
+		if (bIsUnlockingAction)
+		{
+			const float KeyBreakTime = Lockable->CalculateKeyBreakTime();
+			if (KeyBreakTime > 0.0f)
+			{
+				World->GetTimerManager().SetTimer(
+					KeyBreakTimerHandle,
+					this,
+					&ATFPlayerController::HandleKeyBreak,
+					KeyBreakTime,
+					false
+				);
+			}
+		}
 	}
 }
 
 void ATFPlayerController::HandleLockCompleted()
 {
+	if (LockTarget.IsValid() && LockActionDuration > 0.0f)
+	{
+		CancelLockAction();
+		OnLockActionCancelled.Broadcast();
+	}
+	else
+	{
+		CancelLockAction();
+	}
+}
+
+void ATFPlayerController::CancelLockAction()
+{
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(LockHoldTimerHandle);
 		World->GetTimerManager().ClearTimer(LockProgressTimerHandle);
-	}
-
-	if (LockTarget.IsValid() && LockActionDuration > 0.0f)
-	{
-		OnLockActionCancelled.Broadcast();
+		World->GetTimerManager().ClearTimer(KeyBreakTimerHandle);
 	}
 
 	LockTarget = nullptr;
@@ -774,11 +804,29 @@ void ATFPlayerController::UpdateLockProgress()
 	OnLockActionProgress.Broadcast(LockActionElapsedTime);
 }
 
+void ATFPlayerController::HandleKeyBreak()
+{
+	if (!LockTarget.IsValid())
+	{
+		return;
+	}
+
+	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
+	if (ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(LockTarget.Get()))
+	{
+		Lockable->ForceKeyBreak(PlayerChar);
+	}
+
+	CancelLockAction();
+	OnLockActionKeyBroken.Broadcast();
+}
+
 void ATFPlayerController::CompleteLockAction()
 {
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(LockProgressTimerHandle);
+		World->GetTimerManager().ClearTimer(KeyBreakTimerHandle);
 	}
 
 	if (!LockTarget.IsValid())
