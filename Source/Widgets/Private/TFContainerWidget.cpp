@@ -20,12 +20,6 @@ void UTFContainerWidget::NativeConstruct()
 	}
 
 	InitializeInventoryComponent();
-
-	// Initialize container from static context (set by the actor before widget creation)
-	if (FTFContainerContext::ActiveContainer)
-	{
-		SetContainerSource(FTFContainerContext::ActiveContainer);
-	}
 }
 
 void UTFContainerWidget::NativeDestruct()
@@ -68,7 +62,8 @@ void UTFContainerWidget::InitializeInventoryComponent()
 
 void UTFContainerWidget::SetContainerSource(ITFContainerInterface* Container)
 {
-	if (CachedContainer)
+	// Safely unbind from previous container
+	if (CachedContainer && CachedContainer != Container)
 	{
 		CachedContainer->GetOnContainerChanged().RemoveAll(this);
 	}
@@ -82,6 +77,13 @@ void UTFContainerWidget::SetContainerSource(ITFContainerInterface* Container)
 		if (ContainerNameText)
 		{
 			ContainerNameText->SetText(CachedContainer->GetContainerName());
+		}
+	}
+	else
+	{
+		if (ContainerNameText)
+		{
+			ContainerNameText->SetText(FText::GetEmpty());
 		}
 	}
 
