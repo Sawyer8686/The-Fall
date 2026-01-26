@@ -120,6 +120,11 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 	UnlockDuration = FMath::Clamp(UnlockDuration, 0.0f, 10.0f);
 	LockDuration = FMath::Clamp(LockDuration, 0.0f, 10.0f);
 
+	GConfig->GetBool(*SectionName, TEXT("bKeyCanBreak"), bKeyCanBreak, ConfigFilePath);
+	GConfig->GetFloat(*SectionName, TEXT("KeyBreakChance"), KeyBreakChance, ConfigFilePath);
+	GConfig->GetBool(*SectionName, TEXT("bRemoveKeyOnBreak"), bRemoveKeyOnBreak, ConfigFilePath);
+	KeyBreakChance = FMath::Clamp(KeyBreakChance, 0.0f, 1.0f);
+
 #pragma endregion Key Settings
 
 #pragma region Mesh Loading
@@ -144,6 +149,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 	DoorMovementSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorMovementSound"), ConfigFilePath, LogTFDoor, TEXT("DoorMovementSound"));
 	DoorUnlockSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorUnlockSound"), ConfigFilePath, LogTFDoor, TEXT("DoorUnlockSound"));
 	DoorLockSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorLockSound"), ConfigFilePath, LogTFDoor, TEXT("DoorLockSound"));
+	KeyBreakSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("KeyBreakSound"), ConfigFilePath, LogTFDoor, TEXT("KeyBreakSound"));
 
 #pragma endregion Audio Loading
 
@@ -498,6 +504,37 @@ bool ATFBaseDoorActor::IsDoorLocked() const
 	return bRequiresKey && bIsLocked;
 }
 
+bool ATFBaseDoorActor::TryBreakKey(APawn* Character)
+{
+	if (!bKeyCanBreak || KeyBreakChance <= 0.0f)
+	{
+		return false;
+	}
+
+	const float RandomValue = FMath::FRand();
+	if (RandomValue > KeyBreakChance)
+	{
+		return false;
+	}
+
+	UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Key '%s' broke while attempting to unlock door!"), *RequiredKeyID.ToString());
+
+	PlayDoorSound(KeyBreakSound);
+
+	if (bRemoveKeyOnBreak && Character)
+	{
+		if (ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Character))
+		{
+			KeyHolder->RemoveKey(RequiredKeyID);
+			UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Broken key '%s' removed from player inventory"), *RequiredKeyID.ToString());
+		}
+	}
+
+	OnKeyBroken(Character);
+
+	return true;
+}
+
 bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
 {
 	if (!bRequiresKey)
@@ -511,6 +548,11 @@ bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
 	}
 
 	if (!bIsLocked)
+	{
+		return false;
+	}
+
+	if (TryBreakKey(UnlockingCharacter))
 	{
 		return false;
 	}

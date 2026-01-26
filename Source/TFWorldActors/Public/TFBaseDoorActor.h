@@ -109,6 +109,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bCanRelock", ClampMin = "0.0", ClampMax = "10.0"))
 	float LockDuration = 1.5f;
 
+	/** If true, the key can break during unlock attempt */
+	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
+	bool bKeyCanBreak = false;
+
+	/** Chance for the key to break during unlock (0.0 = never, 1.0 = always) */
+	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bKeyCanBreak", ClampMin = "0.0", ClampMax = "1.0"))
+	float KeyBreakChance = 0.1f;
+
+	/** If true, remove the key from the player's inventory when it breaks */
+	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bKeyCanBreak"))
+	bool bRemoveKeyOnBreak = true;
+
 #pragma endregion Key Settings
 
 #pragma region Animation
@@ -144,6 +156,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey"))
 	USoundBase* DoorLockSound;
 
+	UPROPERTY(EditAnywhere, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey && bKeyCanBreak"))
+	USoundBase* KeyBreakSound;
+
 #pragma endregion Audio
 
 	virtual void BeginPlay() override;
@@ -164,6 +179,9 @@ protected:
 	void StopDoorMovementSound();
 	void AutoCloseDoor();
 	bool IsPlayerOnCorrectSide(const FVector& PlayerLocation) const;
+
+	/** Attempts to break the key. Returns true if the key broke */
+	bool TryBreakKey(APawn* Character);
 
 public:
 
@@ -202,6 +220,7 @@ public:
 	virtual void OnDoorUnlocked(APawn* UnlockingCharacter) {}
 	virtual void OnDoorRelocked(APawn* LockingCharacter) {}
 	virtual void OnKeyRequired(APawn* AttemptingCharacter) {}
+	virtual void OnKeyBroken(APawn* AttemptingCharacter) {}
 
 #pragma endregion Events
 
