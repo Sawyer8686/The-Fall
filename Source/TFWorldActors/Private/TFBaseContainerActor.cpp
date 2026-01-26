@@ -2,7 +2,7 @@
 
 #include "TFBaseContainerActor.h"
 #include "TFTypes.h"
-#include "TFContainerWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/ConfigCacheIni.h"
@@ -92,14 +92,13 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 
 	FTFContainerContext::ActiveContainer = this;
 
-	ActiveWidget = CreateWidget<UTFContainerWidget>(PC, ContainerWidgetClass);
+	ActiveWidget = CreateWidget<UUserWidget>(PC, ContainerWidgetClass);
 	if (!ActiveWidget)
 	{
 		FTFContainerContext::ActiveContainer = nullptr;
 		return;
 	}
 
-	ActiveWidget->SetContainerSource(this);
 	ActiveWidget->AddToViewport(10);
 
 	PC->bShowMouseCursor = true;

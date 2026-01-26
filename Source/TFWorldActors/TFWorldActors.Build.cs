@@ -23,8 +23,7 @@ public class TFWorldActors : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"UMG",
-				"Widgets"
+				"UMG"
 			}
 			);
 

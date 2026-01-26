@@ -21,8 +21,11 @@ void UTFContainerWidget::NativeConstruct()
 
 	InitializeInventoryComponent();
 
-	// Container source is set via SetContainerSource() when OpenContainer() is called
-	// Do not use FTFContainerContext::ActiveContainer here as it may be invalid
+	// Initialize container from static context (set by the actor before widget creation)
+	if (FTFContainerContext::ActiveContainer)
+	{
+		SetContainerSource(FTFContainerContext::ActiveContainer);
+	}
 }
 
 void UTFContainerWidget::NativeDestruct()
