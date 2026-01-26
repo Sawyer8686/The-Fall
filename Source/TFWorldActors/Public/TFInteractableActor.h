@@ -41,7 +41,7 @@ protected:
 #pragma region Interaction Settings
 
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides, ClampMin = "50.0", ClampMax = "1000.0"))
-	float MaxInteractionDistance = 200.0f;
+	float MaxInteractionDistance = 500.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides))
 	bool bCanInteract = true;

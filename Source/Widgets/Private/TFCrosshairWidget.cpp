@@ -8,6 +8,7 @@
 #include "Components/Image.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -30,6 +31,12 @@ void UTFCrosshairWidget::NativeConstruct()
 	if (CrosshairImage && CrosshairCanvas)
 	{
 		CrosshairSlot = Cast<UCanvasPanelSlot>(CrosshairImage->Slot);
+		if (CrosshairSlot)
+		{
+			// Set anchor to center and alignment to center for proper centering
+			CrosshairSlot->SetAnchors(FAnchors(0.5f, 0.5f, 0.5f, 0.5f));
+			CrosshairSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+		}
 	}
 
 	// Set initial size
@@ -38,14 +45,9 @@ void UTFCrosshairWidget::NativeConstruct()
 		CrosshairImage->SetDesiredSizeOverride(CurrentSize);
 	}
 
-	// Initialize position to screen center
-	if (GEngine && GEngine->GameViewport)
-	{
-		FVector2D ViewportSize;
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
-		CurrentScreenPosition = ViewportSize * 0.5f;
-		TargetScreenPosition = CurrentScreenPosition;
-	}
+	// Initialize position to center (0,0 offset from anchor at center)
+	CurrentScreenPosition = FVector2D::ZeroVector;
+	TargetScreenPosition = FVector2D::ZeroVector;
 
 	// Ensure initial visibility (SelfHitTestInvisible so it doesn't block input)
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -180,7 +182,22 @@ void UTFCrosshairWidget::UpdateCrosshairPosition(const FHitResult& HitResult, fl
 	FVector2D ScreenPosition;
 	if (PC->ProjectWorldLocationToScreen(HitResult.ImpactPoint, ScreenPosition, true))
 	{
-		TargetScreenPosition = ScreenPosition;
+		// Convert to offset from screen center
+		if (GEngine && GEngine->GameViewport)
+		{
+			FVector2D ViewportSize;
+			GEngine->GameViewport->GetViewportSize(ViewportSize);
+			FVector2D ScreenCenter = ViewportSize * 0.5f;
+
+			// Calculate offset from center, then convert to Slate units
+			FVector2D Offset = ScreenPosition - ScreenCenter;
+			const float ViewportScale = GEngine->GameViewport->GetDPIScale();
+			if (ViewportScale > 0.0f)
+			{
+				Offset /= ViewportScale;
+			}
+			TargetScreenPosition = Offset;
+		}
 	}
 }
 
@@ -199,7 +216,22 @@ void UTFCrosshairWidget::UpdateCrosshairPositionNoHit(float DeltaTime)
 		FVector2D ScreenPosition;
 		if (PC->ProjectWorldLocationToScreen(TraceEnd, ScreenPosition, true))
 		{
-			TargetScreenPosition = ScreenPosition;
+			// Convert to offset from screen center
+			if (GEngine && GEngine->GameViewport)
+			{
+				FVector2D ViewportSize;
+				GEngine->GameViewport->GetViewportSize(ViewportSize);
+				FVector2D ScreenCenter = ViewportSize * 0.5f;
+
+				// Calculate offset from center, then convert to Slate units
+				FVector2D Offset = ScreenPosition - ScreenCenter;
+				const float ViewportScale = GEngine->GameViewport->GetDPIScale();
+				if (ViewportScale > 0.0f)
+				{
+					Offset /= ViewportScale;
+				}
+				TargetScreenPosition = Offset;
+			}
 		}
 	}
 }
@@ -214,7 +246,19 @@ void UTFCrosshairWidget::UpdateCrosshairVisuals(const FHitResult& HitResult, flo
 		ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
 		float ObjectInteractionDistance = Interactable ? Interactable->GetInteractionDistance() : 200.0f;
 
-		if (HitResult.Distance <= ObjectInteractionDistance)
+		// Calculate distance from player character to hit point (same as interaction component)
+		float DistanceToObject = HitResult.Distance;
+		if (CachedPlayerCharacter.IsValid())
+		{
+			// Use distance from character's head socket to match TFInteractionComponent behavior
+			if (USkeletalMeshComponent* MeshComp = CachedPlayerCharacter->GetMesh())
+			{
+				FVector HeadLocation = MeshComp->GetSocketLocation(TEXT("head"));
+				DistanceToObject = FVector::Dist(HeadLocation, HitResult.ImpactPoint);
+			}
+		}
+
+		if (DistanceToObject <= ObjectInteractionDistance)
 		{
 			bIsAimingAtInteractable = true;
 
@@ -286,9 +330,8 @@ void UTFCrosshairWidget::ApplyCrosshairProperties()
 		return;
 	}
 
-	// Apply position (offset by half size to center the crosshair)
-	FVector2D CenteredPosition = CurrentScreenPosition - (CurrentSize * 0.5f);
-	CrosshairSlot->SetPosition(CenteredPosition);
+	// Apply position (offset from center, alignment handles centering)
+	CrosshairSlot->SetPosition(CurrentScreenPosition);
 
 	// Apply size
 	CrosshairImage->SetDesiredSizeOverride(CurrentSize);

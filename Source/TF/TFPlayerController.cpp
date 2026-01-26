@@ -21,6 +21,7 @@
 #include "TFDayNightCycle.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Blueprint/UserWidget.h"
 
 ATFPlayerController::ATFPlayerController()
@@ -350,6 +351,15 @@ void ATFPlayerController::SetUIInputMode(bool bShowCursor)
 {
 	if (bShowCursor)
 	{
+		// Stop all movement immediately when opening UI
+		if (ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter())
+		{
+			if (UCharacterMovementComponent* MovementComp = PlayerChar->GetCharacterMovement())
+			{
+				MovementComp->StopMovementImmediately();
+			}
+		}
+
 		bShowMouseCursor = true;
 		FInputModeGameAndUI InputMode;
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);

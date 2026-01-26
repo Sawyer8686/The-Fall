@@ -4,6 +4,8 @@
 #include "TFTypes.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/StaticMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/ConfigCacheIni.h"
 
@@ -88,6 +90,15 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 	if (UFunction* StopSprintingFunc = InstigatorPawn->FindFunction(FName("StopSprinting")))
 	{
 		InstigatorPawn->ProcessEvent(StopSprintingFunc, nullptr);
+	}
+
+	// Stop all movement immediately
+	if (ACharacter* Character = Cast<ACharacter>(InstigatorPawn))
+	{
+		if (UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement())
+		{
+			MovementComp->StopMovementImmediately();
+		}
 	}
 
 	FTFContainerContext::ActiveContainer = this;
