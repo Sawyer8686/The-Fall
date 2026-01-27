@@ -92,12 +92,13 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 		InstigatorPawn->ProcessEvent(StopSprintingFunc, nullptr);
 	}
 
-	// Stop all movement immediately
+	// Stop all movement immediately and block input
 	if (ACharacter* Character = Cast<ACharacter>(InstigatorPawn))
 	{
 		if (UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement())
 		{
 			MovementComp->StopMovementImmediately();
+			MovementComp->Velocity = FVector::ZeroVector;
 		}
 	}
 
@@ -113,9 +114,11 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 	ActiveWidget->AddToViewport(10);
 
 	PC->bShowMouseCursor = true;
-	FInputModeUIOnly InputMode;
+	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	PC->SetInputMode(InputMode);
+	PC->SetIgnoreMoveInput(true);
+	PC->SetIgnoreLookInput(true);
 
 	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Container widget opened for '%s'"), *ContainerDisplayName.ToString());
 }
@@ -201,6 +204,8 @@ void ATFBaseContainerActor::CloseContainer()
 		PC->bShowMouseCursor = false;
 		FInputModeGameOnly InputMode;
 		PC->SetInputMode(InputMode);
+		PC->ResetIgnoreMoveInput();
+		PC->ResetIgnoreLookInput();
 	}
 
 	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Container widget closed for '%s'"), *ContainerDisplayName.ToString());

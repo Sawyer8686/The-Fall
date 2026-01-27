@@ -20,6 +20,11 @@ void UTFContainerWidget::NativeConstruct()
 	}
 
 	InitializeInventoryComponent();
+
+	if (FTFContainerContext::ActiveContainer)
+	{
+		SetContainerSource(FTFContainerContext::ActiveContainer);
+	}
 }
 
 void UTFContainerWidget::NativeDestruct()
