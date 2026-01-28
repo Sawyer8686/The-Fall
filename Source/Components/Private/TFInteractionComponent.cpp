@@ -9,6 +9,7 @@
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
 
 UTFInteractionComponent::UTFInteractionComponent()
@@ -119,22 +120,33 @@ bool UTFInteractionComponent::GetTracePoints(FVector& TraceStart, FVector& Trace
 		return false;
 	}
 
-	USkeletalMeshComponent* MeshComp = OwnerCharacter->GetMesh();
-	if (!MeshComp)
-	{
-		return false;
-	}
-
 	AController* Controller = OwnerCharacter->GetController();
 	if (!Controller)
 	{
 		return false;
 	}
 
-	TraceStart = MeshComp->GetSocketLocation(TEXT("head"));
-
-	const FVector ForwardVector = Controller->GetControlRotation().Vector();
-	TraceEnd = TraceStart + (ForwardVector * InteractionDistance);
+	// Use camera viewpoint as trace origin to match crosshair behavior
+	APlayerController* PC = Cast<APlayerController>(Controller);
+	if (PC)
+	{
+		FRotator CameraRotation;
+		PC->GetPlayerViewPoint(TraceStart, CameraRotation);
+		const FVector ForwardVector = CameraRotation.Vector();
+		TraceEnd = TraceStart + (ForwardVector * InteractionDistance);
+	}
+	else
+	{
+		// Fallback for non-player controllers
+		USkeletalMeshComponent* MeshComp = OwnerCharacter->GetMesh();
+		if (!MeshComp)
+		{
+			return false;
+		}
+		TraceStart = MeshComp->GetSocketLocation(TEXT("head"));
+		const FVector ForwardVector = Controller->GetControlRotation().Vector();
+		TraceEnd = TraceStart + (ForwardVector * InteractionDistance);
+	}
 
 	return true;
 }
@@ -226,7 +238,19 @@ void UTFInteractionComponent::ClearFocus()
 
 void UTFInteractionComponent::Interact()
 {
-	if (!OwnerCharacter || !CurrentInteractable)
+	if (!OwnerCharacter)
+	{
+		return;
+	}
+
+	// Perform an immediate trace to ensure CurrentInteractable is up-to-date,
+	// avoiding misses caused by the timer-based detection lag
+	if (!CurrentInteractable)
+	{
+		PerformInteractionCheck();
+	}
+
+	if (!CurrentInteractable)
 	{
 		return;
 	}

@@ -246,17 +246,8 @@ void UTFCrosshairWidget::UpdateCrosshairVisuals(const FHitResult& HitResult, flo
 		ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
 		float ObjectInteractionDistance = Interactable ? Interactable->GetInteractionDistance() : 200.0f;
 
-		// Calculate distance from player character to hit point (same as interaction component)
+		// Use HitResult.Distance directly (trace starts from camera, same as TFInteractionComponent)
 		float DistanceToObject = HitResult.Distance;
-		if (CachedPlayerCharacter.IsValid())
-		{
-			// Use distance from character's head socket to match TFInteractionComponent behavior
-			if (USkeletalMeshComponent* MeshComp = CachedPlayerCharacter->GetMesh())
-			{
-				FVector HeadLocation = MeshComp->GetSocketLocation(TEXT("head"));
-				DistanceToObject = FVector::Dist(HeadLocation, HitResult.ImpactPoint);
-			}
-		}
 
 		if (DistanceToObject <= ObjectInteractionDistance)
 		{

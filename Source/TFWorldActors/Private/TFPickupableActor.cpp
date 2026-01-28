@@ -289,11 +289,6 @@ void ATFPickupableActor::PlayPickupSound()
 
 bool ATFPickupableActor::Interact(APawn* InstigatorPawn)
 {
-	if (!CanInteract(InstigatorPawn))
-	{
-		return false;
-	}
-
 	bool bSuccess = OnPickup(InstigatorPawn);
 
 	if (bSuccess)

@@ -218,7 +218,7 @@ void ATFBaseDoorActor::StartOpening(APawn* OpeningCharacter)
 
 	TargetAngle = CalculateTargetAngle(OpeningCharacter->GetActorLocation());
 
-	if (TargetAngle <= 0.0f)
+	if (FMath::IsNearlyZero(TargetAngle))
 	{
 		return;
 	}
@@ -351,7 +351,12 @@ bool ATFBaseDoorActor::IsPlayerOnCorrectSide(const FVector& PlayerLocation) cons
 
 bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 {
-	if (!InstigatorPawn || !CanInteract(InstigatorPawn))
+	if (!InstigatorPawn)
+	{
+		return false;
+	}
+
+	if (IsMoving())
 	{
 		return false;
 	}
@@ -411,11 +416,6 @@ bool ATFBaseDoorActor::CanInteract(APawn* InstigatorPawn) const
 	}
 
 	if (IsMoving())
-	{
-		return false;
-	}
-
-	if (InstigatorPawn && !IsPlayerOnCorrectSide(InstigatorPawn->GetActorLocation()))
 	{
 		return false;
 	}
