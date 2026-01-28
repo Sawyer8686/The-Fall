@@ -351,12 +351,7 @@ bool ATFBaseDoorActor::IsPlayerOnCorrectSide(const FVector& PlayerLocation) cons
 
 bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 {
-	if (!InstigatorPawn)
-	{
-		return false;
-	}
-
-	if (IsMoving())
+	if (!InstigatorPawn || !CanInteract(InstigatorPawn))
 	{
 		return false;
 	}
@@ -369,17 +364,23 @@ bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 		return false;
 	}
 
+	bool bSuccess = false;
+
 	if (IsClosed())
 	{
-		return OpenDoor(InstigatorPawn);
+		bSuccess = OpenDoor(InstigatorPawn);
 	}
-
-	if (IsOpen())
+	else if (IsOpen())
 	{
-		return CloseDoor();
+		bSuccess = CloseDoor();
 	}
 
-	return false;
+	if (bSuccess)
+	{
+		OnInteracted(InstigatorPawn);
+	}
+
+	return bSuccess;
 }
 
 FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) const

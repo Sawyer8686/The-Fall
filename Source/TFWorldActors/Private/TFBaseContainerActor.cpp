@@ -21,23 +21,22 @@ void ATFBaseContainerActor::BeginPlay()
 
 void ATFBaseContainerActor::LoadConfigFromINI()
 {
+	Super::LoadConfigFromINI();
+
+	if (InteractableID.IsNone())
+	{
+		return;
+	}
+
 	const FString SectionName = InteractableID.ToString();
 	FString ConfigFilePath;
 
-	if (!TFConfigUtils::LoadINISection(TEXT("ContainerConfig.ini"), SectionName, ConfigFilePath, LogTFContainer, true))
+	if (!TFConfigUtils::LoadINISection(TEXT("ContainerConfig.ini"), SectionName, ConfigFilePath, LogTFContainer))
 	{
 		return;
 	}
 
 	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Loading container config for '%s'"), *SectionName);
-
-#pragma region Interaction Settings
-
-	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
-	GConfig->GetBool(*SectionName, TEXT("bCanInteract"), bCanInteract, ConfigFilePath);
-	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
-
-#pragma endregion Interaction Settings
 
 #pragma region Container Settings
 
