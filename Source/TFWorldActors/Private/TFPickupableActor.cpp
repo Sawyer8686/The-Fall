@@ -31,15 +31,7 @@ ATFPickupableActor::ATFPickupableActor()
 
 void ATFPickupableActor::BeginPlay()
 {
-	// Use ItemID as InteractableID if not explicitly set
-	if (InteractableID.IsNone() && !ItemID.IsNone())
-	{
-		InteractableID = ItemID;
-	}
-
-	// Call parent BeginPlay which handles base data-driven config
 	Super::BeginPlay();
-
 }
 
 void ATFPickupableActor::LoadConfigFromINI()
@@ -48,12 +40,12 @@ void ATFPickupableActor::LoadConfigFromINI()
 	Super::LoadConfigFromINI();
 
 	// Then load item-specific config
-	if (ItemID.IsNone())
+	if (InteractableID.IsNone())
 	{
 		return;
 	}
 
-	const FString SectionName = ItemID.ToString();
+	const FString SectionName = InteractableID.ToString();
 	FString ConfigFilePath;
 
 	if (!TFConfigUtils::LoadINISection(TEXT("ItemConfig.ini"), SectionName, ConfigFilePath, LogTFItem))
@@ -61,9 +53,9 @@ void ATFPickupableActor::LoadConfigFromINI()
 		return;
 	}
 
-	ItemData.ItemID = ItemID;
+	ItemData.ItemID = InteractableID;
 
-	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Loading config for ItemID '%s'"), *SectionName);
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Loading config for InteractableID '%s'"), *SectionName);
 
 	FString StringValue;
 
@@ -122,7 +114,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 		}
 		else
 		{
-			ItemData.KeyID = ItemID;
+			ItemData.KeyID = InteractableID;
 		}
 	}
 
@@ -170,7 +162,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma endregion Pickup Settings
 
-	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Config loaded successfully for ItemID '%s' (Type: %d)"),
+	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Config loaded successfully for InteractableID '%s' (Type: %d)"),
 		*SectionName, static_cast<int32>(ItemData.ItemType));
 }
 

@@ -39,7 +39,8 @@
       "Bash(Select-String -Pattern \"error|Error\")",
       "Bash(Select-Object -Last 30)",
       "Bash(del \"\\\\?\\\\C:\\\\UnrealProjects\\\\TF\\\\nul\")",
-      "Bash(\"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat\" TFEditor Win64 Development -Project=\"C:/UnrealProjects/TF/TF.uproject\" -WaitMutex -FromMsBuild)"
+      "Bash(\"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat\" TFEditor Win64 Development -Project=\"C:/UnrealProjects/TF/TF.uproject\" -WaitMutex -FromMsBuild)",
+      "Bash(find:*)"
     ]
   }
 }

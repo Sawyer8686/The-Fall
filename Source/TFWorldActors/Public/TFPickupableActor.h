@@ -16,13 +16,6 @@ class TFWORLDACTORS_API ATFPickupableActor : public ATFInteractableActor, public
 
 protected:
 
-#pragma region Data-Driven Config
-
-	UPROPERTY(EditAnywhere, Category = "Item|Config")
-	FName ItemID = NAME_None;
-
-#pragma endregion Data-Driven Config
-
 #pragma region Components
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")

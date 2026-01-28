@@ -24,10 +24,12 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 	OneShotAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("OneShotAudio"));
 	OneShotAudioComponent->SetupAttachment(DoorMesh);
 	OneShotAudioComponent->bAutoActivate = false;
+	OneShotAudioComponent->bVisualizeComponent = false;
 
 	LoopAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LoopAudio"));
 	LoopAudioComponent->SetupAttachment(DoorMesh);
 	LoopAudioComponent->bAutoActivate = false;
+	LoopAudioComponent->bVisualizeComponent = false;
 
 	MaxInteractionDistance = 200.0f;
 
@@ -36,13 +38,6 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 
 void ATFBaseDoorActor::BeginPlay()
 {
-	// Use DoorID as InteractableID if not explicitly set
-	if (InteractableID.IsNone() && !DoorID.IsNone())
-	{
-		InteractableID = DoorID;
-	}
-
-	// Call parent BeginPlay which handles base data-driven config
 	Super::BeginPlay();
 
 	InitialRotation = DoorMesh->GetRelativeRotation();
@@ -52,12 +47,12 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 {
 	Super::LoadConfigFromINI();
 
-	if (DoorID.IsNone())
+	if (InteractableID.IsNone())
 	{
 		return;
 	}
 
-	const FString SectionName = DoorID.ToString();
+	const FString SectionName = InteractableID.ToString();
 	FString ConfigFilePath;
 
 	if (!TFConfigUtils::LoadINISection(TEXT("DoorConfig.ini"), SectionName, ConfigFilePath, LogTFDoor))
@@ -65,7 +60,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 		return;
 	}
 
-	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Loading config for DoorID '%s'"), *SectionName);
+	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Loading config for InteractableID '%s'"), *SectionName);
 
 #pragma region Door Settings
 
@@ -127,7 +122,7 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 
 #pragma endregion Key Settings
 
-	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for DoorID '%s'"), *SectionName);
+	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
 }
 
 void ATFBaseDoorActor::EndPlay(const EEndPlayReason::Type EndPlayReason)

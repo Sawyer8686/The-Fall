@@ -50,14 +50,6 @@ protected:
 
 #pragma endregion Components
 
-#pragma region Data-Driven Config
-
-	/** Unique identifier for this door instance. Used to load configuration from DoorConfig.ini */
-	UPROPERTY(EditAnywhere, Category = "Door|Config")
-	FName DoorID = NAME_None;
-
-#pragma endregion Data-Driven Config
-
 #pragma region Door Settings
 
 	UPROPERTY(VisibleAnywhere, Category = "Door|State")
@@ -165,7 +157,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
 
-	/** Load door configuration from INI file based on DoorID */
+	/** Load door configuration from INI file based on InteractableID */
 	virtual void LoadConfigFromINI() override;
 	void UpdateDoorAnimation(float DeltaTime);
 	void ApplyDoorRotation(float Angle);
