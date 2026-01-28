@@ -150,13 +150,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Door|Audio")
 	USoundBase* DoorMovementSound;
 
-	UPROPERTY(EditAnywhere, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey"))
+	UPROPERTY(EditAnywhere, Category = "Door|Audio")
 	USoundBase* DoorUnlockSound;
 
-	UPROPERTY(EditAnywhere, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey"))
+	UPROPERTY(EditAnywhere, Category = "Door|Audio")
 	USoundBase* DoorLockSound;
 
-	UPROPERTY(EditAnywhere, Category = "Door|Audio", meta = (EditCondition = "bRequiresKey && bKeyCanBreak"))
+	UPROPERTY(EditAnywhere, Category = "Door|Audio")
 	USoundBase* KeyBreakSound;
 
 #pragma endregion Audio
