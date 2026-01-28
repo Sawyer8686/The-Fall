@@ -39,18 +39,6 @@ void ATFBaseContainerActor::LoadConfigFromINI()
 
 #pragma endregion Interaction Settings
 
-#pragma region Mesh Loading
-
-	if (UStaticMesh* LoadedMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("Mesh"), ConfigFilePath, LogTFContainer, TEXT("Mesh")))
-	{
-		if (MeshComponent)
-		{
-			MeshComponent->SetStaticMesh(LoadedMesh);
-		}
-	}
-
-#pragma endregion Mesh Loading
-
 #pragma region Container Settings
 
 	GConfig->GetInt(*SectionName, TEXT("MaxCapacity"), MaxCapacity, ConfigFilePath);

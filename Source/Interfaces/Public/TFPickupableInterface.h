@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "Sound/SoundBase.h"
 #include "TFPickupableInterface.generated.h"
 
 UENUM(BlueprintType)
@@ -41,12 +40,6 @@ struct FItemData
 	UTexture2D* ItemIcon = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
-	UStaticMesh* ItemMesh = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Item|Audio")
-	USoundBase* PickupSound = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Item")
 	float Weight = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
@@ -73,8 +66,6 @@ struct FItemData
 		, ItemName(FText::FromString("Item"))
 		, ItemDescription(FText::GetEmpty())
 		, ItemIcon(nullptr)
-		, ItemMesh(nullptr)
-		, PickupSound(nullptr)
 		, Weight(1.0f)
 		, Value(10)
 		, KeyID(NAME_None)

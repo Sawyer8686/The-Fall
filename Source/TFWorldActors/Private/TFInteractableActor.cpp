@@ -42,27 +42,10 @@ void ATFInteractableActor::LoadConfigFromINI()
 
 	UE_LOG(LogTFInteraction, Log, TEXT("ATFInteractableActor: Loading config for InteractableID '%s'"), *SectionName);
 
-#pragma region Interaction Settings
-
-	
 	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
 	GConfig->GetBool(*SectionName, TEXT("bCanInteract"), bCanInteract, ConfigFilePath);
-	
+
 	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
-
-#pragma endregion Interaction Settings
-
-#pragma region Mesh Loading
-
-	if (UStaticMesh* LoadedMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("Mesh"), ConfigFilePath, LogTFInteraction, TEXT("Mesh")))
-	{
-		if (MeshComponent)
-		{
-			MeshComponent->SetStaticMesh(LoadedMesh);
-		}
-	}
-
-#pragma endregion Mesh Loading
 
 	UE_LOG(LogTFInteraction, Log, TEXT("ATFInteractableActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
 }

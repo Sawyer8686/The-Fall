@@ -408,11 +408,15 @@ bool ATFPlayerCharacter::DropItem(FName ItemID)
 
 	if (DroppedActor)
 	{
-		if (!DroppedItemData.ItemMesh)
-		{
-			DroppedItemData.ItemMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
-		}
 		DroppedActor->SetItemData(DroppedItemData);
+
+		if (UStaticMeshComponent* DroppedMesh = DroppedActor->GetMeshComponent())
+		{
+			if (!DroppedMesh->GetStaticMesh())
+			{
+				DroppedMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+			}
+		}
 	}
 
 	return true;
@@ -455,12 +459,15 @@ bool ATFPlayerCharacter::DropBackpack()
 		BackpackData.BackpackSlots = Slots;
 		BackpackData.BackpackWeightLimit = WeightLimit;
 
-		if (!BackpackData.ItemMesh)
-		{
-			BackpackData.ItemMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
-		}
-
 		DroppedBackpack->SetItemData(BackpackData);
+
+		if (UStaticMeshComponent* BackpackMeshComp = DroppedBackpack->GetMeshComponent())
+		{
+			if (!BackpackMeshComp->GetStaticMesh())
+			{
+				BackpackMeshComp->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")));
+			}
+		}
 		DroppedBackpack->SetStoredInventoryItems(StoredItems);
 
 		if (UStaticMeshComponent* BackpackMesh = DroppedBackpack->GetMeshComponent())

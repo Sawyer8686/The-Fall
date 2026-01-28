@@ -37,6 +37,13 @@ protected:
 
 #pragma endregion Item Data
 
+#pragma region Audio
+
+	UPROPERTY(EditAnywhere, Category = "Item|Audio")
+	USoundBase* PickupSound = nullptr;
+
+#pragma endregion Audio
+
 #pragma region Pickup Settings
 
 	UPROPERTY(EditAnywhere, Category = "Pickup", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides))

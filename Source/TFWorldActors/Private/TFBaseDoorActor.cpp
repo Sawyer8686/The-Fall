@@ -127,32 +127,6 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 
 #pragma endregion Key Settings
 
-#pragma region Mesh Loading
-
-	if (UStaticMesh* LoadedMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("DoorFrameMesh"), ConfigFilePath, LogTFDoor, TEXT("DoorFrameMesh")))
-	{
-		DoorFrameMesh->SetStaticMesh(LoadedMesh);
-	}
-
-	if (UStaticMesh* LoadedMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("DoorMesh"), ConfigFilePath, LogTFDoor, TEXT("DoorMesh")))
-	{
-		DoorMesh->SetStaticMesh(LoadedMesh);
-	}
-
-#pragma endregion Mesh Loading
-
-#pragma region Audio Loading
-
-	DoorOpenSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorOpenSound"), ConfigFilePath, LogTFDoor, TEXT("DoorOpenSound"));
-	DoorCloseSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorCloseSound"), ConfigFilePath, LogTFDoor, TEXT("DoorCloseSound"));
-	DoorLockedSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorLockedSound"), ConfigFilePath, LogTFDoor, TEXT("DoorLockedSound"));
-	DoorMovementSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorMovementSound"), ConfigFilePath, LogTFDoor, TEXT("DoorMovementSound"));
-	DoorUnlockSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorUnlockSound"), ConfigFilePath, LogTFDoor, TEXT("DoorUnlockSound"));
-	DoorLockSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("DoorLockSound"), ConfigFilePath, LogTFDoor, TEXT("DoorLockSound"));
-	KeyBreakSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("KeyBreakSound"), ConfigFilePath, LogTFDoor, TEXT("KeyBreakSound"));
-
-#pragma endregion Audio Loading
-
 	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for DoorID '%s'"), *SectionName);
 }
 

@@ -40,11 +40,6 @@ void ATFPickupableActor::BeginPlay()
 	// Call parent BeginPlay which handles base data-driven config
 	Super::BeginPlay();
 
-	// Apply item mesh after all config is loaded
-	if (ItemData.ItemMesh && MeshComponent)
-	{
-		MeshComponent->SetStaticMesh(ItemData.ItemMesh);
-	}
 }
 
 void ATFPickupableActor::LoadConfigFromINI()
@@ -161,9 +156,7 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma region Asset Loading
 
-	ItemData.ItemMesh = TFConfigUtils::LoadAssetFromConfig<UStaticMesh>(SectionName, TEXT("ItemMesh"), ConfigFilePath, LogTFItem, TEXT("ItemMesh"));
 	ItemData.ItemIcon = TFConfigUtils::LoadAssetFromConfig<UTexture2D>(SectionName, TEXT("ItemIcon"), ConfigFilePath, LogTFItem, TEXT("ItemIcon"));
-	ItemData.PickupSound = TFConfigUtils::LoadAssetFromConfig<USoundBase>(SectionName, TEXT("PickupSound"), ConfigFilePath, LogTFItem, TEXT("PickupSound"));
 
 #pragma endregion Asset Loading
 
@@ -295,9 +288,9 @@ bool ATFPickupableActor::HandleInventoryPickup(APawn* Picker)
 
 void ATFPickupableActor::PlayPickupSound()
 {
-	if (ItemData.PickupSound && AudioComponent)
+	if (PickupSound && AudioComponent)
 	{
-		AudioComponent->SetSound(ItemData.PickupSound);
+		AudioComponent->SetSound(PickupSound);
 		AudioComponent->Play();
 	}
 }
@@ -423,9 +416,5 @@ void ATFPickupableActor::SetItemData(const FItemData& NewItemData)
 {
 	ItemData = NewItemData;
 
-	if (ItemData.ItemMesh && MeshComponent)
-	{
-		MeshComponent->SetStaticMesh(ItemData.ItemMesh);
-	}
 }
 
