@@ -306,6 +306,12 @@ bool UTFInteractionComponent::InteractWithActor(AActor* Actor)
 	return bSuccess;
 }
 
+void UTFInteractionComponent::ForceInteractionRefresh()
+{
+	ClearFocus();
+	PerformInteractionCheck();
+}
+
 void UTFInteractionComponent::SetInteractionEnabled(bool bEnabled)
 {
 	if (UWorld* World = GetWorld())

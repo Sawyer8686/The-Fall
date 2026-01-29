@@ -84,6 +84,7 @@ public:
 	void Interact();
 	bool InteractWithActor(AActor* Actor);
 	void SetInteractionEnabled(bool bEnabled);
+	void ForceInteractionRefresh();
 
 #pragma endregion Interaction API
 

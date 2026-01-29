@@ -855,6 +855,16 @@ void ATFPlayerController::CompleteLockAction()
 	LockTarget = nullptr;
 	LockActionDuration = 0.0f;
 	LockActionElapsedTime = 0.0f;
+
+	// Force interaction component to refresh state immediately after lock toggle,
+	// so the interaction prompt and focus update without waiting for the next detection tick
+	if (PlayerChar)
+	{
+		if (UTFInteractionComponent* InteractionComp = PlayerChar->GetInteractionComponent())
+		{
+			InteractionComp->ForceInteractionRefresh();
+		}
+	}
 }
 
 #pragma endregion Lock Action
