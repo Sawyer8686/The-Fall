@@ -7,7 +7,6 @@
 #include "InputActionValue.h"
 #include "TFPlayerController.generated.h"
 
-class UTFLockProgressManager;
 class UInputMappingContext;
 class UInputAction;
 class ATFPlayerCharacter;
@@ -23,12 +22,6 @@ class ATFBaseContainerActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryToggled, bool, bIsOpen);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBackpackEquipRequested, int32, Slots, float, WeightLimit);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLockActionStarted, float, Duration, bool, bIsUnlocking);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockActionProgress, float, ElapsedTime);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockActionCompleted);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockActionCancelled);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockActionKeyBroken);
-
 /**
  * TF Player Controller
  * Manages player input, UI state, and widget components
@@ -37,16 +30,6 @@ UCLASS()
 class TF_API ATFPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-
-#pragma region Components
-
-protected:
-
-	/** Lock progress manager component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UTFLockProgressManager* LockProgressManager;
-
-#pragma endregion Components
 
 #pragma region Input
 
@@ -72,9 +55,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* InteractAction;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	UInputAction* LockAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* InventoryAction;
@@ -159,20 +139,6 @@ protected:
 
 #pragma endregion UI State
 
-#pragma region Lock Action State
-
-private:
-
-	FTimerHandle LockHoldTimerHandle;
-	FTimerHandle LockProgressTimerHandle;
-	FTimerHandle KeyBreakTimerHandle;
-	TWeakObjectPtr<AActor> LockTarget;
-	float LockActionDuration = 0.0f;
-	float LockActionElapsedTime = 0.0f;
-	bool bIsUnlockingAction = true;
-
-#pragma endregion Lock Action State
-
 #pragma region Cached References
 
 private:
@@ -226,31 +192,16 @@ protected:
 	void HandleSneakStarted();
 	void HandleSneakCompleted();
 	void HandleInteract();
-	void HandleLockStarted();
-	void HandleLockCompleted();
 	void HandleInventory();
 	void HandleDropBackpack();
 
 #pragma endregion Input Handlers
-
-#pragma region Lock Action
-
-	void UpdateLockProgress();
-	void CompleteLockAction();
-	void HandleKeyBreak();
-	void CancelLockAction();
-
-#pragma endregion Lock Action
 
 public:
 
 	ATFPlayerController();
 
 #pragma region Accessors
-
-	/** Get the lock progress manager */
-	UFUNCTION(BlueprintCallable, Category = "Components")
-	UTFLockProgressManager* GetLockProgressManager() const { return LockProgressManager; }
 
 	/** Check if inventory is open */
 	UFUNCTION(BlueprintCallable, Category = "UI")
@@ -333,26 +284,6 @@ public:
 	/** Called when backpack equip is requested */
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnBackpackEquipRequested OnBackpackEquipRequested;
-
-	/** Called when lock/unlock action starts */
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnLockActionStarted OnLockActionStarted;
-
-	/** Called every tick during lock/unlock action */
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnLockActionProgress OnLockActionProgress;
-
-	/** Called when lock/unlock action completes */
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnLockActionCompleted OnLockActionCompleted;
-
-	/** Called when lock/unlock action is cancelled */
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnLockActionCancelled OnLockActionCancelled;
-
-	/** Called when key breaks during unlock attempt */
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnLockActionKeyBroken OnLockActionKeyBroken;
 
 #pragma endregion Delegates
 };

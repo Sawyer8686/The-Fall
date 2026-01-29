@@ -241,55 +241,6 @@ void ATFPlayerCharacter::HasJumped()
 
 #pragma endregion Jump
 
-#pragma region Key Collection
-
-bool ATFPlayerCharacter::HasKey(FName KeyID) const
-{
-	return CollectedKeys.Contains(KeyID);
-}
-
-void ATFPlayerCharacter::AddKey(FName KeyID, const FText& KeyName)
-{
-	if (KeyID.IsNone())
-	{
-		return;
-	}
-
-	if (CollectedKeys.Contains(KeyID))
-	{
-		return;
-	}
-
-	FText DisplayName = KeyName.IsEmpty() ? FText::FromName(KeyID) : KeyName;
-	CollectedKeys.Add(KeyID, DisplayName);
-
-	OnKeyAdded(KeyID);
-	OnKeyCollectionChanged.Broadcast();
-	UE_LOG(LogTFCharacter, Log, TEXT("Key added: %s (%s)"), *KeyID.ToString(), *DisplayName.ToString());
-}
-
-bool ATFPlayerCharacter::RemoveKey(FName KeyID)
-{
-	if (KeyID.IsNone())
-	{
-		return false;
-	}
-
-	int32 NumRemoved = CollectedKeys.Remove(KeyID);
-
-	if (NumRemoved > 0)
-	{
-		OnKeyRemoved(KeyID);
-		OnKeyCollectionChanged.Broadcast();
-		UE_LOG(LogTFCharacter, Log, TEXT("Key removed: %s"), *KeyID.ToString());
-		return true;
-	}
-
-	return false;
-}
-
-#pragma endregion Key Collection
-
 #pragma region Inventory
 
 bool ATFPlayerCharacter::HasBackpack() const

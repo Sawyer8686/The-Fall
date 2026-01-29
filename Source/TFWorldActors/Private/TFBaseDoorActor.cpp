@@ -94,34 +94,6 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 
 #pragma endregion Door Settings
 
-#pragma region Key Settings
-
-	GConfig->GetBool(*SectionName, TEXT("bRequiresKey"), bRequiresKey, ConfigFilePath);
-
-	if (GConfig->GetString(*SectionName, TEXT("RequiredKeyID"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
-	{
-		RequiredKeyID = FName(*StringValue);
-	}
-
-	if (GConfig->GetString(*SectionName, TEXT("RequiredKeyName"), StringValue, ConfigFilePath))
-	{
-		RequiredKeyName = FText::FromString(StringValue);
-	}
-
-	GConfig->GetBool(*SectionName, TEXT("bIsLocked"), bIsLocked, ConfigFilePath);
-	GConfig->GetBool(*SectionName, TEXT("bCanRelock"), bCanRelock, ConfigFilePath);
-	GConfig->GetFloat(*SectionName, TEXT("UnlockDuration"), UnlockDuration, ConfigFilePath);
-	GConfig->GetFloat(*SectionName, TEXT("LockDuration"), LockDuration, ConfigFilePath);
-	UnlockDuration = FMath::Clamp(UnlockDuration, 0.0f, 10.0f);
-	LockDuration = FMath::Clamp(LockDuration, 0.0f, 10.0f);
-
-	GConfig->GetBool(*SectionName, TEXT("bKeyCanBreak"), bKeyCanBreak, ConfigFilePath);
-	GConfig->GetFloat(*SectionName, TEXT("KeyBreakChance"), KeyBreakChance, ConfigFilePath);
-	GConfig->GetBool(*SectionName, TEXT("bRemoveKeyOnBreak"), bRemoveKeyOnBreak, ConfigFilePath);
-	KeyBreakChance = FMath::Clamp(KeyBreakChance, 0.0f, 1.0f);
-
-#pragma endregion Key Settings
-
 	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Config loaded successfully for InteractableID '%s'"), *SectionName);
 }
 
@@ -361,14 +333,6 @@ bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
 		return false;
 	}
 
-	if (bRequiresKey && bIsLocked)
-	{
-		PlayDoorSound(DoorLockedSound);
-		OnKeyRequired(InstigatorPawn);
-		OnDoorLocked(InstigatorPawn);
-		return false;
-	}
-
 	bool bSuccess = false;
 
 	if (IsClosed())
@@ -398,12 +362,6 @@ FInteractionData ATFBaseDoorActor::GetInteractionData(APawn* InstigatorPawn) con
 		return Data;
 	}
 
-	if (bRequiresKey && bIsLocked)
-	{
-		Data.bCanInteract = CharacterHasKey(InstigatorPawn);
-		return Data;
-	}
-
 	Data.bCanInteract = IsClosed() || IsOpen();
 	return Data;
 }
@@ -425,7 +383,7 @@ bool ATFBaseDoorActor::CanInteract(APawn* InstigatorPawn) const
 
 bool ATFBaseDoorActor::OpenDoor(APawn* OpeningCharacter)
 {
-	if (IsOpen() || IsMoving() || IsDoorLocked())
+	if (IsOpen() || IsMoving())
 	{
 		return false;
 	}
@@ -467,196 +425,4 @@ float ATFBaseDoorActor::GetDoorOpenPercentage() const
 	}
 
 	return CurrentAngle / MaxOpenAngle;
-}
-
-bool ATFBaseDoorActor::IsDoorLocked() const
-{
-	return bRequiresKey && bIsLocked;
-}
-
-bool ATFBaseDoorActor::TryBreakKey(APawn* Character)
-{
-	if (!bKeyCanBreak || KeyBreakChance <= 0.0f)
-	{
-		return false;
-	}
-
-	const float RandomValue = FMath::FRand();
-	if (RandomValue > KeyBreakChance)
-	{
-		return false;
-	}
-
-	ForceKeyBreak(Character);
-	return true;
-}
-
-float ATFBaseDoorActor::CalculateKeyBreakTime() const
-{
-	if (!bKeyCanBreak || KeyBreakChance <= 0.0f || !bIsLocked)
-	{
-		return -1.0f;
-	}
-
-	const float RandomValue = FMath::FRand();
-	if (RandomValue > KeyBreakChance)
-	{
-		return -1.0f;
-	}
-
-	// Key will break at a random point between 30% and 90% of unlock duration
-	const float MinBreakPercent = 0.3f;
-	const float MaxBreakPercent = 0.9f;
-	const float BreakPercent = FMath::FRandRange(MinBreakPercent, MaxBreakPercent);
-
-	return UnlockDuration * BreakPercent;
-}
-
-void ATFBaseDoorActor::ForceKeyBreak(APawn* Character)
-{
-	UE_LOG(LogTFDoor, Warning, TEXT("ATFBaseDoorActor: Key '%s' broke while attempting to unlock door!"), *RequiredKeyID.ToString());
-
-	PlayDoorSound(KeyBreakSound);
-
-	if (bRemoveKeyOnBreak && Character)
-	{
-		if (ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Character))
-		{
-			KeyHolder->RemoveKey(RequiredKeyID);
-			UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Broken key '%s' removed from player inventory"), *RequiredKeyID.ToString());
-		}
-	}
-
-	OnKeyBroken(Character);
-}
-
-bool ATFBaseDoorActor::UnlockDoor(APawn* UnlockingCharacter)
-{
-	if (!bRequiresKey)
-	{
-		return true;
-	}
-
-	if (!CharacterHasKey(UnlockingCharacter))
-	{
-		return false;
-	}
-
-	if (!bIsLocked)
-	{
-		return false;
-	}
-
-	bIsLocked = false;
-
-	PlayDoorSound(DoorUnlockSound);
-
-	OnDoorUnlocked(UnlockingCharacter);
-
-	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Door unlocked with key '%s'"), *RequiredKeyID.ToString());
-
-	return true;
-}
-
-bool ATFBaseDoorActor::LockDoor(APawn* LockingCharacter)
-{
-	if (!bRequiresKey)
-	{
-		return false;
-	}
-
-	if (!bCanRelock)
-	{
-		return false;
-	}
-
-	if (!CharacterHasKey(LockingCharacter))
-	{
-		return false;
-	}
-
-	if (bIsLocked)
-	{
-		return false;
-	}
-
-	if (!IsClosed())
-	{
-		return false;
-	}
-
-	bIsLocked = true;
-
-	PlayDoorSound(DoorLockSound);
-
-	OnDoorRelocked(LockingCharacter);
-
-	UE_LOG(LogTFDoor, Log, TEXT("ATFBaseDoorActor: Door locked with key '%s'"), *RequiredKeyID.ToString());
-
-	return true;
-}
-
-void ATFBaseDoorActor::SetLockedState(bool bNewLockState)
-{
-	bIsLocked = bNewLockState;
-}
-
-bool ATFBaseDoorActor::CharacterHasKey(const APawn* Character) const
-{
-	if (!Character || !bRequiresKey || RequiredKeyID.IsNone())
-	{
-		return false;
-	}
-
-	if (const ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Character))
-	{
-		return KeyHolder->HasKey(RequiredKeyID);
-	}
-
-	return false;
-}
-
-float ATFBaseDoorActor::GetLockDuration() const
-{
-	return bIsLocked ? UnlockDuration : LockDuration;
-}
-
-bool ATFBaseDoorActor::CanToggleLock(APawn* Character) const
-{
-	if (!bRequiresKey || !Character)
-	{
-		return false;
-	}
-
-	if (!IsClosed() || IsMoving())
-	{
-		return false;
-	}
-
-	if (!CharacterHasKey(Character))
-	{
-		return false;
-	}
-
-	if (bIsLocked)
-	{
-		return true;
-	}
-
-	return bCanRelock;
-}
-
-bool ATFBaseDoorActor::ToggleLock(APawn* Character)
-{
-	if (!CanToggleLock(Character))
-	{
-		return false;
-	}
-
-	if (bIsLocked)
-	{
-		return UnlockDoor(Character);
-	}
-
-	return LockDoor(Character);
 }

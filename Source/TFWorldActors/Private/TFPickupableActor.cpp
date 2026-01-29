@@ -5,7 +5,6 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "TFKeyHolderInterface.h"
 #include "TFInventoryHolderInterface.h"
 #include "Misc/ConfigCacheIni.h"
 
@@ -64,7 +63,6 @@ void ATFPickupableActor::LoadConfigFromINI()
 	if (GConfig->GetString(*SectionName, TEXT("ItemType"), StringValue, ConfigFilePath))
 	{
 		static const TMap<FString, EItemType> ItemTypeMap = {
-			{TEXT("Key"), EItemType::Key},
 			{TEXT("Food"), EItemType::Food},
 			{TEXT("Beverage"), EItemType::Beverage},
 			{TEXT("Weapon"), EItemType::Weapon},
@@ -75,10 +73,10 @@ void ATFPickupableActor::LoadConfigFromINI()
 		};
 
 		bool bMatched = false;
-		ItemData.ItemType = TFConfigUtils::StringToEnum(StringValue, ItemTypeMap, EItemType::Key, &bMatched);
+		ItemData.ItemType = TFConfigUtils::StringToEnum(StringValue, ItemTypeMap, EItemType::Food, &bMatched);
 		if (!bMatched)
 		{
-			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Unknown ItemType '%s', defaulting to Key"), *StringValue);
+			UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Unknown ItemType '%s', defaulting to Food"), *StringValue);
 		}
 	}
 
@@ -103,22 +101,6 @@ void ATFPickupableActor::LoadConfigFromINI()
 	ItemData.Value = FMath::Max(0, ItemData.Value);
 
 #pragma endregion Basic Item Data
-
-#pragma region Key-Specific Data
-
-	if (ItemData.ItemType == EItemType::Key)
-	{
-		if (GConfig->GetString(*SectionName, TEXT("KeyID"), StringValue, ConfigFilePath) && !StringValue.IsEmpty())
-		{
-			ItemData.KeyID = FName(*StringValue);
-		}
-		else
-		{
-			ItemData.KeyID = InteractableID;
-		}
-	}
-
-#pragma endregion Key-Specific Data
 
 #pragma region Food/Beverage Data
 
@@ -164,28 +146,6 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Config loaded successfully for InteractableID '%s' (Type: %d)"),
 		*SectionName, static_cast<int32>(ItemData.ItemType));
-}
-
-bool ATFPickupableActor::HandleKeyPickup(APawn* Picker)
-{
-	if (!Picker || ItemData.KeyID.IsNone())
-	{
-		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Key pickup failed - invalid Picker or KeyID"));
-		return false;
-	}
-
-	ITFKeyHolderInterface* KeyHolder = Cast<ITFKeyHolderInterface>(Picker);
-	if (!KeyHolder)
-	{
-		UE_LOG(LogTFItem, Warning, TEXT("ATFPickupableActor: Picker does not implement ITFKeyHolderInterface"));
-		return false;
-	}
-
-	KeyHolder->AddKey(ItemData.KeyID, ItemData.ItemName);
-	OnKeyCollected(Picker);
-
-	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Key '%s' added to key holder"), *ItemData.KeyID.ToString());
-	return true;
 }
 
 bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
@@ -342,13 +302,6 @@ bool ATFPickupableActor::OnPickup(APawn* Picker)
 			return false;
 		}
 	}
-	else if (ItemData.ItemType == EItemType::Key)
-	{
-		if (!HandleKeyPickup(Picker))
-		{
-			return false;
-		}
-	}
 	else
 	{
 		if (!HandleInventoryPickup(Picker))
@@ -377,8 +330,8 @@ bool ATFPickupableActor::CanPickup(APawn* Picker) const
 		return false;
 	}
 
-	// Keys and backpacks can always be picked up
-	if (ItemData.ItemType == EItemType::Key || ItemData.ItemType == EItemType::Backpack)
+	// Backpacks can always be picked up
+	if (ItemData.ItemType == EItemType::Backpack)
 	{
 		return true;
 	}

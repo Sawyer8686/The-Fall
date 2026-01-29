@@ -9,7 +9,6 @@
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-	Key         UMETA(DisplayName = "Key"),
 	Food        UMETA(DisplayName = "Food"),
 	Beverage    UMETA(DisplayName = "Beverage"),
 	Weapon      UMETA(DisplayName = "Weapon"),
@@ -28,7 +27,7 @@ struct FItemData
 	FName ItemID = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
-	EItemType ItemType = EItemType::Key;
+	EItemType ItemType = EItemType::Food;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
 	FText ItemName = FText::FromString("Item");
@@ -45,9 +44,6 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 Value = 10;
 
-	UPROPERTY(EditAnywhere, Category = "Item|Key")
-	FName KeyID = NAME_None;
-
 	UPROPERTY(EditAnywhere, Category = "Item|Consumable")
 	float HungerRestore = 0.0f;
 
@@ -62,13 +58,12 @@ struct FItemData
 
 	FItemData()
 		: ItemID(NAME_None)
-		, ItemType(EItemType::Key)
+		, ItemType(EItemType::Food)
 		, ItemName(FText::FromString("Item"))
 		, ItemDescription(FText::GetEmpty())
 		, ItemIcon(nullptr)
 		, Weight(1.0f)
 		, Value(10)
-		, KeyID(NAME_None)
 		, HungerRestore(0.0f)
 		, ThirstRestore(0.0f)
 		, BackpackSlots(5)

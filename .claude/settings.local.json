@@ -40,7 +40,13 @@
       "Bash(Select-Object -Last 30)",
       "Bash(del \"\\\\?\\\\C:\\\\UnrealProjects\\\\TF\\\\nul\")",
       "Bash(\"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat\" TFEditor Win64 Development -Project=\"C:/UnrealProjects/TF/TF.uproject\" -WaitMutex -FromMsBuild)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Interfaces\\\\Public\\\\TFKeyHolderInterface.h\")",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Interfaces\\\\Public\\\\TFLockableInterface.h\")",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Public\\\\TFLockProgressWidget.h\")",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Private\\\\TFLockProgressWidget.cpp\")",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.h\")",
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.cpp\")"
     ]
   }
 }

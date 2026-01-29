@@ -57,7 +57,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void LoadConfigFromINI() override;
 	void PlayPickupSound();
-	bool HandleKeyPickup(APawn* Picker);
 	bool HandleBackpackPickup(APawn* Picker);
 	bool HandleInventoryPickup(APawn* Picker);
 
@@ -86,7 +85,6 @@ public:
 
 	virtual void OnItemPickedUp(APawn* PickerPawn) {}
 	virtual void OnItemPickupFailed(APawn* PickerPawn, const FText& Reason) {}
-	virtual void OnKeyCollected(APawn* CollectorPawn) {}
 
 #pragma endregion Events
 
@@ -97,8 +95,6 @@ public:
 	void SetStoredInventoryItems(const TArray<FItemData>& Items) { StoredInventoryItems = Items; }
 	const TArray<FItemData>& GetStoredInventoryItems() const { return StoredInventoryItems; }
 
-	FORCEINLINE bool IsKey() const { return ItemData.ItemType == EItemType::Key; }
-	FORCEINLINE FName GetKeyID() const { return ItemData.KeyID; }
 	FORCEINLINE EItemType GetItemType() const { return ItemData.ItemType; }
 
 #pragma endregion Accessors

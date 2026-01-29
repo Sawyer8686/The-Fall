@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "TFInteractableActor.h"
-#include "TFKeyHolderInterface.h"
-#include "TFLockableInterface.h"
 #include "TFBaseDoorActor.generated.h"
 
 class UAudioComponent;
@@ -28,7 +26,7 @@ enum class EDoorHinge : uint8
 };
 
 UCLASS()
-class TFWORLDACTORS_API ATFBaseDoorActor : public ATFInteractableActor, public ITFLockableInterface
+class TFWORLDACTORS_API ATFBaseDoorActor : public ATFInteractableActor
 {
 	GENERATED_BODY()
 
@@ -78,43 +76,6 @@ protected:
 
 #pragma endregion Door Settings
 
-#pragma region Key Settings
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key")
-	bool bRequiresKey = false;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
-	FName RequiredKeyID = NAME_None;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
-	FText RequiredKeyName = FText::FromString("Key");
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
-	bool bIsLocked = true;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
-	bool bCanRelock = true;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey", ClampMin = "0.0", ClampMax = "10.0"))
-	float UnlockDuration = 1.5f;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bCanRelock", ClampMin = "0.0", ClampMax = "10.0"))
-	float LockDuration = 1.5f;
-
-	/** If true, the key can break during unlock attempt */
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey"))
-	bool bKeyCanBreak = false;
-
-	/** Chance for the key to break during unlock (0.0 = never, 1.0 = always) */
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bKeyCanBreak", ClampMin = "0.0", ClampMax = "1.0"))
-	float KeyBreakChance = 0.1f;
-
-	/** If true, remove the key from the player's inventory when it breaks */
-	UPROPERTY(EditAnywhere, Category = "Door|Key", meta = (EditCondition = "bRequiresKey && bKeyCanBreak"))
-	bool bRemoveKeyOnBreak = true;
-
-#pragma endregion Key Settings
-
 #pragma region Animation
 
 	UPROPERTY(VisibleAnywhere, Category = "Door|Animation")
@@ -137,19 +98,7 @@ protected:
 	USoundBase* DoorCloseSound;
 
 	UPROPERTY(EditAnywhere, Category = "Door|Audio")
-	USoundBase* DoorLockedSound;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Audio")
 	USoundBase* DoorMovementSound;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Audio")
-	USoundBase* DoorUnlockSound;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Audio")
-	USoundBase* DoorLockSound;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Audio")
-	USoundBase* KeyBreakSound;
 
 #pragma endregion Audio
 
@@ -172,9 +121,6 @@ protected:
 	void AutoCloseDoor();
 	bool IsPlayerOnCorrectSide(const FVector& PlayerLocation) const;
 
-	/** Attempts to break the key. Returns true if the key broke */
-	bool TryBreakKey(APawn* Character);
-
 public:
 
 	ATFBaseDoorActor();
@@ -191,17 +137,7 @@ public:
 
 	virtual bool OpenDoor(APawn* OpeningCharacter);
 	virtual bool CloseDoor();
-	virtual bool ToggleLock(APawn* Character) override;
-	virtual float GetLockDuration() const override;
-	virtual bool IsCurrentlyLocked() const override { return bRequiresKey && bIsLocked; }
-	virtual bool CanToggleLock(APawn* Character) const override;
-	virtual float CalculateKeyBreakTime() const override;
-	virtual void ForceKeyBreak(APawn* Character) override;
 	virtual bool ToggleDoor(APawn* TogglingCharacter);
-	virtual bool IsDoorLocked() const;
-	virtual bool UnlockDoor(APawn* UnlockingCharacter);
-	virtual bool LockDoor(APawn* LockingCharacter);
-	void SetLockedState(bool bNewLockState);
 
 #pragma endregion Door Control
 
@@ -211,11 +147,6 @@ public:
 	virtual void OnDoorOpened() {}
 	virtual void OnDoorStartClosing() {}
 	virtual void OnDoorClosed() {}
-	virtual void OnDoorLocked(APawn* AttemptingCharacter) {}
-	virtual void OnDoorUnlocked(APawn* UnlockingCharacter) {}
-	virtual void OnDoorRelocked(APawn* LockingCharacter) {}
-	virtual void OnKeyRequired(APawn* AttemptingCharacter) {}
-	virtual void OnKeyBroken(APawn* AttemptingCharacter) {}
 
 #pragma endregion Events
 
@@ -226,11 +157,6 @@ public:
 	bool IsClosed() const { return DoorState == EDoorState::Closed; }
 	bool IsMoving() const { return DoorState == EDoorState::Opening || DoorState == EDoorState::Closing; }
 	float GetDoorOpenPercentage() const;
-	FName GetRequiredKeyID() const { return RequiredKeyID; }
-	FText GetRequiredKeyName() const { return RequiredKeyName; }
-	bool CharacterHasKey(const APawn* Character) const;
-	bool IsLocked() const { return bRequiresKey && bIsLocked; }
-	bool RequiresKeyItem() const { return bRequiresKey; }
 
 #pragma endregion Queries
 };

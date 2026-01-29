@@ -12,7 +12,7 @@ class UTFInventoryItemViewData;
 class UListView;
 class UTextBlock;
 class UProgressBar;
-class UVerticalBox;
+
 
 UCLASS()
 class WIDGETS_API UTFInventoryWidget : public UUserWidget
@@ -25,9 +25,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UListView* ItemListView;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	UVerticalBox* KeychainContainer;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* WeightText;
@@ -79,7 +76,6 @@ protected:
 
 	void InitializeInventoryComponent();
 	void PopulateListView();
-	void RebuildKeychainList();
 	void UpdateWeightDisplay(float CurrentWeight, float MaxWeight);
 	void UpdateSlotDisplay();
 	void UpdateWeightColor(float WeightPercent);
@@ -90,8 +86,6 @@ protected:
 
 	UFUNCTION()
 	void OnInventoryToggled(bool bIsOpen);
-
-	void OnKeyCollectionChanged();
 
 public:
 

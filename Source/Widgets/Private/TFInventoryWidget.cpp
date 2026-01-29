@@ -11,9 +11,6 @@
 #include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
-#include "Components/VerticalBox.h"
-#include "Components/VerticalBoxSlot.h"
-
 #include "Kismet/GameplayStatics.h"
 
 void UTFInventoryWidget::NativeConstruct()
@@ -38,15 +35,6 @@ void UTFInventoryWidget::NativeDestruct()
 	if (ATFPlayerController* PC = Cast<ATFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
 	{
 		PC->OnInventoryToggled.RemoveDynamic(this, &UTFInventoryWidget::OnInventoryToggled);
-	}
-
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (PlayerPawn)
-	{
-		if (ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn))
-		{
-			Character->OnKeyCollectionChanged.RemoveAll(this);
-		}
 	}
 
 	Super::NativeDestruct();
@@ -81,7 +69,6 @@ void UTFInventoryWidget::InitializeInventoryComponent()
 		PC->OnInventoryToggled.AddDynamic(this, &UTFInventoryWidget::OnInventoryToggled);
 	}
 
-	Character->OnKeyCollectionChanged.AddUObject(this, &UTFInventoryWidget::OnKeyCollectionChanged);
 }
 
 void UTFInventoryWidget::PopulateListView()
@@ -110,59 +97,6 @@ void UTFInventoryWidget::PopulateListView()
 		ListItems.Add(ViewData);
 		ItemListView->AddItem(ViewData);
 	}
-}
-
-void UTFInventoryWidget::RebuildKeychainList()
-{
-	if (!KeychainContainer)
-	{
-		return;
-	}
-
-	KeychainContainer->ClearChildren();
-
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!PlayerPawn)
-	{
-		return;
-	}
-
-	ATFPlayerCharacter* Character = Cast<ATFPlayerCharacter>(PlayerPawn);
-	if (!Character)
-	{
-		return;
-	}
-
-	const TMap<FName, FText>& Keys = Character->GetCollectedKeys();
-
-	if (Keys.Num() == 0)
-	{
-		KeychainContainer->SetVisibility(ESlateVisibility::Collapsed);
-		return;
-	}
-
-	KeychainContainer->SetVisibility(ESlateVisibility::Visible);
-
-	for (const auto& KeyPair : Keys)
-	{
-		UTextBlock* KeyText = NewObject<UTextBlock>(this);
-		if (KeyText)
-		{
-			KeyText->SetText(KeyPair.Value);
-			KeyText->SetColorAndOpacity(FSlateColor(FLinearColor(0.9f, 0.8f, 0.3f)));
-
-			UVerticalBoxSlot* ASlot = Cast<UVerticalBoxSlot>(KeychainContainer->AddChild(KeyText));
-			if (ASlot)
-			{
-				ASlot->SetPadding(FMargin(0.f, 2.f));
-			}
-		}
-	}
-}
-
-void UTFInventoryWidget::OnKeyCollectionChanged()
-{
-	RebuildKeychainList();
 }
 
 void UTFInventoryWidget::UpdateWeightDisplay(float CurrentWeight, float MaxWeight)
@@ -305,7 +239,6 @@ void UTFInventoryWidget::RefreshDisplay()
 	}
 
 	PopulateListView();
-	RebuildKeychainList();
 	UpdateWeightDisplay(CachedInventoryComponent->GetCurrentWeight(), CachedInventoryComponent->GetBackpackWeightLimit());
 	UpdateSlotDisplay();
 }

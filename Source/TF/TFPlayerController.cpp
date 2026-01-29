@@ -1,13 +1,11 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFPlayerController.h"
-#include "TFLockProgressManager.h"
 #include "TFPlayerCharacter.h"
 #include "TFInteractionComponent.h"
 #include "TFInventoryComponent.h"
 #include "TFStaminaComponent.h"
 #include "TFStatsComponent.h"
-#include "TFLockableInterface.h"
 #include "TFBaseContainerActor.h"
 #include "TFStatsWidget.h"
 #include "TFStaminaWidget.h"
@@ -26,7 +24,6 @@
 
 ATFPlayerController::ATFPlayerController()
 {
-	LockProgressManager = CreateDefaultSubobject<UTFLockProgressManager>(TEXT("LockProgressManager"));
 }
 
 void ATFPlayerController::BeginPlay()
@@ -318,12 +315,6 @@ void ATFPlayerController::SetupInputComponent()
 		if (InteractAction)
 		{
 			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATFPlayerController::HandleInteract);
-		}
-
-		if (LockAction)
-		{
-			EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Started, this, &ATFPlayerController::HandleLockStarted);
-			EnhancedInputComponent->BindAction(LockAction, ETriggerEvent::Completed, this, &ATFPlayerController::HandleLockCompleted);
 		}
 
 		if (InventoryAction)
@@ -659,120 +650,6 @@ void ATFPlayerController::HandleInteract()
 	}
 }
 
-void ATFPlayerController::HandleLockStarted()
-{
-	if (IsUIBlockingInput())
-	{
-		return;
-	}
-
-	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
-	if (!PlayerChar)
-	{
-		return;
-	}
-
-	UTFInteractionComponent* InteractionComp = PlayerChar->GetInteractionComponent();
-	if (!InteractionComp)
-	{
-		return;
-	}
-
-	AActor* Target = InteractionComp->GetCurrentInteractable();
-	if (!Target)
-	{
-		return;
-	}
-
-	ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(Target);
-	if (!Lockable)
-	{
-		return;
-	}
-
-	if (!Lockable->CanToggleLock(PlayerChar))
-	{
-		return;
-	}
-
-	float Duration = Lockable->GetLockDuration();
-	LockTarget = Target;
-
-	if (Duration <= 0.0f)
-	{
-		CompleteLockAction();
-		return;
-	}
-
-	bIsUnlockingAction = Lockable->IsCurrentlyLocked();
-	LockActionDuration = Duration;
-	LockActionElapsedTime = 0.0f;
-
-	OnLockActionStarted.Broadcast(Duration, bIsUnlockingAction);
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			LockHoldTimerHandle,
-			this,
-			&ATFPlayerController::CompleteLockAction,
-			Duration,
-			false
-		);
-
-		World->GetTimerManager().SetTimer(
-			LockProgressTimerHandle,
-			this,
-			&ATFPlayerController::UpdateLockProgress,
-			0.016f,
-			true
-		);
-
-		// Check if key will break during unlock
-		if (bIsUnlockingAction)
-		{
-			const float KeyBreakTime = Lockable->CalculateKeyBreakTime();
-			if (KeyBreakTime > 0.0f)
-			{
-				World->GetTimerManager().SetTimer(
-					KeyBreakTimerHandle,
-					this,
-					&ATFPlayerController::HandleKeyBreak,
-					KeyBreakTime,
-					false
-				);
-			}
-		}
-	}
-}
-
-void ATFPlayerController::HandleLockCompleted()
-{
-	if (LockTarget.IsValid() && LockActionDuration > 0.0f)
-	{
-		CancelLockAction();
-		OnLockActionCancelled.Broadcast();
-	}
-	else
-	{
-		CancelLockAction();
-	}
-}
-
-void ATFPlayerController::CancelLockAction()
-{
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(LockHoldTimerHandle);
-		World->GetTimerManager().ClearTimer(LockProgressTimerHandle);
-		World->GetTimerManager().ClearTimer(KeyBreakTimerHandle);
-	}
-
-	LockTarget = nullptr;
-	LockActionDuration = 0.0f;
-	LockActionElapsedTime = 0.0f;
-}
-
 void ATFPlayerController::HandleInventory()
 {
 	ToggleInventory();
@@ -798,73 +675,3 @@ void ATFPlayerController::HandleDropBackpack()
 }
 
 #pragma endregion Input Handlers
-
-#pragma region Lock Action
-
-void ATFPlayerController::UpdateLockProgress()
-{
-	if (!LockTarget.IsValid() || LockActionDuration <= 0.0f)
-	{
-		return;
-	}
-
-	LockActionElapsedTime += 0.016f;
-	LockActionElapsedTime = FMath::Min(LockActionElapsedTime, LockActionDuration);
-
-	OnLockActionProgress.Broadcast(LockActionElapsedTime);
-}
-
-void ATFPlayerController::HandleKeyBreak()
-{
-	if (!LockTarget.IsValid())
-	{
-		return;
-	}
-
-	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
-	if (ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(LockTarget.Get()))
-	{
-		Lockable->ForceKeyBreak(PlayerChar);
-	}
-
-	CancelLockAction();
-	OnLockActionKeyBroken.Broadcast();
-}
-
-void ATFPlayerController::CompleteLockAction()
-{
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(LockProgressTimerHandle);
-		World->GetTimerManager().ClearTimer(KeyBreakTimerHandle);
-	}
-
-	if (!LockTarget.IsValid())
-	{
-		return;
-	}
-
-	ATFPlayerCharacter* PlayerChar = GetTFPlayerCharacter();
-	if (ITFLockableInterface* Lockable = Cast<ITFLockableInterface>(LockTarget.Get()))
-	{
-		Lockable->ToggleLock(PlayerChar);
-	}
-
-	OnLockActionCompleted.Broadcast();
-
-	LockTarget = nullptr;
-	LockActionDuration = 0.0f;
-	LockActionElapsedTime = 0.0f;
-
-	// Force interaction component to refresh state immediately after lock toggle,
-	// so the interaction prompt and focus update without waiting for the next detection tick
-	if (PlayerChar)
-	{
-		if (UTFInteractionComponent* InteractionComp = PlayerChar->GetInteractionComponent())
-		{
-			InteractionComp->ForceInteractionRefresh();
-		}
-	}
-}
-
-#pragma endregion Lock Action

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "TFCharacterBase.h"
-#include "TFKeyHolderInterface.h"
 #include "TFInventoryHolderInterface.h"
 #include "TFPlayerCharacter.generated.h"
 
@@ -21,11 +20,10 @@ enum class ESprintBlockReason : uint8
 	NoStamina
 };
 
-DECLARE_MULTICAST_DELEGATE(FOnKeyCollectionChanged);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterBackpackEquipRequested, int32, float);
 
 UCLASS()
-class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFKeyHolderInterface, public ITFInventoryHolderInterface
+class TFCHARACTERS_API ATFPlayerCharacter : public ATFCharacterBase, public ITFInventoryHolderInterface
 {
 	GENERATED_BODY()
 
@@ -155,29 +153,8 @@ public:
 
 #pragma endregion Movement API
 
-#pragma region Key Collection
-
-protected:
-
-	UPROPERTY(VisibleAnywhere, Category = "Keys")
-	TMap<FName, FText> CollectedKeys;
-
-public:
-
-	FOnKeyCollectionChanged OnKeyCollectionChanged;
-
 	/** Called when backpack equip confirmation is requested */
 	FOnCharacterBackpackEquipRequested OnBackpackEquipRequested;
-
-	virtual bool HasKey(FName KeyID) const override;
-	virtual void AddKey(FName KeyID, const FText& KeyName = FText::GetEmpty()) override;
-	virtual bool RemoveKey(FName KeyID) override;
-	virtual void OnKeyAdded(FName KeyID) {}
-	virtual void OnKeyRemoved(FName KeyID) {}
-
-	const TMap<FName, FText>& GetCollectedKeys() const { return CollectedKeys; }
-
-#pragma endregion Key Collection
 
 #pragma region Inventory
 
