@@ -35,9 +35,6 @@ protected:
 #pragma region Components
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* DoorFrameMesh;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* DoorMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -70,9 +67,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Door|Settings", meta = (EditCondition = "bAutoClose", ClampMin = "0.0"))
 	float AutoCloseDelay = 3.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Door|Settings")
-	bool bCanOpenFromBothSides = true;
 
 #pragma endregion Door Settings
 
@@ -119,7 +113,6 @@ protected:
 	void PlayDoorMovementSound();
 	void StopDoorMovementSound();
 	void AutoCloseDoor();
-	bool IsPlayerOnCorrectSide(const FVector& PlayerLocation) const;
 
 public:
 
@@ -152,6 +145,7 @@ public:
 
 #pragma region Queries
 
+	UStaticMeshComponent* GetDoorFrameMesh() const { return GetMeshComponent(); }
 	EDoorState GetDoorState() const { return DoorState; }
 	bool IsOpen() const { return DoorState == EDoorState::Open; }
 	bool IsClosed() const { return DoorState == EDoorState::Closed; }

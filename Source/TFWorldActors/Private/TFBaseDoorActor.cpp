@@ -11,13 +11,11 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	DoorFrameMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorFrame"));
-	DoorFrameMesh->SetupAttachment(Root);
-	DoorFrameMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	DoorFrameMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
 	DoorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
-	DoorMesh->SetupAttachment(DoorFrameMesh);
+	DoorMesh->SetupAttachment(MeshComponent);
 	DoorMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DoorMesh->SetCollisionResponseToAllChannels(ECR_Block);
 
@@ -33,7 +31,6 @@ ATFBaseDoorActor::ATFBaseDoorActor()
 
 	MaxInteractionDistance = 200.0f;
 
-	//bIsReusable = true;
 }
 
 void ATFBaseDoorActor::BeginPlay()
@@ -85,8 +82,6 @@ void ATFBaseDoorActor::LoadConfigFromINI()
 	GConfig->GetFloat(*SectionName, TEXT("CloseDuration"), CloseDuration, ConfigFilePath);
 	GConfig->GetBool(*SectionName, TEXT("bAutoClose"), bAutoClose, ConfigFilePath);
 	GConfig->GetFloat(*SectionName, TEXT("AutoCloseDelay"), AutoCloseDelay, ConfigFilePath);
-	GConfig->GetBool(*SectionName, TEXT("bCanOpenFromBothSides"), bCanOpenFromBothSides, ConfigFilePath);
-
 	MaxOpenAngle = FMath::Clamp(MaxOpenAngle, 0.0f, 180.0f);
 	OpenDuration = FMath::Clamp(OpenDuration, 0.1f, 5.0f);
 	CloseDuration = FMath::Clamp(CloseDuration, 0.1f, 5.0f);
@@ -171,11 +166,6 @@ float ATFBaseDoorActor::CalculateTargetAngle(const FVector& PlayerLocation)
 	FVector DoorForward = GetActorForwardVector();
 	FVector ToPlayer = (PlayerLocation - GetActorLocation()).GetSafeNormal();
 	float DotProduct = FVector::DotProduct(DoorForward, ToPlayer);
-
-	if (!bCanOpenFromBothSides && DotProduct < 0.0f)
-	{
-		return 0.0f;
-	}
 
 	// Open away from the player: positive angle if player is in front, negative if behind
 	return (DotProduct >= 0.0f) ? MaxOpenAngle : -MaxOpenAngle;
@@ -305,20 +295,6 @@ void ATFBaseDoorActor::AutoCloseDoor()
 	{
 		CloseDoor();
 	}
-}
-
-bool ATFBaseDoorActor::IsPlayerOnCorrectSide(const FVector& PlayerLocation) const
-{
-	if (bCanOpenFromBothSides)
-	{
-		return true;
-	}
-
-	FVector DoorForward = GetActorForwardVector();
-	FVector ToPlayer = (PlayerLocation - GetActorLocation()).GetSafeNormal();
-	float DotProduct = FVector::DotProduct(DoorForward, ToPlayer);
-
-	return DotProduct >= 0.0f;
 }
 
 bool ATFBaseDoorActor::Interact(APawn* InstigatorPawn)
