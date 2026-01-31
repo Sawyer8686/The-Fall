@@ -32,6 +32,9 @@ void ATFPickupableActor::BeginPlay()
 		ItemData.ItemMesh = MeshComponent->GetStaticMesh();
 		ItemData.ItemMeshScale = MeshComponent->GetRelativeScale3D();
 	}
+
+	// Capture MaxInteractionDistance into ItemData for persistence through pickup/drop cycles
+	ItemData.MaxInteractionDistance = MaxInteractionDistance;
 }
 
 void ATFPickupableActor::LoadConfigFromINI()
@@ -150,6 +153,9 @@ void ATFPickupableActor::LoadConfigFromINI()
 	// Allow ItemConfig.ini to override MaxInteractionDistance (inherited from InteractableConfig.ini)
 	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
 	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
+
+	// Store in ItemData for persistence through pickup/drop cycles
+	ItemData.MaxInteractionDistance = MaxInteractionDistance;
 
 #pragma endregion Interaction Distance Override
 
@@ -364,5 +370,8 @@ void ATFPickupableActor::SetItemData(const FItemData& NewItemData)
 		MeshComponent->SetStaticMesh(ItemData.ItemMesh);
 		MeshComponent->SetRelativeScale3D(ItemData.ItemMeshScale);
 	}
+
+	// Restore interaction distance from ItemData
+	MaxInteractionDistance = ItemData.MaxInteractionDistance;
 }
 

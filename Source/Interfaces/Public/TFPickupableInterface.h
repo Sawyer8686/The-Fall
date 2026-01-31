@@ -63,6 +63,9 @@ struct FItemData
 	UPROPERTY()
 	FVector ItemMeshScale = FVector::OneVector;
 
+	UPROPERTY()
+	float MaxInteractionDistance = 500.0f;
+
 	FItemData()
 		: ItemID(NAME_None)
 		, ItemType(EItemType::Food)
@@ -77,6 +80,7 @@ struct FItemData
 		, BackpackWeightLimit(25.0f)
 		, ItemMesh(nullptr)
 		, ItemMeshScale(FVector::OneVector)
+		, MaxInteractionDistance(500.0f)
 	{
 	}
 };
