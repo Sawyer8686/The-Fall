@@ -145,6 +145,14 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma endregion Pickup Settings
 
+#pragma region Interaction Distance Override
+
+	// Allow ItemConfig.ini to override MaxInteractionDistance (inherited from InteractableConfig.ini)
+	GConfig->GetFloat(*SectionName, TEXT("MaxInteractionDistance"), MaxInteractionDistance, ConfigFilePath);
+	MaxInteractionDistance = FMath::Clamp(MaxInteractionDistance, 50.0f, 1000.0f);
+
+#pragma endregion Interaction Distance Override
+
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Config loaded successfully for InteractableID '%s' (Type: %d)"),
 		*SectionName, static_cast<int32>(ItemData.ItemType));
 }
