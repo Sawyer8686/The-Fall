@@ -7,8 +7,6 @@
 #include "TFPickupableInterface.h"
 #include "TFPickupableActor.generated.h"
 
-class UAudioComponent;
-
 UCLASS()
 class TFWORLDACTORS_API ATFPickupableActor : public ATFInteractableActor, public ITFPickupableInterface
 {
@@ -16,26 +14,12 @@ class TFWORLDACTORS_API ATFPickupableActor : public ATFInteractableActor, public
 
 protected:
 
-#pragma region Components
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UAudioComponent* AudioComponent;
-
-#pragma endregion Components
-
 #pragma region Item Data
 
 	UPROPERTY(EditAnywhere, Category = "Item", meta = (EditCondition = "!bUseDataDrivenConfig", EditConditionHides))
 	FItemData ItemData;
 
 #pragma endregion Item Data
-
-#pragma region Audio
-
-	UPROPERTY(EditAnywhere, Category = "Item|Audio")
-	USoundBase* PickupSound = nullptr;
-
-#pragma endregion Audio
 
 #pragma region Pickup Settings
 
@@ -56,7 +40,6 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void LoadConfigFromINI() override;
-	void PlayPickupSound();
 	bool HandleBackpackPickup(APawn* Picker);
 	bool HandleInventoryPickup(APawn* Picker);
 

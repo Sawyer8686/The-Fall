@@ -3,7 +3,6 @@
 #include "TFPickupableActor.h"
 #include "TFTypes.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TFInventoryHolderInterface.h"
 #include "Misc/ConfigCacheIni.h"
@@ -12,11 +11,6 @@
 ATFPickupableActor::ATFPickupableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-
-	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
-	AudioComponent->SetupAttachment(Root);
-	AudioComponent->bAutoActivate = false;
 
 	// Enable physics for pickable actors
 	if (MeshComponent)
@@ -191,8 +185,6 @@ bool ATFPickupableActor::HandleBackpackPickup(APawn* Picker)
 	}
 	SetActorEnableCollision(false);
 
-	PlayPickupSound();
-
 	UE_LOG(LogTFItem, Log, TEXT("ATFPickupableActor: Backpack confirm requested (Slots: %d, Weight: %.1f)"),
 		ItemData.BackpackSlots, ItemData.BackpackWeightLimit);
 
@@ -243,15 +235,6 @@ bool ATFPickupableActor::HandleInventoryPickup(APawn* Picker)
 	}
 
 	return true;
-}
-
-void ATFPickupableActor::PlayPickupSound()
-{
-	if (PickupSound && AudioComponent)
-	{
-		AudioComponent->SetSound(PickupSound);
-		AudioComponent->Play();
-	}
 }
 
 bool ATFPickupableActor::Interact(APawn* InstigatorPawn)
@@ -315,8 +298,6 @@ bool ATFPickupableActor::OnPickup(APawn* Picker)
 		{
 			return false;
 		}
-
-		PlayPickupSound();
 	}
 
 	UE_LOG(LogTFItem, Log, TEXT("Picked up item: %s [Type: %d]"),
