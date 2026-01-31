@@ -4,7 +4,6 @@
 #include "TFInventoryComponent.h"
 #include "TFPlayerCharacter.h"
 #include "TFPlayerController.h"
-#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 

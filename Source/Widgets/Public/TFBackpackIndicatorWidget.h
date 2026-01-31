@@ -7,7 +7,6 @@
 #include "TFBackpackIndicatorWidget.generated.h"
 
 class UTFInventoryComponent;
-class UImage;
 class UTextBlock;
 
 UCLASS()
@@ -18,9 +17,6 @@ class WIDGETS_API UTFBackpackIndicatorWidget : public UUserWidget
 protected:
 
 #pragma region Widget Bindings
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	UImage* BackpackIcon;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* StatusText;
