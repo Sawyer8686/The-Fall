@@ -46,7 +46,8 @@
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Public\\\\TFLockProgressWidget.h\")",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Private\\\\TFLockProgressWidget.cpp\")",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.h\")",
-      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.cpp\")"
+      "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.cpp\")",
+      "Bash(git log:*)"
     ]
   }
 }
