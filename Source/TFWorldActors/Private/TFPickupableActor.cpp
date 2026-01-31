@@ -31,6 +31,12 @@ ATFPickupableActor::ATFPickupableActor()
 void ATFPickupableActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Capture editor-assigned mesh into ItemData for persistence through pickup/drop cycles
+	if (MeshComponent && MeshComponent->GetStaticMesh() && !ItemData.ItemMesh)
+	{
+		ItemData.ItemMesh = MeshComponent->GetStaticMesh();
+	}
 }
 
 void ATFPickupableActor::LoadConfigFromINI()
@@ -362,5 +368,10 @@ void ATFPickupableActor::SetItemData(const FItemData& NewItemData)
 {
 	ItemData = NewItemData;
 
+	// Restore mesh from ItemData when spawned via drop
+	if (MeshComponent && ItemData.ItemMesh)
+	{
+		MeshComponent->SetStaticMesh(ItemData.ItemMesh);
+	}
 }
 

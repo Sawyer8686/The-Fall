@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Engine/StaticMesh.h"
 #include "TFPickupableInterface.generated.h"
 
 UENUM(BlueprintType)
@@ -56,6 +57,9 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item|Backpack")
 	float BackpackWeightLimit = 25.0f;
 
+	UPROPERTY()
+	UStaticMesh* ItemMesh = nullptr;
+
 	FItemData()
 		: ItemID(NAME_None)
 		, ItemType(EItemType::Food)
@@ -68,6 +72,7 @@ struct FItemData
 		, ThirstRestore(0.0f)
 		, BackpackSlots(5)
 		, BackpackWeightLimit(25.0f)
+		, ItemMesh(nullptr)
 	{
 	}
 };
