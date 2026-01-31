@@ -32,10 +32,11 @@ void ATFPickupableActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Capture editor-assigned mesh into ItemData for persistence through pickup/drop cycles
+	// Capture editor-assigned mesh and scale into ItemData for persistence through pickup/drop cycles
 	if (MeshComponent && MeshComponent->GetStaticMesh() && !ItemData.ItemMesh)
 	{
 		ItemData.ItemMesh = MeshComponent->GetStaticMesh();
+		ItemData.ItemMeshScale = MeshComponent->GetRelativeScale3D();
 	}
 }
 
@@ -368,10 +369,11 @@ void ATFPickupableActor::SetItemData(const FItemData& NewItemData)
 {
 	ItemData = NewItemData;
 
-	// Restore mesh from ItemData when spawned via drop
+	// Restore mesh and scale from ItemData when spawned via drop
 	if (MeshComponent && ItemData.ItemMesh)
 	{
 		MeshComponent->SetStaticMesh(ItemData.ItemMesh);
+		MeshComponent->SetRelativeScale3D(ItemData.ItemMeshScale);
 	}
 }
 

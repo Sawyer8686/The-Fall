@@ -60,6 +60,9 @@ struct FItemData
 	UPROPERTY()
 	UStaticMesh* ItemMesh = nullptr;
 
+	UPROPERTY()
+	FVector ItemMeshScale = FVector::OneVector;
+
 	FItemData()
 		: ItemID(NAME_None)
 		, ItemType(EItemType::Food)
@@ -73,6 +76,7 @@ struct FItemData
 		, BackpackSlots(5)
 		, BackpackWeightLimit(25.0f)
 		, ItemMesh(nullptr)
+		, ItemMeshScale(FVector::OneVector)
 	{
 	}
 };
