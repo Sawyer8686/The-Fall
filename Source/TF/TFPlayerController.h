@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
+#include "TFContainerInterface.h"
 #include "TFPlayerController.generated.h"
 
 class UInputMappingContext;
@@ -217,7 +218,7 @@ public:
 
 	/** Check if any UI is blocking gameplay input */
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	bool IsUIBlockingInput() const { return bInventoryOpen || bConfirmDialogOpen || bContainerOpen; }
+	bool IsUIBlockingInput() const { return bInventoryOpen || bConfirmDialogOpen || bContainerOpen || FTFContainerContext::ActiveContainer != nullptr; }
 
 	/** Get cached player character */
 	UFUNCTION(BlueprintCallable, Category = "Character")

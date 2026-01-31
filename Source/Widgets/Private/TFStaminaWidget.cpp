@@ -48,10 +48,7 @@ void UTFStaminaWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 
 	float StaminaPercent = CachedStaminaComponent->GetStaminaPercent();
 
-	// Update color
-	UpdateStaminaColor(StaminaPercent);
-
-	// Update pulse effect
+	// Update pulse effect (color is updated in delegate callback)
 	if (bEnablePulseEffect)
 	{
 		UpdatePulseEffect(InDeltaTime, StaminaPercent);
@@ -163,8 +160,9 @@ void UTFStaminaWidget::UpdatePulseEffect(float DeltaTime, float StaminaPercent)
 		return;
 	}
 
-	// Update pulse timer
+	// Update pulse timer (wrap to prevent float overflow)
 	PulseTimer += DeltaTime * PulseSpeed;
+	if (PulseTimer > UE_TWO_PI) { PulseTimer -= UE_TWO_PI; }
 
 	// Calculate pulse intensity (sine wave: 0.0 to 1.0)
 	float PulseIntensity = (FMath::Sin(PulseTimer) + 1.0f) * 0.5f;
@@ -205,6 +203,9 @@ void UTFStaminaWidget::UpdateVisibility(float StaminaPercent, float DeltaTime)
 void UTFStaminaWidget::OnStaminaChanged(float CurrentStamina, float MaxStamina)
 {
 	UpdateStaminaBar(CurrentStamina, MaxStamina);
+
+	float StaminaPercent = MaxStamina > 0.0f ? (CurrentStamina / MaxStamina) : 0.0f;
+	UpdateStaminaColor(StaminaPercent);
 }
 
 void UTFStaminaWidget::OnExhaustion()

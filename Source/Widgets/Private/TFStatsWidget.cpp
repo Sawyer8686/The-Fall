@@ -58,26 +58,18 @@ void UTFStatsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		return;
 	}
 
-	// Update hunger visuals
-	if (HungerBar)
+	// Update pulse effects only (colors are updated in delegate callbacks)
+	if (bEnablePulseEffect)
 	{
-		float HungerPercent = CachedStatsComponent->GetHungerPercent();
-		UpdateHungerColor(HungerPercent);
-
-		if (bEnablePulseEffect)
+		if (HungerBar)
 		{
+			float HungerPercent = CachedStatsComponent->GetHungerPercent();
 			UpdateHungerPulseEffect(InDeltaTime, HungerPercent);
 		}
-	}
 
-	// Update thirst visuals
-	if (ThirstBar)
-	{
-		float ThirstPercent = CachedStatsComponent->GetThirstPercent();
-		UpdateThirstColor(ThirstPercent);
-
-		if (bEnablePulseEffect)
+		if (ThirstBar)
 		{
+			float ThirstPercent = CachedStatsComponent->GetThirstPercent();
 			UpdateThirstPulseEffect(InDeltaTime, ThirstPercent);
 		}
 	}
@@ -243,8 +235,9 @@ void UTFStatsWidget::UpdateHungerPulseEffect(float DeltaTime, float HungerPercen
 		return;
 	}
 
-	// Update pulse timer
+	// Update pulse timer (wrap to prevent float overflow)
 	HungerPulseTimer += DeltaTime * PulseSpeed;
+	if (HungerPulseTimer > UE_TWO_PI) { HungerPulseTimer -= UE_TWO_PI; }
 
 	// Calculate pulse intensity (sine wave)
 	float PulseIntensity = (FMath::Sin(HungerPulseTimer) + 1.0f) * 0.5f;
@@ -264,8 +257,9 @@ void UTFStatsWidget::UpdateThirstPulseEffect(float DeltaTime, float ThirstPercen
 		return;
 	}
 
-	// Update pulse timer
+	// Update pulse timer (wrap to prevent float overflow)
 	ThirstPulseTimer += DeltaTime * PulseSpeed;
+	if (ThirstPulseTimer > UE_TWO_PI) { ThirstPulseTimer -= UE_TWO_PI; }
 
 	// Calculate pulse intensity (sine wave)
 	float PulseIntensity = (FMath::Sin(ThirstPulseTimer) + 1.0f) * 0.5f;
@@ -281,11 +275,29 @@ void UTFStatsWidget::UpdateThirstPulseEffect(float DeltaTime, float ThirstPercen
 void UTFStatsWidget::OnHungerChanged(float CurrentHunger, float MaxHunger)
 {
 	UpdateHungerBar(CurrentHunger, MaxHunger);
+
+	float HungerPercent = MaxHunger > 0.0f ? (CurrentHunger / MaxHunger) : 0.0f;
+	UpdateHungerColor(HungerPercent);
+
+	// Hide warning icon when hunger recovers above critical
+	if (HungerWarning && HungerPercent > LowHungerThreshold)
+	{
+		HungerWarning->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UTFStatsWidget::OnThirstChanged(float CurrentThirst, float MaxThirst)
 {
 	UpdateThirstBar(CurrentThirst, MaxThirst);
+
+	float ThirstPercent = MaxThirst > 0.0f ? (CurrentThirst / MaxThirst) : 0.0f;
+	UpdateThirstColor(ThirstPercent);
+
+	// Hide warning icon when thirst recovers above critical
+	if (ThirstWarning && ThirstPercent > LowThirstThreshold)
+	{
+		ThirstWarning->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UTFStatsWidget::OnStatDepleted(FName StatName)

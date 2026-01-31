@@ -50,6 +50,7 @@ protected:
 #pragma endregion Delegates
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void LoadConfigFromINI() override;
 
 public:

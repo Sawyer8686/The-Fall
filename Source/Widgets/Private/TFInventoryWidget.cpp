@@ -142,7 +142,8 @@ void UTFInventoryWidget::UpdateWeightColor(float WeightPercent)
 
 	if (WeightPercent < MediumWeightThreshold)
 	{
-		TargetColor = LowWeightColor;
+		const float Alpha = MediumWeightThreshold > 0.0f ? (WeightPercent / MediumWeightThreshold) : 0.0f;
+		TargetColor = FMath::Lerp(LowWeightColor, MediumWeightColor, Alpha);
 	}
 	else if (WeightPercent < HighWeightThreshold)
 	{
@@ -327,12 +328,12 @@ void UTFInventoryWidget::ConsumeItem(FName ItemID)
 		return;
 	}
 
-	if (Item->ItemType == EItemType::Food && Item->HungerRestore > 0.0f)
+	if (Item->HungerRestore > 0.0f)
 	{
 		Stats->RestoreHunger(Item->HungerRestore);
 	}
 
-	if (Item->ItemType == EItemType::Beverage && Item->ThirstRestore > 0.0f)
+	if (Item->ThirstRestore > 0.0f)
 	{
 		Stats->RestoreThirst(Item->ThirstRestore);
 	}

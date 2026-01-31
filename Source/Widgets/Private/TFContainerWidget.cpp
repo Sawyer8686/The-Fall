@@ -16,7 +16,7 @@ void UTFContainerWidget::NativeConstruct()
 
 	if (CloseButton)
 	{
-		CloseButton->OnClicked.AddDynamic(this, &UTFContainerWidget::OnCloseClicked);
+		CloseButton->OnClicked.AddUniqueDynamic(this, &UTFContainerWidget::OnCloseClicked);
 	}
 
 	InitializeInventoryComponent();

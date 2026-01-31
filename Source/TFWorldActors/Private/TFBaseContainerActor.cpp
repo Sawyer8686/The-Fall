@@ -19,6 +19,17 @@ void ATFBaseContainerActor::BeginPlay()
 	Super::BeginPlay();
 }
 
+void ATFBaseContainerActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// If this container is destroyed while open, clean up
+	if (FTFContainerContext::ActiveContainer == this)
+	{
+		CloseContainer();
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void ATFBaseContainerActor::LoadConfigFromINI()
 {
 	Super::LoadConfigFromINI();
@@ -79,7 +90,7 @@ void ATFBaseContainerActor::OnInteracted(APawn* InstigatorPawn)
 		InstigatorPawn->ProcessEvent(StopSprintingFunc, nullptr);
 	}
 
-	// Stop all movement immediately and block input
+	// Stop all movement immediately
 	if (ACharacter* Character = Cast<ACharacter>(InstigatorPawn))
 	{
 		if (UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement())
@@ -195,5 +206,5 @@ void ATFBaseContainerActor::CloseContainer()
 		PC->ResetIgnoreLookInput();
 	}
 
-	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Container widget closed for '%s'"), *ContainerDisplayName.ToString());
+	UE_LOG(LogTFContainer, Log, TEXT("ATFBaseContainerActor: Container closed for '%s'"), *ContainerDisplayName.ToString());
 }

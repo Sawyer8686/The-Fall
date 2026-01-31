@@ -30,9 +30,6 @@ protected:
 
 private:
 
-	void InitializeCharacter();
-	void OnBackpackEquipRequested(int32 Slots, float WeightLimit);
-
 	UFUNCTION()
 	void OnYesClicked();
 

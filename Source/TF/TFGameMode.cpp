@@ -1,6 +1,7 @@
 // Copyright TF Project. All Rights Reserved.
 
 #include "TFGameMode.h"
+#include "TFTypes.h"
 #include "TFPlayerController.h"
 #include "TFPlayerCharacter.h"
 #include "TFDayNightCycle.h"
@@ -35,7 +36,7 @@ void ATFGameMode::FindDayNightCycle()
 
 	if (DayNightCycle)
 	{
-		UE_LOG(LogTemp, Log, TEXT("TFGameMode: Found Day/Night Cycle actor"));
+		UE_LOG(LogTFInteraction, Log, TEXT("TFGameMode: Found Day/Night Cycle actor"));
 	}
 }
 

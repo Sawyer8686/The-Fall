@@ -13,7 +13,7 @@ void UTFContainerItemEntryWidget::NativeConstruct()
 
 	if (ActionButton)
 	{
-		ActionButton->OnClicked.AddDynamic(this, &UTFContainerItemEntryWidget::OnActionClicked);
+		ActionButton->OnClicked.AddUniqueDynamic(this, &UTFContainerItemEntryWidget::OnActionClicked);
 	}
 }
 

@@ -2,6 +2,7 @@
 
 #include "TFDayNightWidget.h"
 #include "TFDayNightCycle.h"
+#include "TFGameMode.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Kismet/GameplayStatics.h"
@@ -34,34 +35,35 @@ void UTFDayNightWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	if (!CachedDayNightCycle)
 	{
 		InitializeDayNightCycle();
-		return;
 	}
-
-	float CurrentTime = CachedDayNightCycle->GetCurrentTimeHours();
-	UpdateTimeDisplay(CurrentTime);
+	// Time display is updated via OnTimeChanged delegate, no per-frame update needed
 }
 
 void UTFDayNightWidget::InitializeDayNightCycle()
 {
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATFDayNightCycle::StaticClass(), FoundActors);
-
-	if (FoundActors.Num() > 0)
+	UWorld* World = GetWorld();
+	if (!World)
 	{
-		CachedDayNightCycle = Cast<ATFDayNightCycle>(FoundActors[0]);
+		return;
+	}
 
-		if (CachedDayNightCycle)
-		{
-			CachedDayNightCycle->OnTimeChanged.AddUObject(this, &UTFDayNightWidget::OnTimeChanged);
-			CachedDayNightCycle->OnDayChanged.AddUObject(this, &UTFDayNightWidget::OnDayChanged);
-			CachedDayNightCycle->OnDayNightStateChanged.AddUObject(this, &UTFDayNightWidget::OnDayNightStateChanged);
+	// Use GameMode cached reference instead of GetAllActorsOfClass
+	if (ATFGameMode* GM = Cast<ATFGameMode>(World->GetAuthGameMode()))
+	{
+		CachedDayNightCycle = GM->GetDayNightCycle();
+	}
 
-			UpdateTimeDisplay(CachedDayNightCycle->GetCurrentTimeHours());
-			UpdateDayDisplay(CachedDayNightCycle->GetCurrentDay());
-			UpdateDayNightIcon(CachedDayNightCycle->IsDay());
+	if (CachedDayNightCycle)
+	{
+		CachedDayNightCycle->OnTimeChanged.AddUObject(this, &UTFDayNightWidget::OnTimeChanged);
+		CachedDayNightCycle->OnDayChanged.AddUObject(this, &UTFDayNightWidget::OnDayChanged);
+		CachedDayNightCycle->OnDayNightStateChanged.AddUObject(this, &UTFDayNightWidget::OnDayNightStateChanged);
 
-			bLastWasDay = CachedDayNightCycle->IsDay();
-		}
+		UpdateTimeDisplay(CachedDayNightCycle->GetCurrentTimeHours());
+		UpdateDayDisplay(CachedDayNightCycle->GetCurrentDay());
+		UpdateDayNightIcon(CachedDayNightCycle->IsDay());
+
+		bLastWasDay = CachedDayNightCycle->IsDay();
 	}
 }
 

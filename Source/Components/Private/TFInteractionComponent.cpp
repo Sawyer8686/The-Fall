@@ -60,6 +60,15 @@ void UTFInteractionComponent::PerformInteractionCheck()
 		return;
 	}
 
+	// Check for stale weak pointer (actor destroyed between ticks)
+	if (CurrentInteractable.IsStale())
+	{
+		CurrentInteractable = nullptr;
+		PreviousInteractable = nullptr;
+		CurrentInteractionData = FInteractionData();
+		OnInteractionLost.Broadcast();
+	}
+
 	UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -185,11 +194,11 @@ void UTFInteractionComponent::ProcessHitResult(const FHitResult& HitResult)
 
 void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 {
-	if (CurrentInteractable == NewFocus)
+	if (CurrentInteractable.Get() == NewFocus)
 	{
-		if (CurrentInteractable)
+		if (CurrentInteractable.IsValid())
 		{
-			if (ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable))
+			if (ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable.Get()))
 			{
 				FInteractionData NewData = Interactable->GetInteractionData(OwnerCharacter);
 
@@ -197,7 +206,7 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 					CurrentInteractionData.bCanInteract != NewData.bCanInteract)
 				{
 					CurrentInteractionData = NewData;
-					OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+					OnInteractionChanged.Broadcast(CurrentInteractable.Get(), CurrentInteractionData);
 				}
 			}
 		}
@@ -207,12 +216,12 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 	PreviousInteractable = CurrentInteractable;
 	CurrentInteractable = NewFocus;
 
-	if (CurrentInteractable)
+	if (CurrentInteractable.IsValid())
 	{
-		if (ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable))
+		if (ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable.Get()))
 		{
 			CurrentInteractionData = Interactable->GetInteractionData(OwnerCharacter);
-			OnInteractionChanged.Broadcast(CurrentInteractable, CurrentInteractionData);
+			OnInteractionChanged.Broadcast(CurrentInteractable.Get(), CurrentInteractionData);
 		}
 	}
 	else
@@ -224,7 +233,7 @@ void UTFInteractionComponent::UpdateFocusedActor(AActor* NewFocus)
 
 void UTFInteractionComponent::ClearFocus()
 {
-	if (!CurrentInteractable)
+	if (!CurrentInteractable.IsValid())
 	{
 		return;
 	}
@@ -245,17 +254,18 @@ void UTFInteractionComponent::Interact()
 
 	// Perform an immediate trace to ensure CurrentInteractable is up-to-date,
 	// avoiding misses caused by the timer-based detection lag
-	if (!CurrentInteractable)
+	if (!CurrentInteractable.IsValid())
 	{
 		PerformInteractionCheck();
 	}
 
-	if (!CurrentInteractable)
+	if (!CurrentInteractable.IsValid())
 	{
 		return;
 	}
 
-	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(CurrentInteractable);
+	AActor* InteractableActor = CurrentInteractable.Get();
+	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(InteractableActor);
 	if (!Interactable)
 	{
 		ClearFocus();
@@ -266,9 +276,9 @@ void UTFInteractionComponent::Interact()
 
 	if (bSuccess)
 	{
-		OnInteractionCompleted.Broadcast(CurrentInteractable);
+		OnInteractionCompleted.Broadcast(InteractableActor);
 
-		if (ITFPickupableInterface* Pickupable = Cast<ITFPickupableInterface>(CurrentInteractable))
+		if (ITFPickupableInterface* Pickupable = Cast<ITFPickupableInterface>(InteractableActor))
 		{
 			if (Pickupable->ShouldDestroyOnPickup())
 			{

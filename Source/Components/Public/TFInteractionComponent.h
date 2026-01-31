@@ -41,11 +41,9 @@ private:
 
 #pragma region State
 
-	UPROPERTY(VisibleAnywhere, Category = "Interaction|State")
-	AActor* CurrentInteractable = nullptr;
+	TWeakObjectPtr<AActor> CurrentInteractable;
 
-	UPROPERTY()
-	AActor* PreviousInteractable = nullptr;
+	TWeakObjectPtr<AActor> PreviousInteractable;
 
 	UPROPERTY()
 	ACharacter* OwnerCharacter = nullptr;
@@ -90,8 +88,8 @@ public:
 
 #pragma region Queries
 
-	AActor* GetCurrentInteractable() const { return CurrentInteractable; }
-	bool HasInteractable() const { return CurrentInteractable != nullptr; }
+	AActor* GetCurrentInteractable() const { return CurrentInteractable.Get(); }
+	bool HasInteractable() const { return CurrentInteractable.IsValid(); }
 	FInteractionData GetCurrentInteractionData() const { return CurrentInteractionData; }
 
 #pragma endregion Queries

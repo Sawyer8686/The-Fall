@@ -13,17 +13,17 @@ void UTFInventoryItemEntryWidget::NativeConstruct()
 
 	if (ExamineButton)
 	{
-		ExamineButton->OnClicked.AddDynamic(this, &UTFInventoryItemEntryWidget::OnExamineClicked);
+		ExamineButton->OnClicked.AddUniqueDynamic(this, &UTFInventoryItemEntryWidget::OnExamineClicked);
 	}
 
 	if (DiscardButton)
 	{
-		DiscardButton->OnClicked.AddDynamic(this, &UTFInventoryItemEntryWidget::OnDiscardClicked);
+		DiscardButton->OnClicked.AddUniqueDynamic(this, &UTFInventoryItemEntryWidget::OnDiscardClicked);
 	}
 
 	if (ConsumeButton)
 	{
-		ConsumeButton->OnClicked.AddDynamic(this, &UTFInventoryItemEntryWidget::OnConsumeClicked);
+		ConsumeButton->OnClicked.AddUniqueDynamic(this, &UTFInventoryItemEntryWidget::OnConsumeClicked);
 	}
 }
 

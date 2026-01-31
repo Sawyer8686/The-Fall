@@ -308,9 +308,9 @@ bool ATFPickupableActor::OnPickup(APawn* Picker)
 		{
 			return false;
 		}
-	}
 
-	PlayPickupSound();
+		PlayPickupSound();
+	}
 
 	UE_LOG(LogTFItem, Log, TEXT("Picked up item: %s [Type: %d]"),
 		*ItemData.ItemName.ToString(), static_cast<int32>(ItemData.ItemType));

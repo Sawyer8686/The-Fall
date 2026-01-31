@@ -382,7 +382,7 @@ void ATFPlayerController::ToggleInventory()
 		return;
 	}
 
-	if (bConfirmDialogOpen || bContainerOpen)
+	if (bConfirmDialogOpen || bContainerOpen || FTFContainerContext::ActiveContainer != nullptr)
 	{
 		return;
 	}
@@ -657,7 +657,7 @@ void ATFPlayerController::HandleInventory()
 
 void ATFPlayerController::HandleDropBackpack()
 {
-	if (bConfirmDialogOpen || bContainerOpen)
+	if (bConfirmDialogOpen || bContainerOpen || FTFContainerContext::ActiveContainer != nullptr)
 	{
 		return;
 	}

@@ -330,17 +330,17 @@ bool ATFPlayerCharacter::DropItem(FName ItemID)
 		return false;
 	}
 
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return false;
+	}
+
 	FItemData DroppedItemData = *ItemPtr;
 
 	if (!InventoryComponent->RemoveItem(ItemID))
 	{
 		return false;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return true;
 	}
 
 	FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 150.0f;
@@ -383,13 +383,13 @@ bool ATFPlayerCharacter::DropBackpack()
 	int32 Slots = InventoryComponent->GetBackpackSlots();
 	float WeightLimit = InventoryComponent->GetBackpackWeightLimit();
 
-	TArray<FItemData> StoredItems = InventoryComponent->DeactivateBackpack();
-
 	UWorld* World = GetWorld();
 	if (!World)
 	{
-		return true;
+		return false;
 	}
+
+	TArray<FItemData> StoredItems = InventoryComponent->DeactivateBackpack();
 
 	FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
 
@@ -434,6 +434,8 @@ bool ATFPlayerCharacter::DropBackpack()
 			BackpackMesh->AddImpulse(Impulse, NAME_None, true);
 		}
 	}
+
+	EquippedBackpackData = FItemData();
 
 	UE_LOG(LogTFCharacter, Log, TEXT("Backpack dropped with %d items"), StoredItems.Num());
 	return true;
