@@ -47,7 +47,8 @@
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\Widgets\\\\Private\\\\TFLockProgressWidget.cpp\")",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.h\")",
       "Bash(del \"C:\\\\UnrealProjects\\\\TF\\\\Source\\\\TF\\\\TFLockProgressManager.cpp\")",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(\"C:\\\\Program Files\\\\Epic Games\\\\UE_5.5\\\\Engine\\\\Build\\\\BatchFiles\\\\Build.bat\" TFEditor Win64 Development -Project=\"C:\\\\UnrealProjects\\\\TF\\\\TF.uproject\" -WaitMutex -FromMsBuild)"
     ]
   }
 }
