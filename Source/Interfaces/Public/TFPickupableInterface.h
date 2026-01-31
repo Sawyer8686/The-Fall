@@ -39,9 +39,6 @@ struct FItemData
 	UPROPERTY(EditAnywhere, Category = "Item")
 	float Weight = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Item")
-	int32 Value = 10;
-
 	UPROPERTY(EditAnywhere, Category = "Item|Consumable")
 	float HungerRestore = 0.0f;
 
@@ -69,7 +66,6 @@ struct FItemData
 		, ItemName(FText::FromString("Item"))
 		, ItemDescription(FText::GetEmpty())
 		, Weight(1.0f)
-		, Value(10)
 		, HungerRestore(0.0f)
 		, ThirstRestore(0.0f)
 		, BackpackSlots(5)

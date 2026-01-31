@@ -99,10 +99,8 @@ void ATFPickupableActor::LoadConfigFromINI()
 	}
 
 	GConfig->GetFloat(*SectionName, TEXT("Weight"), ItemData.Weight, ConfigFilePath);
-	GConfig->GetInt(*SectionName, TEXT("Value"), ItemData.Value, ConfigFilePath);
 
 	ItemData.Weight = FMath::Max(0.0f, ItemData.Weight);
-	ItemData.Value = FMath::Max(0, ItemData.Value);
 
 #pragma endregion Basic Item Data
 
