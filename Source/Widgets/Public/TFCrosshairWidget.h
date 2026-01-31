@@ -10,7 +10,6 @@ class UImage;
 class UCanvasPanel;
 class UCanvasPanelSlot;
 class ATFPlayerCharacter;
-class UTFInteractionComponent;
 
 /**
  * Crosshair HUD Widget
@@ -60,10 +59,6 @@ protected:
 	/** Color when aiming at an interactable */
 	UPROPERTY(EditAnywhere, Category = "Crosshair|Colors")
 	FLinearColor InteractableColor = FLinearColor::Green;
-
-	/** Color when aiming at an interactable that cannot be interacted with */
-	UPROPERTY(EditAnywhere, Category = "Crosshair|Colors")
-	FLinearColor CannotInteractColor = FLinearColor::Red;
 
 	/** Default crosshair size */
 	UPROPERTY(EditAnywhere, Category = "Crosshair|Size")
@@ -157,12 +152,6 @@ protected:
 
 	/** Apply current properties to widget */
 	void ApplyCrosshairProperties();
-
-	/** Check if the hit actor is an interactable */
-	bool IsInteractable(AActor* Actor) const;
-
-	/** Check if the hit actor can be interacted with */
-	bool CanInteract(AActor* Actor) const;
 
 	/** Update visibility based on UI state */
 	void UpdateVisibility();

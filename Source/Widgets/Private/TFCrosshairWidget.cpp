@@ -3,7 +3,6 @@
 #include "TFCrosshairWidget.h"
 #include "TFPlayerCharacter.h"
 #include "TFInteractionComponent.h"
-#include "TFInteractableInterface.h"
 #include "TFPlayerController.h"
 #include "Components/Image.h"
 #include "Components/CanvasPanel.h"
@@ -238,46 +237,31 @@ void UTFCrosshairWidget::UpdateCrosshairPositionNoHit(float DeltaTime)
 
 void UTFCrosshairWidget::UpdateCrosshairVisuals(const FHitResult& HitResult, float DeltaTime)
 {
-	AActor* HitActor = HitResult.GetActor();
-
-	if (IsInteractable(HitActor))
+	// Query the InteractionComponent to determine if we can actually interact
+	// This ensures the crosshair matches the real interaction system exactly
+	if (CachedPlayerCharacter.IsValid())
 	{
-		// Check if within interaction distance of this specific object
-		ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(HitActor);
-		float ObjectInteractionDistance = Interactable ? Interactable->GetInteractionDistance() : 200.0f;
-
-		// Use HitResult.Distance directly (trace starts from camera, same as TFInteractionComponent)
-		float DistanceToObject = HitResult.Distance;
-
-		if (DistanceToObject <= ObjectInteractionDistance)
+		UTFInteractionComponent* InteractionComp = CachedPlayerCharacter->GetInteractionComponent();
+		if (InteractionComp && InteractionComp->HasInteractable())
 		{
-			bIsAimingAtInteractable = true;
+			AActor* HitActor = HitResult.GetActor();
+			AActor* FocusedActor = InteractionComp->GetCurrentInteractable();
 
-			if (CanInteract(HitActor))
+			// Only show green if the crosshair trace is hitting the same actor
+			// that the interaction system considers valid
+			if (HitActor && HitActor == FocusedActor)
 			{
+				bIsAimingAtInteractable = true;
 				TargetColor = InteractableColor;
+				TargetSize = InteractableSize;
+				return;
 			}
-			else
-			{
-				TargetColor = CannotInteractColor;
-			}
+		}
+	}
 
-			TargetSize = InteractableSize;
-		}
-		else
-		{
-			// Too far from this interactable
-			bIsAimingAtInteractable = false;
-			TargetColor = DefaultColor;
-			TargetSize = DefaultSize;
-		}
-	}
-	else
-	{
-		bIsAimingAtInteractable = false;
-		TargetColor = DefaultColor;
-		TargetSize = DefaultSize;
-	}
+	bIsAimingAtInteractable = false;
+	TargetColor = DefaultColor;
+	TargetSize = DefaultSize;
 }
 
 void UTFCrosshairWidget::InterpolateCrosshairProperties(float DeltaTime)
@@ -331,31 +315,6 @@ void UTFCrosshairWidget::ApplyCrosshairProperties()
 	CrosshairImage->SetColorAndOpacity(CurrentColor);
 }
 
-bool UTFCrosshairWidget::IsInteractable(AActor* Actor) const
-{
-	if (!Actor)
-	{
-		return false;
-	}
-
-	return Actor->Implements<UTFInteractableInterface>();
-}
-
-bool UTFCrosshairWidget::CanInteract(AActor* Actor) const
-{
-	if (!Actor || !CachedPlayerCharacter.IsValid())
-	{
-		return false;
-	}
-
-	ITFInteractableInterface* Interactable = Cast<ITFInteractableInterface>(Actor);
-	if (!Interactable)
-	{
-		return false;
-	}
-
-	return Interactable->CanInteract(CachedPlayerCharacter.Get());
-}
 
 void UTFCrosshairWidget::UpdateVisibility()
 {
