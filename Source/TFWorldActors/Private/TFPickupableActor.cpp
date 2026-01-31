@@ -132,12 +132,6 @@ void ATFPickupableActor::LoadConfigFromINI()
 
 #pragma endregion Backpack-Specific Data
 
-#pragma region Asset Loading
-
-	ItemData.ItemIcon = TFConfigUtils::LoadAssetFromConfig<UTexture2D>(SectionName, TEXT("ItemIcon"), ConfigFilePath, LogTFItem, TEXT("ItemIcon"));
-
-#pragma endregion Asset Loading
-
 #pragma region Pickup Settings
 
 	GConfig->GetBool(*SectionName, TEXT("bDestroyOnPickup"), bDestroyOnPickup, ConfigFilePath);

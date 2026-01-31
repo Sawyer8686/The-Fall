@@ -37,9 +37,6 @@ struct FItemData
 	FText ItemDescription = FText::GetEmpty();
 
 	UPROPERTY(EditAnywhere, Category = "Item")
-	UTexture2D* ItemIcon = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Item")
 	float Weight = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Item")
@@ -71,7 +68,6 @@ struct FItemData
 		, ItemType(EItemType::Food)
 		, ItemName(FText::FromString("Item"))
 		, ItemDescription(FText::GetEmpty())
-		, ItemIcon(nullptr)
 		, Weight(1.0f)
 		, Value(10)
 		, HungerRestore(0.0f)
